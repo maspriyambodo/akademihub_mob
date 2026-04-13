@@ -7,26 +7,26 @@ UserModel _$UserModelFromJson(Map<String, dynamic> json) => UserModel(
   id: (json['id'] as num).toInt(),
   name: json['name'] as String,
   email: json['email'] as String,
-  photo: json['photo'] as String?,
-  roles: (json['roles'] as List<dynamic>).map((e) => e as String).toList(),
-  permissions: (json['permissions'] as List<dynamic>)
-      .map((e) => e as String)
-      .toList(),
-  sekolahId: (json['sekolah_id'] as num?)?.toInt(),
-  siswaId: (json['siswa_id'] as num?)?.toInt(),
-  guruId: (json['guru_id'] as num?)?.toInt(),
-  waliId: (json['wali_id'] as num?)?.toInt(),
+  role: json['role'] as String?,
+  isActive: json['is_active'] as bool? ?? true,
+  // Flatten permissions from roles[].permissions[].code
+  // Backend may return permissions as {} (empty object) instead of [] — guard for both
+  permissions: (json['roles'] as List<dynamic>? ?? []).expand((r) {
+    final perms = (r as Map<String, dynamic>)['permissions'];
+    if (perms is! List) return <String>[];
+    return (perms as List<dynamic>).map(
+      (p) => (p as Map<String, dynamic>)['code'] as String,
+    );
+  }).toList(),
+  profile: json['profile'] as Map<String, dynamic>?,
 );
 
 Map<String, dynamic> _$UserModelToJson(UserModel instance) => <String, dynamic>{
   'id': instance.id,
   'name': instance.name,
   'email': instance.email,
-  'photo': instance.photo,
-  'roles': instance.roles,
+  'role': instance.role,
+  'is_active': instance.isActive,
   'permissions': instance.permissions,
-  'sekolah_id': instance.sekolahId,
-  'siswa_id': instance.siswaId,
-  'guru_id': instance.guruId,
-  'wali_id': instance.waliId,
+  'profile': instance.profile,
 };

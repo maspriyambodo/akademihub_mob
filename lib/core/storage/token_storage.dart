@@ -24,7 +24,6 @@ class TokenStorage {
   Future<void> clearTokens() async {
     await _storage.delete(key: AppConfig.tokenKey);
     await _storage.delete(key: AppConfig.refreshTokenKey);
-    await _storage.delete(key: AppConfig.userKey);
   }
 
   Future<bool> hasValidToken() async {

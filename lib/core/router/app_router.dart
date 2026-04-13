@@ -1,6 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../di/injection.dart';
+import '../widgets/main_shell.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/dashboard/presentation/pages/dashboard_page.dart';
@@ -10,7 +13,6 @@ import '../../features/nilai/presentation/pages/nilai_page.dart';
 import '../../features/tugas/presentation/pages/tugas_page.dart';
 import '../../features/rapor/presentation/pages/rapor_page.dart';
 import '../../features/notifications/presentation/pages/notifications_page.dart';
-import '../widgets/main_shell.dart';
 
 class AppRoutes {
   static const String splash = '/';
@@ -28,17 +30,30 @@ final router = GoRouter(
   initialLocation: AppRoutes.splash,
   redirect: (context, state) {
     final authState = context.read<AuthBloc>().state;
-    final isLoginPage = state.uri.path == AppRoutes.login;
+    final path = state.uri.path;
 
-    if (authState is AuthUnauthenticated && !isLoginPage) {
-      return AppRoutes.login;
+    // Tunggu hasil auth check — tetap di splash
+    if (authState is AuthInitial || authState is AuthLoading) {
+      if (path != AppRoutes.splash) return AppRoutes.splash;
+      return null;
     }
-    if (authState is AuthAuthenticated && isLoginPage) {
-      return AppRoutes.dashboard;
+
+    // Belum login → ke halaman login
+    if (authState is AuthUnauthenticated || authState is AuthError) {
+      if (path != AppRoutes.login) return AppRoutes.login;
+      return null;
     }
+
+    // Sudah login → ke dashboard (jika masih di splash/login)
+    if (authState is AuthAuthenticated) {
+      if (path == AppRoutes.splash || path == AppRoutes.login) {
+        return AppRoutes.dashboard;
+      }
+    }
+
     return null;
   },
-  refreshListenable: _AuthBlocListenable(),
+  refreshListenable: _RouterNotifier(),
   routes: [
     GoRoute(path: AppRoutes.splash, builder: (_, _) => const _SplashPage()),
     GoRoute(path: AppRoutes.login, builder: (_, _) => const LoginPage()),
@@ -66,6 +81,7 @@ final router = GoRouter(
   ],
 );
 
+/// Splash: restore tenant dari storage → langsung cek auth
 class _SplashPage extends StatefulWidget {
   const _SplashPage();
 
@@ -77,7 +93,11 @@ class _SplashPageState extends State<_SplashPage> {
   @override
   void initState() {
     super.initState();
-    context.read<AuthBloc>().add(AuthCheckRequested());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      // Cek apakah token masih valid
+      context.read<AuthBloc>().add(AuthCheckRequested());
+    });
   }
 
   @override
@@ -86,4 +106,17 @@ class _SplashPageState extends State<_SplashPage> {
   }
 }
 
-class _AuthBlocListenable extends ChangeNotifier {}
+/// Notifies GoRouter to re-evaluate redirects when AuthBloc emits.
+class _RouterNotifier extends ChangeNotifier {
+  late final StreamSubscription<dynamic> _authSub;
+
+  _RouterNotifier() {
+    _authSub = sl<AuthBloc>().stream.listen((_) => notifyListeners());
+  }
+
+  @override
+  void dispose() {
+    _authSub.cancel();
+    super.dispose();
+  }
+}

@@ -4,42 +4,33 @@ class UserEntity extends Equatable {
   final int id;
   final String name;
   final String email;
-  final String? photo;
-  final List<String> roles;
+
+  /// Kode role utama, misal: "siswa", "guru", "wali", "admin"
+  final String? role;
+
+  final bool isActive;
   final List<String> permissions;
-  final int? sekolahId;
-  final int? siswaId;
-  final int? guruId;
-  final int? waliId;
+  final Map<String, dynamic>? profile;
 
   const UserEntity({
     required this.id,
     required this.name,
     required this.email,
-    this.photo,
-    required this.roles,
-    required this.permissions,
-    this.sekolahId,
-    this.siswaId,
-    this.guruId,
-    this.waliId,
+    this.role,
+    this.isActive = true,
+    this.permissions = const [],
+    this.profile,
   });
 
-  bool get isSiswa => roles.contains('siswa');
-  bool get isGuru => roles.contains('guru');
-  bool get isWali => roles.contains('wali');
-  bool get isAdmin => roles.contains('admin');
+  bool get isSiswa => role == 'siswa';
+  bool get isGuru => role == 'guru';
+  bool get isWali => role == 'wali';
+  bool get isAdmin => role == 'admin';
 
-  String get primaryRole {
-    if (isAdmin) return 'admin';
-    if (isGuru) return 'guru';
-    if (isWali) return 'wali';
-    if (isSiswa) return 'siswa';
-    return 'unknown';
-  }
+  String get primaryRole => role ?? 'unknown';
 
   bool hasPermission(String permission) => permissions.contains(permission);
 
   @override
-  List<Object?> get props => [id, email, roles];
+  List<Object?> get props => [id, email, role];
 }

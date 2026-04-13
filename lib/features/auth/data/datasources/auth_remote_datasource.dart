@@ -20,7 +20,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       '/auth/login',
       data: {'email': email, 'password': password},
     );
-    return Map<String, dynamic>.from(response.data);
+    // Backend wraps payload in {"success":true,"data":{...}}
+    final body = response.data as Map<String, dynamic>;
+    return Map<String, dynamic>.from(body['data'] as Map<String, dynamic>);
   }
 
   @override

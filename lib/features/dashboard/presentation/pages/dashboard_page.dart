@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/theme/app_theme.dart';
-import '../../../auth/presentation/bloc/auth_bloc.dart';
-import '../../../../core/router/app_router.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../core/router/app_router.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -14,16 +14,42 @@ class DashboardPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('AkademiHub'),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'AkademiHub',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            if (user != null)
+              Text(
+                user.name,
+                style: const TextStyle(fontSize: 11, color: Colors.white70),
+              ),
+          ],
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
             onPressed: () => context.push(AppRoutes.notifications),
           ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () =>
-                context.read<AuthBloc>().add(AuthLogoutRequested()),
+          PopupMenuButton<_DashboardAction>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: (action) {
+              if (action == _DashboardAction.logout) {
+                context.read<AuthBloc>().add(AuthLogoutRequested());
+              }
+            },
+            itemBuilder: (_) => const [
+              PopupMenuItem(
+                value: _DashboardAction.logout,
+                child: ListTile(
+                  leading: Icon(Icons.logout),
+                  title: Text('Keluar'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -200,3 +226,5 @@ class _MenuCard extends StatelessWidget {
     );
   }
 }
+
+enum _DashboardAction { logout }

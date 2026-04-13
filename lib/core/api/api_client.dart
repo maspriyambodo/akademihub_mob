@@ -4,11 +4,11 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../config/app_config.dart';
 
 class ApiClient {
-  late final Dio _dio;
+  late final Dio dio;
   final FlutterSecureStorage _storage;
 
   ApiClient(this._storage) {
-    _dio = Dio(
+    dio = Dio(
       BaseOptions(
         baseUrl: AppConfig.apiBaseUrl,
         connectTimeout: AppConfig.connectTimeout,
@@ -20,17 +20,16 @@ class ApiClient {
       ),
     );
 
-    _dio.interceptors.addAll([
-      _AuthInterceptor(_storage, _dio),
-      LogInterceptor(
-        requestBody: true,
-        responseBody: true,
-        logPrint: (obj) => debugPrint(obj.toString()),
-      ),
+    dio.interceptors.addAll([
+      _AuthInterceptor(_storage, dio),
+      if (kDebugMode)
+        LogInterceptor(
+          requestBody: true,
+          responseBody: true,
+          logPrint: (obj) => debugPrint(obj.toString()),
+        ),
     ]);
   }
-
-  Dio get dio => _dio;
 }
 
 class _AuthInterceptor extends QueuedInterceptorsWrapper {
@@ -57,22 +56,27 @@ class _AuthInterceptor extends QueuedInterceptorsWrapper {
     ErrorInterceptorHandler handler,
   ) async {
     if (err.response?.statusCode == 401) {
-      // Attempt token refresh
       try {
-        final refreshToken = await _storage.read(
-          key: AppConfig.refreshTokenKey,
-        );
+        final refreshToken =
+            await _storage.read(key: AppConfig.refreshTokenKey);
         if (refreshToken == null) return handler.next(err);
 
+        // Backend expects refresh_token in request body
         final response = await _dio.post(
           '/auth/refresh',
-          options: Options(headers: {'Authorization': 'Bearer $refreshToken'}),
+          data: {'refresh_token': refreshToken},
         );
 
-        final newToken = response.data['access_token'] as String;
+        final newToken =
+            response.data['data']['access_token'] as String;
+        final newRefresh =
+            response.data['data']['refresh_token'] as String?;
         await _storage.write(key: AppConfig.tokenKey, value: newToken);
+        if (newRefresh != null) {
+          await _storage.write(
+              key: AppConfig.refreshTokenKey, value: newRefresh);
+        }
 
-        // Retry original request
         final opts = err.requestOptions;
         opts.headers['Authorization'] = 'Bearer $newToken';
         final retryResponse = await _dio.fetch(opts);

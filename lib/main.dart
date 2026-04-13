@@ -17,9 +17,7 @@ class AkademiHubApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
-      providers: [
-        BlocProvider(create: (_) => sl<AuthBloc>()),
-      ],
+      providers: [BlocProvider.value(value: sl<AuthBloc>())],
       child: MaterialApp.router(
         title: 'AkademiHub',
         debugShowCheckedModeBanner: false,

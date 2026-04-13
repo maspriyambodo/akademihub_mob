@@ -1,6 +1,5 @@
 import 'package:get_it/get_it.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../api/api_client.dart';
 import '../storage/token_storage.dart';
 import '../../features/auth/data/datasources/auth_remote_datasource.dart';
@@ -14,19 +13,17 @@ import '../../features/auth/presentation/bloc/auth_bloc.dart';
 final sl = GetIt.instance;
 
 Future<void> configureDependencies() async {
-  // External
+  // ── External ─────────────────────────────────────────────────────────────
   const secureStorage = FlutterSecureStorage(
     aOptions: AndroidOptions(encryptedSharedPreferences: true),
   );
   sl.registerLazySingleton(() => secureStorage);
-  final prefs = await SharedPreferences.getInstance();
-  sl.registerLazySingleton(() => prefs);
 
-  // Core
+  // ── Core ──────────────────────────────────────────────────────────────────
   sl.registerLazySingleton(() => ApiClient(sl()));
   sl.registerLazySingleton(() => TokenStorage(sl()));
 
-  // Auth feature
+  // ── Auth feature ──────────────────────────────────────────────────────────
   sl.registerLazySingleton<AuthRemoteDataSource>(
     () => AuthRemoteDataSourceImpl(sl<ApiClient>().dio),
   );
@@ -36,7 +33,7 @@ Future<void> configureDependencies() async {
   sl.registerLazySingleton(() => LoginUseCase(sl()));
   sl.registerLazySingleton(() => LogoutUseCase(sl()));
   sl.registerLazySingleton(() => GetCurrentUserUseCase(sl()));
-  sl.registerFactory(
+  sl.registerLazySingleton(
     () => AuthBloc(
       loginUseCase: sl(),
       logoutUseCase: sl(),

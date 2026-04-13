@@ -59,13 +59,10 @@ class AuthRepositoryImpl implements AuthRepository {
     id: model.id,
     name: model.name,
     email: model.email,
-    photo: model.photo,
-    roles: model.roles,
+    role: model.role,
+    isActive: model.isActive,
     permissions: model.permissions,
-    sekolahId: model.sekolahId,
-    siswaId: model.siswaId,
-    guruId: model.guruId,
-    waliId: model.waliId,
+    profile: model.profile,
   );
 
   Failure _mapException(AppException e) {
