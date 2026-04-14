@@ -13,10 +13,8 @@ UserModel _$UserModelFromJson(Map<String, dynamic> json) => UserModel(
   // Backend may return permissions as {} (empty object) instead of [] — guard for both
   permissions: (json['roles'] as List<dynamic>? ?? []).expand((r) {
     final perms = (r as Map<String, dynamic>)['permissions'];
-    if (perms is! List) return <String>[];
-    return (perms as List<dynamic>).map(
-      (p) => (p as Map<String, dynamic>)['code'] as String,
-    );
+    if (perms is! List<dynamic>) return <String>[];
+    return perms.map((p) => (p as Map<String, dynamic>)['code'] as String);
   }).toList(),
   profile: json['profile'] as Map<String, dynamic>?,
 );
