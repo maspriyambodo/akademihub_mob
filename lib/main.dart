@@ -4,6 +4,7 @@ import 'core/di/injection.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
+import 'features/dashboard/presentation/bloc/dashboard_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,7 +18,10 @@ class AkademiHubApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
-      providers: [BlocProvider.value(value: sl<AuthBloc>())],
+      providers: [
+        BlocProvider.value(value: sl<AuthBloc>()),
+        BlocProvider(create: (_) => sl<DashboardBloc>()),
+      ],
       child: MaterialApp.router(
         title: 'AkademiHub',
         debugShowCheckedModeBanner: false,

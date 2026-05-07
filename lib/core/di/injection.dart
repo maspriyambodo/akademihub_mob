@@ -15,6 +15,11 @@ import '../../features/absensi/domain/repositories/absensi_repository.dart';
 import '../../features/absensi/domain/usecases/get_absensi_siswa_usecase.dart';
 import '../../features/absensi/domain/usecases/get_absensi_guru_usecase.dart';
 import '../../features/absensi/presentation/bloc/absensi_bloc.dart';
+import '../../features/dashboard/data/datasources/dashboard_remote_datasource.dart';
+import '../../features/dashboard/data/repositories/dashboard_repository_impl.dart';
+import '../../features/dashboard/domain/repositories/dashboard_repository.dart';
+import '../../features/dashboard/domain/usecases/get_dashboard_usecase.dart';
+import '../../features/dashboard/presentation/bloc/dashboard_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -65,4 +70,14 @@ Future<void> configureDependencies() async {
       getGuruList: sl(),
     ),
   );
+
+  // ── Dashboard feature ─────────────────────────────────────────────────────
+  sl.registerLazySingleton<DashboardRemoteDataSource>(
+    () => DashboardRemoteDataSourceImpl(sl<ApiClient>().dio),
+  );
+  sl.registerLazySingleton<DashboardRepository>(
+    () => DashboardRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton(() => GetDashboardDataUseCase(sl()));
+  sl.registerFactory(() => DashboardBloc(sl()));
 }
