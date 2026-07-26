@@ -54,7 +54,7 @@ class GuruDashboardWidget extends StatelessWidget {
           crossAxisCount: 2,
           mainAxisSpacing: 10,
           crossAxisSpacing: 10,
-          childAspectRatio: 1.4,
+          childAspectRatio: 1.15,
           children: [
             DashboardStatCard(
               title: 'Siswa Perwalian',

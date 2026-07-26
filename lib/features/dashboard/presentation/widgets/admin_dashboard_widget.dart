@@ -52,7 +52,7 @@ class AdminDashboardWidget extends StatelessWidget {
           crossAxisCount: 2,
           mainAxisSpacing: 10,
           crossAxisSpacing: 10,
-          childAspectRatio: 1.4,
+          childAspectRatio: 1.15,
           children: [
             DashboardStatCard(
               title: 'Total Siswa Aktif',
@@ -99,7 +99,7 @@ class AdminDashboardWidget extends StatelessWidget {
             crossAxisCount: 2,
             mainAxisSpacing: 10,
             crossAxisSpacing: 10,
-            childAspectRatio: 1.4,
+            childAspectRatio: 1.15,
             children: [
               DashboardStatCard(
                 title: 'Total Pendaftar PPDB',

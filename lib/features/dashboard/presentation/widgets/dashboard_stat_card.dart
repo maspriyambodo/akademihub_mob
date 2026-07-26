@@ -40,6 +40,8 @@ class DashboardStatCard extends StatelessWidget {
                 fontWeight: FontWeight.bold,
                 color: AppColors.textPrimary,
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 2),
             Text(
