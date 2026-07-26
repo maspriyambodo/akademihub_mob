@@ -13,6 +13,19 @@ import '../../features/nilai/presentation/pages/nilai_page.dart';
 import '../../features/tugas/presentation/pages/tugas_page.dart';
 import '../../features/rapor/presentation/pages/rapor_page.dart';
 import '../../features/notifications/presentation/pages/notifications_page.dart';
+import '../../features/keuangan/presentation/pages/keuangan_page.dart';
+import '../../features/profil/presentation/pages/profil_page.dart';
+import '../../features/materi/presentation/pages/materi_page.dart';
+import '../../features/forum/presentation/pages/forum_page.dart';
+import '../../features/perpustakaan/presentation/pages/perpustakaan_page.dart';
+import '../../features/ekstrakurikuler/presentation/pages/ekstrakurikuler_page.dart';
+import '../../features/kalender/presentation/pages/kalender_page.dart';
+import '../../features/bk/presentation/pages/bk_page.dart';
+import '../../features/ujian/presentation/pages/ujian_page.dart';
+import '../../features/tmb/presentation/pages/tmb_page.dart';
+import '../../features/organisasi/presentation/pages/organisasi_page.dart';
+import '../../features/ppdb/presentation/pages/ppdb_page.dart';
+import '../../features/chatbot/presentation/pages/chatbot_page.dart';
 
 class AppRoutes {
   static const String splash = '/';
@@ -24,6 +37,19 @@ class AppRoutes {
   static const String tugas = '/tugas';
   static const String rapor = '/rapor';
   static const String notifications = '/notifications';
+  static const String keuangan = '/keuangan';
+  static const String profil = '/profil';
+  static const String materi = '/materi';
+  static const String forum = '/forum';
+  static const String perpustakaan = '/perpustakaan';
+  static const String ekstrakurikuler = '/ekstrakurikuler';
+  static const String kalender = '/kalender';
+  static const String bk = '/bk';
+  static const String ujian = '/ujian';
+  static const String tmb = '/tmb';
+  static const String organisasi = '/organisasi';
+  static const String ppdb = '/ppdb';
+  static const String chatbot = '/chatbot';
 }
 
 final router = GoRouter(
@@ -75,6 +101,37 @@ final router = GoRouter(
         GoRoute(
           path: AppRoutes.notifications,
           builder: (_, _) => const NotificationsPage(),
+        ),
+        GoRoute(
+          path: AppRoutes.keuangan,
+          builder: (_, _) => const KeuanganPage(),
+        ),
+        GoRoute(path: AppRoutes.profil, builder: (_, _) => const ProfilPage()),
+        GoRoute(path: AppRoutes.materi, builder: (_, _) => const MateriPage()),
+        GoRoute(path: AppRoutes.forum, builder: (_, _) => const ForumPage()),
+        GoRoute(
+          path: AppRoutes.perpustakaan,
+          builder: (_, _) => const PerpustakaanPage(),
+        ),
+        GoRoute(
+          path: AppRoutes.ekstrakurikuler,
+          builder: (_, _) => const EkstrakurikulerPage(),
+        ),
+        GoRoute(
+          path: AppRoutes.kalender,
+          builder: (_, _) => const KalenderPage(),
+        ),
+        GoRoute(path: AppRoutes.bk, builder: (_, _) => const BkPage()),
+        GoRoute(path: AppRoutes.ujian, builder: (_, _) => const UjianPage()),
+        GoRoute(path: AppRoutes.tmb, builder: (_, _) => const TmbPage()),
+        GoRoute(
+          path: AppRoutes.organisasi,
+          builder: (_, _) => const OrganisasiPage(),
+        ),
+        GoRoute(path: AppRoutes.ppdb, builder: (_, _) => const PpdbPage()),
+        GoRoute(
+          path: AppRoutes.chatbot,
+          builder: (_, _) => const ChatbotPage(),
         ),
       ],
     ),

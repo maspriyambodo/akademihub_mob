@@ -54,6 +54,87 @@ const _adminActions = [
     route: AppRoutes.notifications,
     color: AppColors.warning,
   ),
+  _QuickAction(
+    label: 'Pembayaran SPP',
+    icon: Icons.payments_outlined,
+    route: AppRoutes.keuangan,
+    color: AppColors.success,
+  ),
+  _QuickAction(
+    label: 'Materi',
+    icon: Icons.menu_book_outlined,
+    route: AppRoutes.materi,
+    color: AppColors.info,
+  ),
+  _QuickAction(
+    label: 'Forum',
+    icon: Icons.forum_outlined,
+    route: AppRoutes.forum,
+    color: AppColors.secondary,
+  ),
+  _QuickAction(
+    label: 'Perpustakaan',
+    icon: Icons.local_library,
+    route: AppRoutes.perpustakaan,
+    color: AppColors.accent,
+  ),
+  _QuickAction(
+    label: 'Ekstrakurikuler',
+    icon: Icons.sports_soccer,
+    route: AppRoutes.ekstrakurikuler,
+    color: AppColors.primaryLight,
+  ),
+  // Kalender hanya untuk admin: di RbacSeeder, izin `kalender-akademik.view`
+  // hanya diberikan lewat bundle $sysAdmin yang dipakai role `admin` saja.
+  // Role lain akan menerima 403.
+  _QuickAction(
+    label: 'Kalender',
+    icon: Icons.event_note,
+    route: AppRoutes.kalender,
+    color: AppColors.waliColor,
+  ),
+  _QuickAction(
+    label: 'Ujian & Ranking',
+    icon: Icons.emoji_events_outlined,
+    route: AppRoutes.ujian,
+    color: AppColors.warning,
+  ),
+  _QuickAction(
+    label: 'Tes Minat Bakat',
+    icon: Icons.psychology_outlined,
+    route: AppRoutes.tmb,
+    color: AppColors.secondary,
+  ),
+  _QuickAction(
+    label: 'BK',
+    icon: Icons.support_agent,
+    route: AppRoutes.bk,
+    color: AppColors.guruColor,
+  ),
+  _QuickAction(
+    label: 'PPDB',
+    icon: Icons.how_to_reg_outlined,
+    route: AppRoutes.ppdb,
+    color: AppColors.info,
+  ),
+  _QuickAction(
+    label: 'Organisasi',
+    icon: Icons.groups_2,
+    route: AppRoutes.organisasi,
+    color: AppColors.primaryDark,
+  ),
+  _QuickAction(
+    label: 'Asisten AI',
+    icon: Icons.smart_toy_outlined,
+    route: AppRoutes.chatbot,
+    color: AppColors.accent,
+  ),
+  _QuickAction(
+    label: 'Profil',
+    icon: Icons.account_circle_outlined,
+    route: AppRoutes.profil,
+    color: AppColors.textSecondary,
+  ),
 ];
 
 const _guruActions = [
@@ -80,6 +161,68 @@ const _guruActions = [
     icon: Icons.assignment,
     route: AppRoutes.tugas,
     color: AppColors.secondary,
+  ),
+  _QuickAction(
+    label: 'Rapor',
+    icon: Icons.book,
+    route: AppRoutes.rapor,
+    color: AppColors.accent,
+  ),
+  _QuickAction(
+    label: 'Notifikasi',
+    icon: Icons.notifications,
+    route: AppRoutes.notifications,
+    color: AppColors.warning,
+  ),
+  _QuickAction(
+    label: 'Materi',
+    icon: Icons.menu_book_outlined,
+    route: AppRoutes.materi,
+    color: AppColors.info,
+  ),
+  _QuickAction(
+    label: 'Forum',
+    icon: Icons.forum_outlined,
+    route: AppRoutes.forum,
+    color: AppColors.secondary,
+  ),
+  _QuickAction(
+    label: 'Perpustakaan',
+    icon: Icons.local_library,
+    route: AppRoutes.perpustakaan,
+    color: AppColors.accent,
+  ),
+  _QuickAction(
+    label: 'Ekstrakurikuler',
+    icon: Icons.sports_soccer,
+    route: AppRoutes.ekstrakurikuler,
+    color: AppColors.primaryLight,
+  ),
+  _QuickAction(
+    label: 'Ujian & Ranking',
+    icon: Icons.emoji_events_outlined,
+    route: AppRoutes.ujian,
+    color: AppColors.warning,
+  ),
+  // BK relevan untuk guru BK (dinormalisasi ke role guru); guru biasa tanpa
+  // izin `bk-kasus.view` melihat layar akses ditolak yang menjelaskan.
+  _QuickAction(
+    label: 'BK',
+    icon: Icons.support_agent,
+    route: AppRoutes.bk,
+    color: AppColors.guruColor,
+  ),
+  _QuickAction(
+    label: 'Asisten AI',
+    icon: Icons.smart_toy_outlined,
+    route: AppRoutes.chatbot,
+    color: AppColors.accent,
+  ),
+  _QuickAction(
+    label: 'Profil',
+    icon: Icons.account_circle_outlined,
+    route: AppRoutes.profil,
+    color: AppColors.textSecondary,
   ),
 ];
 
@@ -114,6 +257,72 @@ const _siswaActions = [
     route: AppRoutes.rapor,
     color: AppColors.accent,
   ),
+  _QuickAction(
+    label: 'Notifikasi',
+    icon: Icons.notifications,
+    route: AppRoutes.notifications,
+    color: AppColors.warning,
+  ),
+  _QuickAction(
+    label: 'SPP & Tagihan',
+    icon: Icons.account_balance_wallet_outlined,
+    route: AppRoutes.keuangan,
+    color: AppColors.success,
+  ),
+  _QuickAction(
+    label: 'Materi',
+    icon: Icons.menu_book_outlined,
+    route: AppRoutes.materi,
+    color: AppColors.info,
+  ),
+  _QuickAction(
+    label: 'Forum',
+    icon: Icons.forum_outlined,
+    route: AppRoutes.forum,
+    color: AppColors.secondary,
+  ),
+  _QuickAction(
+    label: 'Perpustakaan',
+    icon: Icons.menu_book,
+    route: AppRoutes.perpustakaan,
+    color: AppColors.accent,
+  ),
+  _QuickAction(
+    label: 'Ekstrakurikuler',
+    icon: Icons.sports_soccer,
+    route: AppRoutes.ekstrakurikuler,
+    color: AppColors.primaryLight,
+  ),
+  _QuickAction(
+    label: 'Ujian & Ranking',
+    icon: Icons.emoji_events_outlined,
+    route: AppRoutes.ujian,
+    color: AppColors.warning,
+  ),
+  _QuickAction(
+    label: 'Tes Minat Bakat',
+    icon: Icons.psychology_outlined,
+    route: AppRoutes.tmb,
+    color: AppColors.secondary,
+  ),
+  _QuickAction(
+    label: 'Organisasi',
+    icon: Icons.groups_2,
+    route: AppRoutes.organisasi,
+    color: AppColors.primaryDark,
+  ),
+  _QuickAction(
+    label: 'Asisten AI',
+    icon: Icons.smart_toy_outlined,
+    route: AppRoutes.chatbot,
+    color: AppColors.accent,
+  ),
+  _QuickAction(
+    label: 'Profil',
+    icon: Icons.account_circle_outlined,
+    route: AppRoutes.profil,
+    color: AppColors.textSecondary,
+  ),
 ];
 
 const _waliActions = [
@@ -134,6 +343,72 @@ const _waliActions = [
     icon: Icons.calendar_today,
     route: AppRoutes.jadwal,
     color: AppColors.primary,
+  ),
+  _QuickAction(
+    label: 'Tugas Anak',
+    icon: Icons.assignment,
+    route: AppRoutes.tugas,
+    color: AppColors.secondary,
+  ),
+  _QuickAction(
+    label: 'Rapor Anak',
+    icon: Icons.book,
+    route: AppRoutes.rapor,
+    color: AppColors.accent,
+  ),
+  _QuickAction(
+    label: 'Notifikasi',
+    icon: Icons.notifications,
+    route: AppRoutes.notifications,
+    color: AppColors.warning,
+  ),
+  _QuickAction(
+    label: 'SPP & Tagihan',
+    icon: Icons.account_balance_wallet_outlined,
+    route: AppRoutes.keuangan,
+    color: AppColors.success,
+  ),
+  _QuickAction(
+    label: 'Materi',
+    icon: Icons.menu_book_outlined,
+    route: AppRoutes.materi,
+    color: AppColors.info,
+  ),
+  _QuickAction(
+    label: 'Forum',
+    icon: Icons.forum_outlined,
+    route: AppRoutes.forum,
+    color: AppColors.secondary,
+  ),
+  _QuickAction(
+    label: 'Perpustakaan Anak',
+    icon: Icons.menu_book,
+    route: AppRoutes.perpustakaan,
+    color: AppColors.accent,
+  ),
+  _QuickAction(
+    label: 'Ekstrakurikuler',
+    icon: Icons.sports_soccer,
+    route: AppRoutes.ekstrakurikuler,
+    color: AppColors.primaryLight,
+  ),
+  _QuickAction(
+    label: 'Organisasi',
+    icon: Icons.groups_2,
+    route: AppRoutes.organisasi,
+    color: AppColors.primaryDark,
+  ),
+  _QuickAction(
+    label: 'Asisten AI',
+    icon: Icons.smart_toy_outlined,
+    route: AppRoutes.chatbot,
+    color: AppColors.accent,
+  ),
+  _QuickAction(
+    label: 'Profil',
+    icon: Icons.account_circle_outlined,
+    route: AppRoutes.profil,
+    color: AppColors.textSecondary,
   ),
 ];
 
