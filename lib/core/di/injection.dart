@@ -1,7 +1,14 @@
 import 'package:get_it/get_it.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../api/api_client.dart';
 import '../storage/token_storage.dart';
+import '../storage/tenant_storage.dart';
+import '../../features/tenant/data/datasources/tenant_remote_datasource.dart';
+import '../../features/tenant/data/repositories/tenant_repository_impl.dart';
+import '../../features/tenant/domain/repositories/tenant_repository.dart';
+import '../../features/tenant/domain/usecases/tenant_usecases.dart';
+import '../../features/tenant/presentation/bloc/tenant_bloc.dart';
 import '../../features/auth/data/datasources/auth_remote_datasource.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
@@ -199,10 +206,30 @@ Future<void> configureDependencies() async {
     aOptions: AndroidOptions(encryptedSharedPreferences: true),
   );
   sl.registerLazySingleton(() => secureStorage);
+  final prefs = await SharedPreferences.getInstance();
+  sl.registerLazySingleton<SharedPreferences>(() => prefs);
 
   // ── Core ──────────────────────────────────────────────────────────────────
   sl.registerLazySingleton(() => ApiClient(sl()));
   sl.registerLazySingleton(() => TokenStorage(sl()));
+  sl.registerLazySingleton(() => TenantStorage(sl()));
+
+  // ── Tenant feature ────────────────────────────────────────────────────────
+  sl.registerLazySingleton<TenantRemoteDataSource>(
+    () => TenantRemoteDataSourceImpl(sl<ApiClient>().dio),
+  );
+  sl.registerLazySingleton<TenantRepository>(
+    () => TenantRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton(() => ResolveTenantUseCase(sl()));
+  sl.registerLazySingleton(() => ListTenantsUseCase(sl()));
+  sl.registerFactory(
+    () => TenantBloc(
+      resolveTenant: sl(),
+      listTenants: sl(),
+      tenantStorage: sl(),
+    ),
+  );
 
   // ── Auth feature ──────────────────────────────────────────────────────────
   sl.registerLazySingleton<AuthRemoteDataSource>(
@@ -432,7 +459,12 @@ Future<void> configureDependencies() async {
     ),
   );
   sl.registerFactory(
-    () => MateriDetailBloc(getMateriDetail: sl(), getStatistikMateri: sl()),
+    () => MateriDetailBloc(
+      getMateriDetail: sl(),
+      getStatistikMateri: sl(),
+      catatAkses: sl(),
+      updateDurasi: sl(),
+    ),
   );
 
   // ── Forum feature ─────────────────────────────────────────────────────────

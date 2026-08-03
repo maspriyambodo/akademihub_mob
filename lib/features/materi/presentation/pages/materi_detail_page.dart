@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -10,19 +8,13 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/log_akses_materi_entity.dart';
 import '../../domain/entities/materi_entity.dart';
-import '../../domain/usecases/log_akses_materi_usecase.dart';
 import '../bloc/materi_detail_bloc.dart';
 import '../widgets/materi_widgets.dart';
 
 /// Detail satu materi pembelajaran.
 ///
-/// Halaman ini juga bertugas mencatat log akses siswa:
-/// - `POST /akademik/log-akses-materi` saat halaman dibuka (`initState`)
-/// - `PUT /akademik/log-akses-materi/{id}/durasi` saat halaman ditutup
-///   (`dispose`), dengan durasi dari [Stopwatch].
-///
-/// Keduanya *fire-and-forget*: dibungkus try/catch, hasilnya diabaikan, dan
-/// tidak pernah memunculkan error atau memblokir UI.
+/// Log akses siswa dikelola [MateriDetailBloc] (domain lewat use case),
+/// bukan di View — View hanya mengirim event buka/tutup halaman.
 class MateriDetailPage extends StatelessWidget {
   final MateriEntity materi;
   final String role;
@@ -69,20 +61,12 @@ class _MateriDetailView extends StatefulWidget {
 }
 
 class _MateriDetailViewState extends State<_MateriDetailView> {
-  /// Menghitung lama siswa berada di halaman detail.
   final Stopwatch _stopwatch = Stopwatch();
-
-  /// Future berisi id log yang dibuat POST; null bila pencatatan tidak berlaku.
-  Future<int?>? _logIdFuture;
-
-  late final CatatAksesMateriUseCase _catatAkses;
-  late final UpdateDurasiBacaUseCase _updateDurasi;
+  MateriDetailBloc? _bloc;
 
   bool get _bolehLihatStatistik =>
       widget.role == 'guru' || widget.role == 'admin';
 
-  /// Log hanya dicatat untuk siswa yang id siswa & kelasnya diketahui —
-  /// backend mewajibkan `siswa_id` dan `kelas_id` (kolom NOT NULL).
   bool get _bolehCatatAkses =>
       widget.role == 'siswa' &&
       widget.siswaId != null &&
@@ -91,69 +75,38 @@ class _MateriDetailViewState extends State<_MateriDetailView> {
   @override
   void initState() {
     super.initState();
-    _catatAkses = sl<CatatAksesMateriUseCase>();
-    _updateDurasi = sl<UpdateDurasiBacaUseCase>();
-
     _stopwatch.start();
-    if (_bolehCatatAkses) {
-      _logIdFuture = _kirimCatatAkses();
-    }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      context.read<MateriDetailBloc>().add(
+      final bloc = context.read<MateriDetailBloc>();
+      _bloc = bloc;
+      bloc.add(
         MateriDetailLoadRequested(
           materiId: widget.materi.id,
           awal: widget.materi,
           denganStatistik: _bolehLihatStatistik,
         ),
       );
+      if (_bolehCatatAkses) {
+        bloc.add(
+          MateriDetailAksesDiminta(
+            materiId: widget.materi.id,
+            siswaId: widget.siswaId!,
+            kelasId: widget.kelasId!,
+          ),
+        );
+      }
     });
   }
 
   @override
   void dispose() {
     _stopwatch.stop();
-    _kirimDurasi(_stopwatch.elapsed.inSeconds);
+    _bloc?.add(
+      MateriDetailDurasiDikirim(durasiDetik: _stopwatch.elapsed.inSeconds),
+    );
     super.dispose();
-  }
-
-  // ── Pencatatan log akses (fire-and-forget) ─────────────────────────────────
-
-  Future<int?> _kirimCatatAkses() async {
-    try {
-      final hasil = await _catatAkses(
-        materiId: widget.materi.id,
-        siswaId: widget.siswaId!,
-        kelasId: widget.kelasId!,
-      );
-      if (hasil.isFailure) return null;
-      final id = hasil.requireData.id;
-      return id > 0 ? id : null;
-    } catch (_) {
-      // Sengaja diabaikan — pencatatan log tidak boleh mengganggu pengguna.
-      return null;
-    }
-  }
-
-  void _kirimDurasi(int durasiDetik) {
-    final future = _logIdFuture;
-    if (future == null || durasiDetik < 0) return;
-    unawaited(_prosesKirimDurasi(future, durasiDetik));
-  }
-
-  Future<void> _prosesKirimDurasi(
-    Future<int?> logIdFuture,
-    int durasiDetik,
-  ) async {
-    try {
-      // POST bisa saja belum selesai saat halaman ditutup; tunggu id-nya.
-      final logId = await logIdFuture;
-      if (logId == null) return;
-      await _updateDurasi(logId: logId, durasiDetik: durasiDetik);
-    } catch (_) {
-      // Sengaja diabaikan.
-    }
   }
 
   // ── Buka lampiran ──────────────────────────────────────────────────────────
