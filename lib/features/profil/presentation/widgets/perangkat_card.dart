@@ -91,6 +91,8 @@ class _PerangkatTile extends StatelessWidget {
                   versi == null || versi.isEmpty
                       ? labelPerangkat(perangkat.deviceType)
                       : '${labelPerangkat(perangkat.deviceType)} · v$versi',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
@@ -102,6 +104,8 @@ class _PerangkatTile extends StatelessWidget {
                   perangkat.lastActiveAt == null
                       ? 'Belum pernah aktif'
                       : 'Aktif ${waktuRelatif(perangkat.lastActiveAt)}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.textSecondary,
@@ -110,6 +114,8 @@ class _PerangkatTile extends StatelessWidget {
                 if (perangkat.createdAt != null)
                   Text(
                     'Terdaftar ${waktuLengkap(perangkat.createdAt)}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 11,
                       color: AppColors.textHint,

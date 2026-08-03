@@ -96,6 +96,9 @@ class PerpustakaanBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      // Batas lebar supaya label panjang meng-ellipsis, bukan meluber
+      // keluar dari kartu di layar sempit.
+      constraints: const BoxConstraints(maxWidth: 220),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: color.withAlpha(30),
@@ -109,12 +112,16 @@ class PerpustakaanBadge extends StatelessWidget {
             Icon(icon, size: 12, color: color),
             const SizedBox(width: 4),
           ],
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: color,
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
             ),
           ),
         ],
@@ -392,7 +399,10 @@ class PeminjamanCard extends StatelessWidget {
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   onPressed: onPengembalian,
-                  icon: const Icon(Icons.assignment_turned_in_outlined, size: 18),
+                  icon: const Icon(
+                    Icons.assignment_turned_in_outlined,
+                    size: 18,
+                  ),
                   label: const Text('Proses Pengembalian'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.primary,
@@ -426,15 +436,23 @@ class _KolomTanggal extends StatelessWidget {
       children: [
         Text(
           label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: const TextStyle(fontSize: 10, color: AppColors.textHint),
         ),
         const SizedBox(height: 2),
-        Text(
-          nilai,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: warna ?? AppColors.textPrimary,
+        // Tanggal harus muat pada kolom sempit (3 kolom di layar 320dp).
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(
+            nilai,
+            maxLines: 1,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: warna ?? AppColors.textPrimary,
+            ),
           ),
         ),
       ],

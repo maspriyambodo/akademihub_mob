@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_router.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../widgets/siswa_dashboard_widget.dart';
@@ -139,13 +140,10 @@ class _LoadingSkeleton extends StatelessWidget {
         ),
         const SizedBox(height: 24),
         // Stat cards skeleton
-        GridView.count(
+        GridView(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 2,
-          mainAxisSpacing: 10,
-          crossAxisSpacing: 10,
-          childAspectRatio: 1.15,
+          gridDelegate: Responsive.gridDelegate(context, tinggi: 140),
           children: List.generate(
             4,
             (_) => Container(

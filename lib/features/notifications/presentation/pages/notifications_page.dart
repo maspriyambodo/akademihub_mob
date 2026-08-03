@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/notification_entity.dart';
 import '../bloc/notifications_bloc.dart';
 import '../widgets/notification_detail_sheet.dart';
@@ -42,9 +43,7 @@ class _NotificationsViewState extends State<_NotificationsView> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      context.read<NotificationsBloc>().add(
-        const NotificationsLoadRequested(),
-      );
+      context.read<NotificationsBloc>().add(const NotificationsLoadRequested());
     });
   }
 
@@ -63,9 +62,7 @@ class _NotificationsViewState extends State<_NotificationsView> {
 
     final bloc = context.read<NotificationsBloc>();
     final state = bloc.state;
-    if (state is NotificationsLoaded &&
-        state.hasMore &&
-        !state.isLoadingMore) {
+    if (state is NotificationsLoaded && state.hasMore && !state.isLoadingMore) {
       bloc.add(const NotificationsLoadMoreRequested());
     }
   }
@@ -182,9 +179,11 @@ class _FilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pad = Responsive.pagePadding(context);
+
     return Container(
       color: AppColors.cardBg,
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+      padding: EdgeInsets.fromLTRB(pad.left, 10, pad.right, 10),
       child: Row(
         children: [
           Expanded(
@@ -255,10 +254,7 @@ class _FilterButton extends StatelessWidget {
             if (count > 0) ...[
               const SizedBox(width: 6),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 6,
-                  vertical: 1,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                 decoration: BoxDecoration(
                   color: selected
                       ? Colors.white.withAlpha(60)
@@ -306,56 +302,67 @@ class _LoadedView extends StatelessWidget {
           const NotificationsRefreshRequested(),
         );
       },
-      child: CustomScrollView(
-        controller: scrollController,
-        physics: const AlwaysScrollableScrollPhysics(),
-        slivers: [
-          if (items.isEmpty)
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: _EmptyView(
-                message: state.filter == NotificationFilter.belumDibaca
-                    ? 'Semua notifikasi sudah dibaca'
-                    : 'Belum ada notifikasi',
-              ),
-            )
-          else
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (_, i) => NotificationTile(
-                  item: items[i],
-                  onTap: () => onTapItem(items[i]),
-                ),
-                childCount: items.length,
-              ),
-            ),
-          if (state.isLoadingMore)
-            const SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 16),
-                child: Center(
-                  child: SizedBox(
-                    width: 22,
-                    height: 22,
-                    child: CircularProgressIndicator(strokeWidth: 2),
+      // Lebar daftar dibatasi di tablet agar teks tidak melebar tak terbaca.
+      child: Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: Responsive.lebarKontenMaks(context),
+          ),
+          child: CustomScrollView(
+            controller: scrollController,
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              if (items.isEmpty)
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: _EmptyView(
+                    message: state.filter == NotificationFilter.belumDibaca
+                        ? 'Semua notifikasi sudah dibaca'
+                        : 'Belum ada notifikasi',
+                  ),
+                )
+              else
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (_, i) => NotificationTile(
+                      item: items[i],
+                      onTap: () => onTapItem(items[i]),
+                    ),
+                    childCount: items.length,
                   ),
                 ),
-              ),
-            )
-          else if (items.isNotEmpty && !state.hasMore)
-            const SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 18),
-                child: Center(
-                  child: Text(
-                    'Tidak ada notifikasi lain',
-                    style: TextStyle(fontSize: 12, color: AppColors.textHint),
+              if (state.isLoadingMore)
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    child: Center(
+                      child: SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
+                  ),
+                )
+              else if (items.isNotEmpty && !state.hasMore)
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 18),
+                    child: Center(
+                      child: Text(
+                        'Tidak ada notifikasi lain',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textHint,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-          const SliverPadding(padding: EdgeInsets.only(bottom: 16)),
-        ],
+              const SliverPadding(padding: EdgeInsets.only(bottom: 16)),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -372,8 +379,8 @@ class _ErrorView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
+      child: SingleChildScrollView(
+        padding: Responsive.pagePadding(context) * 2,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -407,24 +414,27 @@ class _EmptyView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(
-            Icons.notifications_none_outlined,
-            size: 64,
-            color: AppColors.textHint,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 14,
-              color: AppColors.textSecondary,
+      child: Padding(
+        padding: Responsive.pagePadding(context) * 1.5,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.notifications_none_outlined,
+              size: 64,
+              color: AppColors.textHint,
             ),
-          ),
-        ],
+            const SizedBox(height: 12),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 14,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

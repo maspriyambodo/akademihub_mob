@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/bk_siswa_ringkas_entity.dart';
 import '../bloc/bk_form_bloc.dart';
 
@@ -151,182 +152,196 @@ class _BkKasusFormViewState extends State<_BkKasusFormView> {
             return const Center(child: CircularProgressIndicator());
           }
 
+          final pad = context.pagePadding;
           return Form(
             key: _formKey,
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-              children: [
-                _JudulSeksi(teks: 'Siswa'),
-                const SizedBox(height: 8),
-                if (widget.bolehCariSiswa)
-                  _PilihSiswaField(
-                    controller: _cariSiswaController,
-                    terpilih: _siswaTerpilih,
-                    hasil: state.hasilCariSiswa,
-                    sedangMencari: state.sedangCariSiswa,
-                    onCari: (q) => context.read<BkFormBloc>().add(
-                      BkFormSiswaSearchRequested(q),
-                    ),
-                    onPilih: (siswa) =>
-                        setState(() => _siswaTerpilih = siswa),
-                    onHapus: () => setState(() => _siswaTerpilih = null),
-                  )
-                else ...[
-                  TextFormField(
-                    controller: _siswaIdController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'ID Siswa',
-                      prefixIcon: Icon(Icons.person_outline, size: 20),
-                      helperText:
-                          'Akun Anda tidak punya izin "siswa.view" untuk '
-                          'mencari siswa — masukkan ID siswa secara manual.',
-                      helperMaxLines: 3,
-                    ),
-                    style: const TextStyle(fontSize: 13.5),
-                    validator: (v) =>
-                        int.tryParse((v ?? '').trim()) == null
-                        ? 'ID siswa wajib berupa angka'
-                        : null,
-                  ),
-                ],
-                if (widget.bolehCariSiswa && _siswaTerpilih == null)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 6, left: 4),
-                    child: Text(
-                      'Pilih siswa dari hasil pencarian.',
-                      style: TextStyle(
-                        fontSize: 11.5,
-                        color: AppColors.textHint,
-                      ),
-                    ),
-                  ),
-                const SizedBox(height: 20),
-                _JudulSeksi(teks: 'Guru Pembimbing'),
-                const SizedBox(height: 8),
-                if (widget.guruIdAwal != null)
-                  const Row(
-                    children: [
-                      Icon(
-                        Icons.check_circle_outline,
-                        size: 15,
-                        color: AppColors.success,
-                      ),
-                      SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          'Kasus akan dicatat atas nama Anda sebagai guru '
-                          'pembimbing.',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textSecondary,
-                          ),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: Responsive.lebarKontenMaks(context),
+                ),
+                child: ListView(
+                  padding: EdgeInsets.fromLTRB(pad.left, 16, pad.right, 32),
+                  children: [
+                    _JudulSeksi(teks: 'Siswa'),
+                    const SizedBox(height: 8),
+                    if (widget.bolehCariSiswa)
+                      _PilihSiswaField(
+                        controller: _cariSiswaController,
+                        terpilih: _siswaTerpilih,
+                        hasil: state.hasilCariSiswa,
+                        sedangMencari: state.sedangCariSiswa,
+                        onCari: (q) => context.read<BkFormBloc>().add(
+                          BkFormSiswaSearchRequested(q),
                         ),
+                        onPilih: (siswa) =>
+                            setState(() => _siswaTerpilih = siswa),
+                        onHapus: () => setState(() => _siswaTerpilih = null),
+                      )
+                    else ...[
+                      TextFormField(
+                        controller: _siswaIdController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'ID Siswa',
+                          prefixIcon: Icon(Icons.person_outline, size: 20),
+                          helperText:
+                              'Akun Anda tidak punya izin "siswa.view" untuk '
+                              'mencari siswa — masukkan ID siswa secara manual.',
+                          helperMaxLines: 3,
+                        ),
+                        style: const TextStyle(fontSize: 13.5),
+                        validator: (v) => int.tryParse((v ?? '').trim()) == null
+                            ? 'ID siswa wajib berupa angka'
+                            : null,
                       ),
                     ],
-                  )
-                else
-                  TextFormField(
-                    controller: _guruIdController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'ID Guru (mst_guru_id)',
-                      prefixIcon: Icon(Icons.support_agent_outlined, size: 20),
-                      helperText:
-                          'Profil guru tidak tersedia dari sesi login — '
-                          'masukkan ID guru pembimbing secara manual.',
-                      helperMaxLines: 3,
-                    ),
-                    style: const TextStyle(fontSize: 13.5),
-                    validator: (v) => int.tryParse((v ?? '').trim()) == null
-                        ? 'ID guru wajib berupa angka'
-                        : null,
-                  ),
-                const SizedBox(height: 20),
-                _JudulSeksi(teks: 'Detail Kasus'),
-                const SizedBox(height: 8),
-                DropdownButtonFormField<int>(
-                  initialValue: _jenisId,
-                  decoration: const InputDecoration(
-                    labelText: 'Jenis Kasus',
-                    prefixIcon: Icon(Icons.category_outlined, size: 20),
-                  ),
-                  items: [
-                    for (final jenis in state.jenisList)
-                      DropdownMenuItem(
-                        value: jenis.id,
+                    if (widget.bolehCariSiswa && _siswaTerpilih == null)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 6, left: 4),
                         child: Text(
-                          jenis.kode != null
-                              ? '${jenis.kode} — ${jenis.nama}'
-                              : jenis.nama,
-                          style: const TextStyle(fontSize: 13.5),
-                          overflow: TextOverflow.ellipsis,
+                          'Pilih siswa dari hasil pencarian.',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            color: AppColors.textHint,
+                          ),
                         ),
                       ),
-                  ],
-                  onChanged: (v) => setState(() => _jenisId = v),
-                  validator: (v) => v == null ? 'Jenis kasus wajib dipilih' : null,
-                ),
-                const SizedBox(height: 12),
-                InkWell(
-                  onTap: _pilihTanggal,
-                  borderRadius: BorderRadius.circular(12),
-                  child: InputDecorator(
-                    decoration: const InputDecoration(
-                      labelText: 'Tanggal Kejadian',
-                      prefixIcon: Icon(Icons.event_outlined, size: 20),
-                    ),
-                    child: Text(
-                      _tanggalStr,
-                      style: const TextStyle(fontSize: 13.5),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _keteranganController,
-                  maxLines: 5,
-                  decoration: const InputDecoration(
-                    labelText: 'Keterangan / Kronologi',
-                    alignLabelWithHint: true,
-                  ),
-                  style: const TextStyle(fontSize: 13.5),
-                  validator: (v) => (v == null || v.trim().isEmpty)
-                      ? 'Keterangan wajib diisi'
-                      : null,
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton.icon(
-                  onPressed: state.mengirim
-                      ? null
-                      : () {
-                          if (widget.bolehCariSiswa &&
-                              _siswaTerpilih == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Pilih siswa terlebih dahulu'),
-                                backgroundColor: AppColors.warning,
-                              ),
-                            );
-                            return;
-                          }
-                          _kirim();
-                        },
-                  icon: state.mengirim
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
+                    const SizedBox(height: 20),
+                    _JudulSeksi(teks: 'Guru Pembimbing'),
+                    const SizedBox(height: 8),
+                    if (widget.guruIdAwal != null)
+                      const Row(
+                        children: [
+                          Icon(
+                            Icons.check_circle_outline,
+                            size: 15,
+                            color: AppColors.success,
                           ),
-                        )
-                      : const Icon(Icons.save_outlined, size: 18),
-                  label: Text(
-                    state.mengirim ? 'Menyimpan…' : 'Simpan Kasus',
-                  ),
+                          SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              'Kasus akan dicatat atas nama Anda sebagai guru '
+                              'pembimbing.',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    else
+                      TextFormField(
+                        controller: _guruIdController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'ID Guru (mst_guru_id)',
+                          prefixIcon: Icon(
+                            Icons.support_agent_outlined,
+                            size: 20,
+                          ),
+                          helperText:
+                              'Profil guru tidak tersedia dari sesi login — '
+                              'masukkan ID guru pembimbing secara manual.',
+                          helperMaxLines: 3,
+                        ),
+                        style: const TextStyle(fontSize: 13.5),
+                        validator: (v) => int.tryParse((v ?? '').trim()) == null
+                            ? 'ID guru wajib berupa angka'
+                            : null,
+                      ),
+                    const SizedBox(height: 20),
+                    _JudulSeksi(teks: 'Detail Kasus'),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<int>(
+                      initialValue: _jenisId,
+                      decoration: const InputDecoration(
+                        labelText: 'Jenis Kasus',
+                        prefixIcon: Icon(Icons.category_outlined, size: 20),
+                      ),
+                      items: [
+                        for (final jenis in state.jenisList)
+                          DropdownMenuItem(
+                            value: jenis.id,
+                            child: Text(
+                              jenis.kode != null
+                                  ? '${jenis.kode} — ${jenis.nama}'
+                                  : jenis.nama,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 13.5),
+                            ),
+                          ),
+                      ],
+                      onChanged: (v) => setState(() => _jenisId = v),
+                      validator: (v) =>
+                          v == null ? 'Jenis kasus wajib dipilih' : null,
+                    ),
+                    const SizedBox(height: 12),
+                    InkWell(
+                      onTap: _pilihTanggal,
+                      borderRadius: BorderRadius.circular(12),
+                      child: InputDecorator(
+                        decoration: const InputDecoration(
+                          labelText: 'Tanggal Kejadian',
+                          prefixIcon: Icon(Icons.event_outlined, size: 20),
+                        ),
+                        child: Text(
+                          _tanggalStr,
+                          style: const TextStyle(fontSize: 13.5),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _keteranganController,
+                      maxLines: 5,
+                      decoration: const InputDecoration(
+                        labelText: 'Keterangan / Kronologi',
+                        alignLabelWithHint: true,
+                      ),
+                      style: const TextStyle(fontSize: 13.5),
+                      validator: (v) => (v == null || v.trim().isEmpty)
+                          ? 'Keterangan wajib diisi'
+                          : null,
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: state.mengirim
+                          ? null
+                          : () {
+                              if (widget.bolehCariSiswa &&
+                                  _siswaTerpilih == null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Pilih siswa terlebih dahulu',
+                                    ),
+                                    backgroundColor: AppColors.warning,
+                                  ),
+                                );
+                                return;
+                              }
+                              _kirim();
+                            },
+                      icon: state.mengirim
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(Icons.save_outlined, size: 18),
+                      label: Text(
+                        state.mengirim ? 'Menyimpan…' : 'Simpan Kasus',
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           );
         },
@@ -381,6 +396,8 @@ class _PilihSiswaField extends StatelessWidget {
                 children: [
                   Text(
                     dipilih.nama,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
@@ -392,6 +409,8 @@ class _PilihSiswaField extends StatelessWidget {
                       if (dipilih.nis != null) 'NIS ${dipilih.nis}',
                       if (dipilih.namaKelas != null) dipilih.namaKelas!,
                     ].join(' · '),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 11.5,
                       color: AppColors.textSecondary,
@@ -453,6 +472,8 @@ class _PilihSiswaField extends StatelessWidget {
                   leading: const Icon(Icons.person_outline, size: 20),
                   title: Text(
                     siswa.nama,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontSize: 13),
                   ),
                   subtitle: Text(
@@ -460,6 +481,8 @@ class _PilihSiswaField extends StatelessWidget {
                       if (siswa.nis != null) 'NIS ${siswa.nis}',
                       if (siswa.namaKelas != null) siswa.namaKelas!,
                     ].join(' · '),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontSize: 11.5),
                   ),
                   onTap: () => onPilih(siswa),

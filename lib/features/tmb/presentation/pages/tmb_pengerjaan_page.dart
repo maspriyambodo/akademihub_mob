@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/tmb_pertanyaan_entity.dart';
 import '../../domain/entities/tmb_peserta_entity.dart';
 import '../../domain/entities/tmb_tes_entity.dart';
@@ -214,12 +215,19 @@ class _PengerjaanViewState extends State<_PengerjaanView> {
         const Divider(height: 1, color: AppColors.divider),
         Expanded(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: _KartuPertanyaan(
-              key: ValueKey(pertanyaan.id),
-              state: state,
-              pertanyaan: pertanyaan,
-              teksController: _teksController,
+            padding: Responsive.pagePadding(context),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: Responsive.lebarKontenMaks(context),
+                ),
+                child: _KartuPertanyaan(
+                  key: ValueKey(pertanyaan.id),
+                  state: state,
+                  pertanyaan: pertanyaan,
+                  teksController: _teksController,
+                ),
+              ),
             ),
           ),
         ),
@@ -291,6 +299,8 @@ class _HeaderProgress extends StatelessWidget {
                       const SizedBox(width: 4),
                       Text(
                         formatSisa(sisa!),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
@@ -421,18 +431,23 @@ class _KartuPertanyaan extends StatelessWidget {
           children: [
             Text(
               'Pertanyaan ${state.index + 1}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
                 color: AppColors.primary,
               ),
             ),
-            const SizedBox(width: 8),
-            if (pertanyaan.aspekNama != null)
-              TmbStatusChip(
-                label: pertanyaan.aspekNama!,
-                color: AppColors.secondary,
+            if (pertanyaan.aspekNama != null) ...[
+              const SizedBox(width: 8),
+              Flexible(
+                child: TmbStatusChip(
+                  label: pertanyaan.aspekNama!,
+                  color: AppColors.secondary,
+                ),
               ),
+            ],
             const Spacer(),
             if (mengirim)
               const SizedBox(

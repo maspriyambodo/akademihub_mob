@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/tmb_hasil_entity.dart';
 import '../../domain/entities/tmb_peserta_entity.dart';
 import '../../domain/entities/tmb_tes_entity.dart';
@@ -67,26 +68,33 @@ class _HasilView extends StatelessWidget {
             );
           }
           if (state is TmbHasilLoaded) {
-            return RefreshIndicator(
-              onRefresh: () async {
-                context.read<TmbHasilBloc>().add(
-                  const TmbHasilRefreshRequested(),
-                );
-              },
-              child: ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(12),
-                children: [
-                  _KartuInfo(state: state, tesFallback: tesFallback),
-                  const SizedBox(height: 10),
-                  if (state.hasil.isEmpty)
-                    const _HasilKosong()
-                  else ...[
-                    _KartuSkor(state: state),
-                    ..._bagianRekomendasi(state),
-                  ],
-                  const SizedBox(height: 24),
-                ],
+            return Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: Responsive.lebarKontenMaks(context),
+                ),
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    context.read<TmbHasilBloc>().add(
+                      const TmbHasilRefreshRequested(),
+                    );
+                  },
+                  child: ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: Responsive.pagePadding(context),
+                    children: [
+                      _KartuInfo(state: state, tesFallback: tesFallback),
+                      const SizedBox(height: 10),
+                      if (state.hasil.isEmpty)
+                        const _HasilKosong()
+                      else ...[
+                        _KartuSkor(state: state),
+                        ..._bagianRekomendasi(state),
+                      ],
+                      const SizedBox(height: 24),
+                    ],
+                  ),
+                ),
               ),
             );
           }
@@ -213,6 +221,8 @@ class _RekomendasiItem extends StatelessWidget {
               Expanded(
                 child: Text(
                   hasil.namaTampil,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -220,15 +230,22 @@ class _RekomendasiItem extends StatelessWidget {
                   ),
                 ),
               ),
-              if (hasil.kategoriTampil != null)
-                Text(
-                  hasil.kategoriTampil!,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textSecondary,
+              if (hasil.kategoriTampil != null) ...[
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    hasil.kategoriTampil!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.right,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 ),
+              ],
             ],
           ),
           if (deskripsi != null && deskripsi.isNotEmpty) ...[
@@ -293,6 +310,8 @@ class _KartuBungkus extends StatelessWidget {
               Expanded(
                 child: Text(
                   judul,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
@@ -300,7 +319,10 @@ class _KartuBungkus extends StatelessWidget {
                   ),
                 ),
               ),
-              ?trailing,
+              if (trailing != null) ...[
+                const SizedBox(width: 8),
+                Flexible(child: trailing!),
+              ],
             ],
           ),
           const SizedBox(height: 10),

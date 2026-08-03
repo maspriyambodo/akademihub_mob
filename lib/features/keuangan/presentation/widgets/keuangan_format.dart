@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 
 /// Helper format khusus modul keuangan.
 ///
@@ -129,6 +130,7 @@ class StatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      constraints: BoxConstraints(maxWidth: besar ? 160 : 130),
       padding: EdgeInsets.symmetric(
         horizontal: besar ? 12 : 8,
         vertical: besar ? 6 : 4,
@@ -145,12 +147,16 @@ class StatusBadge extends StatelessWidget {
             Icon(icon, size: besar ? 14 : 12, color: color),
             const SizedBox(width: 4),
           ],
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: besar ? 12 : 10,
-              color: color,
-              fontWeight: FontWeight.w600,
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: besar ? 12 : 10,
+                color: color,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
@@ -175,6 +181,7 @@ class InfoChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      constraints: const BoxConstraints(maxWidth: 140),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: color.withAlpha(20),
@@ -186,12 +193,16 @@ class InfoChip extends StatelessWidget {
         children: [
           Icon(icon, size: 12, color: color),
           const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              color: color,
-              fontWeight: FontWeight.w600,
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 10,
+                color: color,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
@@ -223,7 +234,9 @@ class DetailRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 130,
+            // Lebar label dipersempit di layar kecil supaya kolom nilai
+            // (mis. nominal rupiah panjang) tetap punya ruang.
+            width: Responsive.isCompact(context) ? 100 : 130,
             child: Text(
               label,
               style: const TextStyle(
@@ -235,6 +248,8 @@ class DetailRow extends StatelessWidget {
           Expanded(
             child: Text(
               nilai,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontSize: 13,
                 color: warnaNilai ?? AppColors.textPrimary,

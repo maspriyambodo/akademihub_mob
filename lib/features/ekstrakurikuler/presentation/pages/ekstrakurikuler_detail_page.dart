@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/ekstrakurikuler_entity.dart';
 import '../../domain/entities/ekstrakurikuler_statistik_entity.dart';
 import '../bloc/ekstrakurikuler_bloc.dart';
@@ -80,36 +81,39 @@ class _DetailView extends StatelessWidget {
       ),
       child: Scaffold(
         appBar: AppBar(title: Text(namaAwal), centerTitle: true),
-        body: BlocBuilder<EkstrakurikulerDetailBloc, EkstrakurikulerDetailState>(
-          builder: (context, state) {
-            if (state is EkstrakurikulerDetailInitial ||
-                state is EkstrakurikulerDetailLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (state is EkstrakurikulerDetailError) {
-              return _ErrorView(
-                message: state.message,
-                onRetry: () => context.read<EkstrakurikulerDetailBloc>().add(
-                  const EkstrakurikulerDetailRefreshRequested(),
-                ),
-              );
-            }
-            if (state is EkstrakurikulerDetailLoaded) {
-              return RefreshIndicator(
-                onRefresh: () async {
-                  context.read<EkstrakurikulerDetailBloc>().add(
-                    const EkstrakurikulerDetailRefreshRequested(),
+        body:
+            BlocBuilder<EkstrakurikulerDetailBloc, EkstrakurikulerDetailState>(
+              builder: (context, state) {
+                if (state is EkstrakurikulerDetailInitial ||
+                    state is EkstrakurikulerDetailLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (state is EkstrakurikulerDetailError) {
+                  return _ErrorView(
+                    message: state.message,
+                    onRetry: () => context
+                        .read<EkstrakurikulerDetailBloc>()
+                        .add(const EkstrakurikulerDetailRefreshRequested()),
                   );
-                },
-                child: _KontenDetail(
-                  state: state,
-                  bolehMendaftar: bolehMendaftar,
-                ),
-              );
-            }
-            return const SizedBox.shrink();
-          },
-        ),
+                }
+                if (state is EkstrakurikulerDetailLoaded) {
+                  return RefreshIndicator(
+                    onRefresh: () async {
+                      context.read<EkstrakurikulerDetailBloc>().add(
+                        const EkstrakurikulerDetailRefreshRequested(),
+                      );
+                    },
+                    child: BatasLebarKonten(
+                      child: _KontenDetail(
+                        state: state,
+                        bolehMendaftar: bolehMendaftar,
+                      ),
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
       ),
     );
   }
@@ -150,7 +154,11 @@ class _KontenDetail extends StatelessWidget {
                   EkstrakurikulerDaftarRequested(ekskul.id),
                 ),
                 icon: const Icon(Icons.how_to_reg),
-                label: const Text('Daftar Ekstrakurikuler'),
+                label: const Text(
+                  'Daftar Ekstrakurikuler',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ),
           ),
@@ -164,7 +172,7 @@ class _KontenDetail extends StatelessWidget {
                 icon: Icons.person_outline,
                 text: ekskul.hasPembina
                     ? 'Pembina: ${ekskul.pembinaNama}'
-                        '${ekskul.pembinaNip != null ? ' (${ekskul.pembinaNip})' : ''}'
+                          '${ekskul.pembinaNip != null ? ' (${ekskul.pembinaNip})' : ''}'
                     : 'Pembina belum ditentukan',
               ),
               InfoBaris(
@@ -175,10 +183,7 @@ class _KontenDetail extends StatelessWidget {
                 icon: Icons.place_outlined,
                 text: 'Lokasi: ${ekskul.lokasi ?? '-'}',
               ),
-              InfoBaris(
-                icon: Icons.tag,
-                text: 'Kode: ${ekskul.kode ?? '-'}',
-              ),
+              InfoBaris(icon: Icons.tag, text: 'Kode: ${ekskul.kode ?? '-'}'),
             ],
           ),
         ),
@@ -222,10 +227,12 @@ class _HeaderDetail extends StatelessWidget {
   Widget build(BuildContext context) {
     final warna = warnaEkskul(ekskul.nama);
 
+    final pad = Responsive.pagePadding(context);
+
     return Container(
       width: double.infinity,
       color: AppColors.cardBg,
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+      padding: EdgeInsets.fromLTRB(pad.left, 16, pad.right, 16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -245,8 +252,10 @@ class _HeaderDetail extends StatelessWidget {
               children: [
                 Text(
                   ekskul.nama,
-                  style: const TextStyle(
-                    fontSize: 17,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: Responsive.fontSize(context, 17),
                     fontWeight: FontWeight.w700,
                     color: AppColors.textPrimary,
                   ),
@@ -394,6 +403,7 @@ class _DaftarPeserta extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CircleAvatar(
                   radius: 15,
@@ -411,6 +421,8 @@ class _DaftarPeserta extends StatelessWidget {
                     children: [
                       Text(
                         peserta.siswaNama ?? 'Siswa #${peserta.siswaId ?? '-'}',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -420,6 +432,8 @@ class _DaftarPeserta extends StatelessWidget {
                       Text(
                         '${peserta.siswaNis ?? '-'} · '
                         'gabung ${formatTanggalIndo(peserta.tanggalDaftar)}',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 11,
                           color: AppColors.textSecondary,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/absensi_bloc.dart';
 import '../../domain/entities/absensi_siswa_entity.dart';
@@ -174,7 +175,10 @@ class _MonthSelector extends StatelessWidget {
 
     return Container(
       color: AppColors.primary,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: EdgeInsets.symmetric(
+        horizontal: context.isCompact ? 8 : 16,
+        vertical: 10,
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -182,12 +186,17 @@ class _MonthSelector extends StatelessWidget {
             icon: const Icon(Icons.chevron_left, color: Colors.white),
             onPressed: onPrev,
           ),
-          Text(
-            '${_bulanNames[bulan]} $tahun',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
+          Expanded(
+            child: Text(
+              '${_bulanNames[bulan]} $tahun',
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
           IconButton(
@@ -214,55 +223,63 @@ class _LoadedView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = state.isGuruMode ? state.guruItems : state.siswaItems;
+    final hPad = Responsive.pagePadding(context).left;
 
-    return RefreshIndicator(
-      onRefresh: onRefresh,
-      child: CustomScrollView(
-        slivers: [
-          // Summary cards
-          SliverToBoxAdapter(child: _SummaryRow(summary: state.summary)),
-          // List header
-          if (items.isNotEmpty)
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                child: Text(
-                  '${items.length} catatan',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: AppColors.textSecondary,
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: Responsive.lebarKontenMaks(context),
+        ),
+        child: RefreshIndicator(
+          onRefresh: onRefresh,
+          child: CustomScrollView(
+            slivers: [
+              // Summary cards
+              SliverToBoxAdapter(child: _SummaryRow(summary: state.summary)),
+              // List header
+              if (items.isNotEmpty)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: hPad,
+                      vertical: 8,
+                    ),
+                    child: Text(
+                      '${items.length} catatan',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-          // Empty state
-          if (items.isEmpty)
-            SliverFillRemaining(
-              child: _EmptyView(
-                message: state.isGuruMode
-                    ? 'Belum ada data absensi guru bulan ini'
-                    : 'Belum ada data absensi bulan ini',
-              ),
-            )
-          else if (state.isGuruMode)
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (_, i) => _AbsensiGuruCard(item: state.guruItems[i]),
-                childCount: state.guruItems.length,
-              ),
-            )
-          else
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (_, i) => _AbsensiSiswaCard(item: state.siswaItems[i]),
-                childCount: state.siswaItems.length,
-              ),
-            ),
-          const SliverPadding(padding: EdgeInsets.only(bottom: 16)),
-        ],
+              // Empty state
+              if (items.isEmpty)
+                SliverFillRemaining(
+                  child: _EmptyView(
+                    message: state.isGuruMode
+                        ? 'Belum ada data absensi guru bulan ini'
+                        : 'Belum ada data absensi bulan ini',
+                  ),
+                )
+              else if (state.isGuruMode)
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (_, i) => _AbsensiGuruCard(item: state.guruItems[i]),
+                    childCount: state.guruItems.length,
+                  ),
+                )
+              else
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (_, i) => _AbsensiSiswaCard(item: state.siswaItems[i]),
+                    childCount: state.siswaItems.length,
+                  ),
+                ),
+              const SliverPadding(padding: EdgeInsets.only(bottom: 16)),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -276,32 +293,37 @@ class _SummaryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Empat kartu angka. Di layar sempit satu baris berisi 4 kartu pasti
+    // meluber, jadi dipakai Wrap dengan lebar sel dihitung dari lebar nyata.
+    final data = <(String, int, Color)>[
+      ('Hadir', summary.hadir, AppColors.success),
+      ('Izin', summary.izin, AppColors.info),
+      ('Sakit', summary.sakit, AppColors.warning),
+      ('Alpha', summary.alpha, AppColors.error),
+    ];
+
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.all(12),
-      child: Row(
-        children: [
-          _SummaryCard(
-            label: 'Hadir',
-            count: summary.hadir,
-            color: AppColors.success,
-          ),
-          _SummaryCard(
-            label: 'Izin',
-            count: summary.izin,
-            color: AppColors.info,
-          ),
-          _SummaryCard(
-            label: 'Sakit',
-            count: summary.sakit,
-            color: AppColors.warning,
-          ),
-          _SummaryCard(
-            label: 'Alpha',
-            count: summary.alpha,
-            color: AppColors.error,
-          ),
-        ],
+      padding: EdgeInsets.all(Responsive.isCompact(context) ? 8 : 12),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          const spacing = 8.0;
+          // 4 kolom bila muat lega, kalau tidak 2 kolom (dua baris).
+          final perBaris = constraints.maxWidth >= 340 ? 4 : 2;
+          final lebarSel =
+              (constraints.maxWidth - spacing * (perBaris - 1)) / perBaris;
+          return Wrap(
+            spacing: spacing,
+            runSpacing: spacing,
+            children: [
+              for (final (label, count, color) in data)
+                SizedBox(
+                  width: lebarSel,
+                  child: _SummaryCard(label: label, count: count, color: color),
+                ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -320,29 +342,36 @@ class _SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 4),
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: color.withAlpha(25),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: color.withAlpha(77)),
-        ),
-        child: Column(
-          children: [
-            Text(
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+      decoration: BoxDecoration(
+        color: color.withAlpha(25),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withAlpha(77)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
               '$count',
+              maxLines: 1,
               style: TextStyle(
-                fontSize: 22,
+                fontSize: Responsive.fontSize(context, 22),
                 fontWeight: FontWeight.bold,
                 color: color,
               ),
             ),
-            const SizedBox(height: 2),
-            Text(label, style: TextStyle(fontSize: 11, color: color)),
-          ],
-        ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 11, color: color),
+          ),
+        ],
       ),
     );
   }
@@ -374,26 +403,39 @@ class _AbsensiSiswaCard extends StatelessWidget {
         : item.tanggal;
 
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      margin: EdgeInsets.symmetric(
+        horizontal: Responsive.pagePadding(context).left,
+        vertical: 4,
+      ),
       child: ListTile(
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: Responsive.isCompact(context) ? 10 : 16,
+        ),
         leading: CircleAvatar(
           backgroundColor: _statusColor(item.statusAbsensi).withAlpha(30),
-          child: Text(
-            date != null ? '${date.day}' : '-',
-            style: TextStyle(
-              color: _statusColor(item.statusAbsensi),
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              date != null ? '${date.day}' : '-',
+              style: TextStyle(
+                color: _statusColor(item.statusAbsensi),
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
             ),
           ),
         ),
         title: Text(
           dateLabel,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
         ),
         subtitle: item.keterangan != null && item.keterangan!.isNotEmpty
             ? Text(
                 item.keterangan!,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
               )
             : null,
@@ -461,26 +503,39 @@ class _AbsensiGuruCard extends StatelessWidget {
     ].join('  ·  ');
 
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      margin: EdgeInsets.symmetric(
+        horizontal: Responsive.pagePadding(context).left,
+        vertical: 4,
+      ),
       child: ListTile(
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: Responsive.isCompact(context) ? 10 : 16,
+        ),
         leading: CircleAvatar(
           backgroundColor: _statusColor(item.statusAbsensi).withAlpha(30),
-          child: Text(
-            date != null ? '${date.day}' : '-',
-            style: TextStyle(
-              color: _statusColor(item.statusAbsensi),
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              date != null ? '${date.day}' : '-',
+              style: TextStyle(
+                color: _statusColor(item.statusAbsensi),
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
             ),
           ),
         ),
         title: Text(
           dateLabel,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
         ),
         subtitle: timeInfo.isNotEmpty
             ? Text(
                 timeInfo,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
               )
             : null,
@@ -527,6 +582,7 @@ class _StatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = _color(label);
     return Container(
+      constraints: const BoxConstraints(maxWidth: 96),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: color.withAlpha(30),
@@ -535,6 +591,8 @@ class _StatusBadge extends StatelessWidget {
       ),
       child: Text(
         label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: TextStyle(
           fontSize: 11,
           color: color,
@@ -563,9 +621,9 @@ class _ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
+    return SingleChildScrollView(
+      padding: Responsive.pagePadding(context) + const EdgeInsets.all(16),
+      child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -597,17 +655,25 @@ class _EmptyView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.how_to_reg_outlined, size: 64, color: AppColors.textHint),
-          const SizedBox(height: 12),
-          Text(
-            message,
-            style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
-          ),
-        ],
+    return SingleChildScrollView(
+      padding: Responsive.pagePadding(context) + const EdgeInsets.all(16),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.how_to_reg_outlined,
+              size: 64,
+              color: AppColors.textHint,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../domain/entities/rapor_entity.dart';
 import '../bloc/rapor_bloc.dart';
@@ -116,40 +117,55 @@ class _RaporViewState extends State<_RaporView> {
                   );
                 }
                 if (state is RaporLoaded) {
-                  return RefreshIndicator(
-                    onRefresh: () async {
-                      context.read<RaporBloc>().add(
-                        const RaporRefreshRequested(),
-                      );
-                    },
-                    child: state.items.isEmpty
-                        ? ListView(
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            children: [
-                              SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.6,
-                                child: _EmptyView(
-                                  message: state.search.trim().isNotEmpty
-                                      ? 'Tidak ada rapor yang cocok dengan pencarian'
-                                      : 'Belum ada data rapor',
+                  final pad = Responsive.pagePadding(context);
+                  return Center(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: Responsive.lebarKontenMaks(context),
+                      ),
+                      child: RefreshIndicator(
+                        onRefresh: () async {
+                          context.read<RaporBloc>().add(
+                            const RaporRefreshRequested(),
+                          );
+                        },
+                        child: state.items.isEmpty
+                            ? ListView(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                children: [
+                                  SizedBox(
+                                    height: Responsive.tinggiSheet(
+                                      context,
+                                      rasio: 0.6,
+                                    ),
+                                    child: _EmptyView(
+                                      message: state.search.trim().isNotEmpty
+                                          ? 'Tidak ada rapor yang cocok dengan pencarian'
+                                          : 'Belum ada data rapor',
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : ListView.builder(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                padding: EdgeInsets.fromLTRB(
+                                  pad.left,
+                                  12,
+                                  pad.right,
+                                  24,
                                 ),
+                                itemCount: state.items.length,
+                                itemBuilder: (_, i) {
+                                  final item = state.items[i];
+                                  return _RaporCard(
+                                    rapor: item,
+                                    showSiswa: !state.isSiswaMode,
+                                    onTap: () => _openDetail(item),
+                                  );
+                                },
                               ),
-                            ],
-                          )
-                        : ListView.builder(
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-                            itemCount: state.items.length,
-                            itemBuilder: (_, i) {
-                              final item = state.items[i];
-                              return _RaporCard(
-                                rapor: item,
-                                showSiswa: !state.isSiswaMode,
-                                onTap: () => _openDetail(item),
-                              );
-                            },
-                          ),
+                      ),
+                    ),
                   );
                 }
                 return const SizedBox.shrink();
@@ -177,9 +193,10 @@ class _SearchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hPad = Responsive.pagePadding(context).left;
     return Container(
       color: AppColors.primary,
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+      padding: EdgeInsets.fromLTRB(hPad, 8, hPad, 12),
       child: TextField(
         controller: controller,
         onChanged: onChanged,
@@ -230,39 +247,46 @@ class _RaporCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(14),
+          padding: EdgeInsets.all(Responsive.isCompact(context) ? 10 : 14),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Nilai rata-rata
               Container(
-                width: 60,
-                height: 60,
+                width: Responsive.isCompact(context) ? 52 : 60,
+                height: Responsive.isCompact(context) ? 52 : 60,
+                padding: const EdgeInsets.symmetric(horizontal: 4),
                 decoration: BoxDecoration(
                   color: _nilaiColor(rata).withAlpha(25),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: _nilaiColor(rata).withAlpha(70)),
                 ),
                 alignment: Alignment.center,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      rata != null ? rata.toStringAsFixed(1) : '-',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: _nilaiColor(rata),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        rata != null ? rata.toStringAsFixed(1) : '-',
+                        maxLines: 1,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: _nilaiColor(rata),
+                        ),
                       ),
-                    ),
-                    Text(
-                      'rata-rata',
-                      style: TextStyle(fontSize: 8, color: _nilaiColor(rata)),
-                    ),
-                  ],
+                      Text(
+                        'rata-rata',
+                        maxLines: 1,
+                        style: TextStyle(fontSize: 8, color: _nilaiColor(rata)),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(width: 14),
+              SizedBox(width: Responsive.isCompact(context) ? 10 : 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -270,6 +294,8 @@ class _RaporCard extends StatelessWidget {
                     if (showSiswa) ...[
                       Text(
                         rapor.siswaNama ?? 'Siswa',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -280,6 +306,8 @@ class _RaporCard extends StatelessWidget {
                     ],
                     Text(
                       rapor.labelPeriode,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: showSiswa ? 12 : 14,
                         fontWeight: showSiswa
@@ -291,29 +319,34 @@ class _RaporCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
-                      children: [
-                        if (rapor.kelas != null && rapor.kelas!.isNotEmpty)
-                          _Chip(
-                            icon: Icons.class_outlined,
-                            label: rapor.kelas!,
-                            color: AppColors.info,
-                          ),
-                        if (rapor.siswaNis != null && showSiswa)
-                          _Chip(
-                            icon: Icons.badge_outlined,
-                            label: 'NIS ${rapor.siswaNis}',
-                            color: AppColors.textSecondary,
-                          ),
-                        if (rapor.peringkat != null)
-                          _Chip(
-                            icon: Icons.emoji_events_outlined,
-                            label: 'Peringkat ${rapor.peringkat}',
-                            color: AppColors.warning,
-                          ),
-                      ],
+                    LayoutBuilder(
+                      builder: (context, c) => Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          if (rapor.kelas != null && rapor.kelas!.isNotEmpty)
+                            _Chip(
+                              icon: Icons.class_outlined,
+                              label: rapor.kelas!,
+                              color: AppColors.info,
+                              maxWidth: c.maxWidth,
+                            ),
+                          if (rapor.siswaNis != null && showSiswa)
+                            _Chip(
+                              icon: Icons.badge_outlined,
+                              label: 'NIS ${rapor.siswaNis}',
+                              color: AppColors.textSecondary,
+                              maxWidth: c.maxWidth,
+                            ),
+                          if (rapor.peringkat != null)
+                            _Chip(
+                              icon: Icons.emoji_events_outlined,
+                              label: 'Peringkat ${rapor.peringkat}',
+                              color: AppColors.warning,
+                              maxWidth: c.maxWidth,
+                            ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -344,11 +377,24 @@ class _Chip extends StatelessWidget {
   final String label;
   final Color color;
 
-  const _Chip({required this.icon, required this.label, required this.color});
+  /// Batas lebar chip agar label panjang tidak meluber keluar `Wrap`.
+  final double? maxWidth;
+
+  const _Chip({
+    required this.icon,
+    required this.label,
+    required this.color,
+    this.maxWidth,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      constraints: BoxConstraints(
+        maxWidth: maxWidth != null && maxWidth!.isFinite
+            ? maxWidth!
+            : double.infinity,
+      ),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: color.withAlpha(25),
@@ -360,12 +406,16 @@ class _Chip extends StatelessWidget {
         children: [
           Icon(icon, size: 12, color: color),
           const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              color: color,
-              fontWeight: FontWeight.w600,
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 10,
+                color: color,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
@@ -383,9 +433,9 @@ class _ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
+    return SingleChildScrollView(
+      padding: Responsive.pagePadding(context) + const EdgeInsets.all(16),
+      child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -428,7 +478,7 @@ class _EmptyView extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
+            padding: Responsive.pagePadding(context) + const EdgeInsets.all(16),
             child: Text(
               message,
               textAlign: TextAlign.center,

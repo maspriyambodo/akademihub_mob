@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 
 class _QuickAction {
   final String label;
@@ -444,11 +445,13 @@ class DashboardQuickActions extends StatelessWidget {
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-                childAspectRatio: 0.95,
+              // Lebar maks per sel menentukan jumlah kolom (3 di HP umum,
+              // 2 di layar sempit, lebih banyak di tablet); tinggi absolut
+              // mencegah ikon+label meluber saat sel menyempit.
+              gridDelegate: Responsive.gridDelegate(
+                context,
+                lebarMaks: 120,
+                tinggi: 96,
               ),
               itemCount: actions.length,
               itemBuilder: (context, i) {

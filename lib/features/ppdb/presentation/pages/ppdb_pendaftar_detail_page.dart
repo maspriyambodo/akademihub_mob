@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../domain/entities/ppdb_dokumen_entity.dart';
 import '../../domain/entities/ppdb_hasil_seleksi_entity.dart';
@@ -100,26 +101,28 @@ class _PpdbDetailViewState extends State<_PpdbDetailView> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Verifikasi Dokumen', style: TextStyle(fontSize: 16)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Tandai "${labelJenisDokumen(dokumen.jenisDokumen)}" sebagai '
-              'terverifikasi?',
-              style: const TextStyle(fontSize: 13),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: controller,
-              maxLines: 2,
-              decoration: const InputDecoration(
-                labelText: 'Catatan (opsional)',
-                labelStyle: TextStyle(fontSize: 12.5),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Tandai "${labelJenisDokumen(dokumen.jenisDokumen)}" sebagai '
+                'terverifikasi?',
+                style: const TextStyle(fontSize: 13),
               ),
-              style: const TextStyle(fontSize: 13),
-            ),
-          ],
+              const SizedBox(height: 12),
+              TextField(
+                controller: controller,
+                maxLines: 2,
+                decoration: const InputDecoration(
+                  labelText: 'Catatan (opsional)',
+                  labelStyle: TextStyle(fontSize: 12.5),
+                ),
+                style: const TextStyle(fontSize: 13),
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -148,26 +151,28 @@ class _PpdbDetailViewState extends State<_PpdbDetailView> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Tolak Dokumen', style: TextStyle(fontSize: 16)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Tolak "${labelJenisDokumen(dokumen.jenisDokumen)}"? '
-              'Alasan wajib diisi.',
-              style: const TextStyle(fontSize: 13),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: controller,
-              maxLines: 2,
-              decoration: const InputDecoration(
-                labelText: 'Alasan penolakan',
-                labelStyle: TextStyle(fontSize: 12.5),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Tolak "${labelJenisDokumen(dokumen.jenisDokumen)}"? '
+                'Alasan wajib diisi.',
+                style: const TextStyle(fontSize: 13),
               ),
-              style: const TextStyle(fontSize: 13),
-            ),
-          ],
+              const SizedBox(height: 12),
+              TextField(
+                controller: controller,
+                maxLines: 2,
+                decoration: const InputDecoration(
+                  labelText: 'Alasan penolakan',
+                  labelStyle: TextStyle(fontSize: 12.5),
+                ),
+                style: const TextStyle(fontSize: 13),
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -285,39 +290,46 @@ class _PpdbDetailViewState extends State<_PpdbDetailView> {
             },
             child: Stack(
               children: [
-                ListView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
-                  children: [
-                    _HeaderCard(pendaftar: pendaftar),
-                    if (_adaAksiPendaftar(pendaftar)) ...[
-                      const SizedBox(height: 10),
-                      _AksiStatusCard(
-                        pendaftar: pendaftar,
-                        sedangProses: state.sedangProses,
-                        bolehVerify: _bolehVerifikasiPendaftar,
-                        bolehAccept: _bolehTerimaPendaftar,
-                        bolehReject: _bolehTolakPendaftar,
-                        onAksi: _konfirmasiAksiPendaftar,
-                      ),
-                    ],
-                    const SizedBox(height: 10),
-                    _BiodataCard(pendaftar: pendaftar),
-                    const SizedBox(height: 10),
-                    _NilaiRaporCard(state: state),
-                    const SizedBox(height: 10),
-                    _DokumenCard(
-                      state: state,
-                      bolehVerify: _bolehVerifikasiDokumen,
-                      bolehReject: _bolehTolakDokumen,
-                      onVerifikasi: _dialogVerifikasiDokumen,
-                      onTolak: _dialogTolakDokumen,
+                Center(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: Responsive.lebarKontenMaks(context),
                     ),
-                    if (state.hasilSeleksi != null) ...[
-                      const SizedBox(height: 10),
-                      _HasilSeleksiCard(hasil: state.hasilSeleksi!),
-                    ],
-                  ],
+                    child: ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
+                      children: [
+                        _HeaderCard(pendaftar: pendaftar),
+                        if (_adaAksiPendaftar(pendaftar)) ...[
+                          const SizedBox(height: 10),
+                          _AksiStatusCard(
+                            pendaftar: pendaftar,
+                            sedangProses: state.sedangProses,
+                            bolehVerify: _bolehVerifikasiPendaftar,
+                            bolehAccept: _bolehTerimaPendaftar,
+                            bolehReject: _bolehTolakPendaftar,
+                            onAksi: _konfirmasiAksiPendaftar,
+                          ),
+                        ],
+                        const SizedBox(height: 10),
+                        _BiodataCard(pendaftar: pendaftar),
+                        const SizedBox(height: 10),
+                        _NilaiRaporCard(state: state),
+                        const SizedBox(height: 10),
+                        _DokumenCard(
+                          state: state,
+                          bolehVerify: _bolehVerifikasiDokumen,
+                          bolehReject: _bolehTolakDokumen,
+                          onVerifikasi: _dialogVerifikasiDokumen,
+                          onTolak: _dialogTolakDokumen,
+                        ),
+                        if (state.hasilSeleksi != null) ...[
+                          const SizedBox(height: 10),
+                          _HasilSeleksiCard(hasil: state.hasilSeleksi!),
+                        ],
+                      ],
+                    ),
+                  ),
                 ),
                 if (state.sedangProses)
                   Container(
@@ -380,6 +392,8 @@ class _HeaderCard extends StatelessWidget {
                     children: [
                       Text(
                         pendaftar.namaLengkap,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
@@ -391,6 +405,8 @@ class _HeaderCard extends StatelessWidget {
                         pendaftar.noPendaftaran.isEmpty
                             ? '(tanpa nomor pendaftaran)'
                             : pendaftar.noPendaftaran,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
@@ -483,6 +499,7 @@ class _BarisIkon extends StatelessWidget {
           Expanded(
             child: Text(
               teks,
+              maxLines: 1,
               style: const TextStyle(
                 fontSize: 12,
                 color: AppColors.textSecondary,
@@ -628,10 +645,7 @@ class _BiodataCard extends StatelessWidget {
             _BarisData('No. HP', pendaftar.telpHp),
             _BarisData('Email', pendaftar.email),
             _BarisData('Asal Sekolah', pendaftar.asalSekolah),
-            _BarisData(
-              'Jumlah Prestasi',
-              pendaftar.jumlahPrestasi?.toString(),
-            ),
+            _BarisData('Jumlah Prestasi', pendaftar.jumlahPrestasi?.toString()),
             _BarisData(
               'Prestasi Tertinggi',
               pendaftar.tingkatPrestasiTertinggi,
@@ -684,6 +698,8 @@ class _BarisData extends StatelessWidget {
           Expanded(
             child: Text(
               nilai!,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w500,
@@ -735,10 +751,7 @@ class _NilaiRaporCard extends StatelessWidget {
             if (state.nilaiList.isEmpty)
               const Text(
                 'Belum ada nilai rapor yang diinput.',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSecondary,
-                ),
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
               )
             else ...[
               for (final n in state.nilaiList)
@@ -822,10 +835,7 @@ class _DokumenCard extends StatelessWidget {
             if (state.dokumenList.isEmpty)
               const Text(
                 'Belum ada dokumen yang diunggah.',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSecondary,
-                ),
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
               )
             else
               for (final d in state.dokumenList)
@@ -912,6 +922,7 @@ class _DokumenTile extends StatelessWidget {
                         ukuran.isEmpty
                             ? dokumen.fileName
                             : '${dokumen.fileName} · $ukuran',
+                        maxLines: 1,
                         style: const TextStyle(
                           fontSize: 10.5,
                           color: AppColors.textSecondary,
@@ -947,8 +958,10 @@ class _DokumenTile extends StatelessWidget {
           ],
           if (bolehVerify || bolehReject) ...[
             const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+            Wrap(
+              alignment: WrapAlignment.end,
+              spacing: 4,
+              runSpacing: 4,
               children: [
                 if (bolehVerify)
                   TextButton.icon(
@@ -1069,6 +1082,8 @@ class _JudulSeksi extends StatelessWidget {
         Flexible(
           child: Text(
             teks,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontSize: 13.5,
               fontWeight: FontWeight.bold,

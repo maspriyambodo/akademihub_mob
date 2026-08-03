@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/tugas_item_entity.dart';
 import '../bloc/tugas_bloc.dart';
 import '../widgets/tugas_widgets.dart';
@@ -34,10 +35,7 @@ class _TugasDetailPageState extends State<TugasDetailPage> {
       );
       return;
     }
-    final berhasil = await launchUrl(
-      uri,
-      mode: LaunchMode.externalApplication,
-    );
+    final berhasil = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!berhasil) {
       messenger.showSnackBar(
         const SnackBar(
@@ -166,293 +164,327 @@ class _DetailBody extends StatelessWidget {
               ? AppColors.warning
               : AppColors.textSecondary);
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-      children: [
-        // ── Header ────────────────────────────────────────────────────────
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+    final pad = Responsive.pagePadding(context);
+    final cardPad = Responsive.isCompact(context) ? 12.0 : 16.0;
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: Responsive.lebarKontenMaks(context),
+        ),
+        child: ListView(
+          padding: EdgeInsets.fromLTRB(pad.left, pad.top, pad.right, 32),
+          children: [
+            // ── Header ────────────────────────────────────────────────────────
+            Card(
+              child: Padding(
+                padding: EdgeInsets.all(cardPad),
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Text(
-                        tugas.judul,
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            tugas.judul,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: Responsive.fontSize(context, 17),
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
                         ),
+                        const SizedBox(width: 8),
+                        TugasBadge(
+                          label: status.label,
+                          color: statusColor,
+                          maxWidth: 110,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    _InfoRow(
+                      icon: Icons.menu_book_outlined,
+                      text: tugas.mapelLabel,
+                    ),
+                    if (tugas.guruNama != null)
+                      _InfoRow(
+                        icon: Icons.person_outline,
+                        text: tugas.guruNama!,
+                      ),
+                    if (tugas.kelasNama != null)
+                      _InfoRow(
+                        icon: Icons.groups_outlined,
+                        text: 'Kelas ${tugas.kelasNama}',
+                      ),
+                    const SizedBox(height: 8),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: deadlineColor.withAlpha(25),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: deadlineColor.withAlpha(70)),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            tugas.isLewatDeadline
+                                ? Icons.warning_amber_rounded
+                                : Icons.schedule,
+                            size: 16,
+                            color: deadlineColor,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              deadline == null
+                                  ? 'Tanpa tenggat waktu'
+                                  : 'Tenggat ${formatTanggalWaktu(deadline)}'
+                                        ' · ${sisaWaktuLabel(deadline)}',
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w600,
+                                color: deadlineColor,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    TugasBadge(label: status.label, color: statusColor),
                   ],
                 ),
-                const SizedBox(height: 8),
-                _InfoRow(
-                  icon: Icons.menu_book_outlined,
-                  text: tugas.mapelLabel,
+              ),
+            ),
+
+            // ── Deskripsi ─────────────────────────────────────────────────────
+            const SizedBox(height: 12),
+            _SectionCard(
+              title: 'Deskripsi',
+              child: Text(
+                (tugas.deskripsi == null || tugas.deskripsi!.isEmpty)
+                    ? 'Tidak ada deskripsi'
+                    : tugas.deskripsi!,
+                style: const TextStyle(
+                  fontSize: 13,
+                  height: 1.5,
+                  color: AppColors.textPrimary,
                 ),
-                if (tugas.guruNama != null)
-                  _InfoRow(
-                    icon: Icons.person_outline,
-                    text: tugas.guruNama!,
-                  ),
-                if (tugas.kelasNama != null)
-                  _InfoRow(
-                    icon: Icons.groups_outlined,
-                    text: 'Kelas ${tugas.kelasNama}',
-                  ),
-                const SizedBox(height: 8),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: deadlineColor.withAlpha(25),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: deadlineColor.withAlpha(70)),
-                  ),
+              ),
+            ),
+
+            // ── Lampiran guru ─────────────────────────────────────────────────
+            if (tugas.fileLampiran != null &&
+                tugas.fileLampiran!.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              _SectionCard(
+                title: 'Lampiran',
+                child: InkWell(
+                  onTap: () => onBukaLampiran(tugas.fileLampiran!),
                   child: Row(
                     children: [
-                      Icon(
-                        tugas.isLewatDeadline
-                            ? Icons.warning_amber_rounded
-                            : Icons.schedule,
-                        size: 16,
-                        color: deadlineColor,
+                      const Icon(
+                        Icons.attach_file,
+                        size: 18,
+                        color: AppColors.primary,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          deadline == null
-                              ? 'Tanpa tenggat waktu'
-                              : 'Tenggat ${formatTanggalWaktu(deadline)}'
-                                    ' · ${sisaWaktuLabel(deadline)}',
-                          style: TextStyle(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w600,
-                            color: deadlineColor,
+                          tugas.fileLampiran!,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: AppColors.primary,
+                            decoration: TextDecoration.underline,
                           ),
                         ),
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
-          ),
-        ),
-
-        // ── Deskripsi ─────────────────────────────────────────────────────
-        const SizedBox(height: 12),
-        _SectionCard(
-          title: 'Deskripsi',
-          child: Text(
-            (tugas.deskripsi == null || tugas.deskripsi!.isEmpty)
-                ? 'Tidak ada deskripsi'
-                : tugas.deskripsi!,
-            style: const TextStyle(
-              fontSize: 13,
-              height: 1.5,
-              color: AppColors.textPrimary,
-            ),
-          ),
-        ),
-
-        // ── Lampiran guru ─────────────────────────────────────────────────
-        if (tugas.fileLampiran != null && tugas.fileLampiran!.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          _SectionCard(
-            title: 'Lampiran',
-            child: InkWell(
-              onTap: () => onBukaLampiran(tugas.fileLampiran!),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.attach_file,
-                    size: 18,
-                    color: AppColors.primary,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      tugas.fileLampiran!,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: AppColors.primary,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
-                ],
               ),
-            ),
-          ),
-        ],
+            ],
 
-        // ── Pengumpulan saya ──────────────────────────────────────────────
-        if (pengumpulan != null && pengumpulan.sudahDikumpulkan) ...[
-          const SizedBox(height: 12),
-          _SectionCard(
-            title: 'Pengumpulan Saya',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+            // ── Pengumpulan saya ──────────────────────────────────────────────
+            if (pengumpulan != null && pengumpulan.sudahDikumpulkan) ...[
+              const SizedBox(height: 12),
+              _SectionCard(
+                title: 'Pengumpulan Saya',
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    TugasBadge(
-                      label: pengumpulan.statusLabel ?? 'Dikumpulkan',
-                      color: pengumpulan.isTerlambat
-                          ? AppColors.error
-                          : AppColors.info,
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        TugasBadge(
+                          label: pengumpulan.statusLabel ?? 'Dikumpulkan',
+                          color: pengumpulan.isTerlambat
+                              ? AppColors.error
+                              : AppColors.info,
+                        ),
+                        Text(
+                          formatTanggalWaktu(pengumpulan.waktuKumpulDate),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        formatTanggalWaktu(pengumpulan.waktuKumpulDate),
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
+                    if (pengumpulan.jawaban != null &&
+                        pengumpulan.jawaban!.isNotEmpty) ...[
+                      const SizedBox(height: 10),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          pengumpulan.jawaban!,
+                          style: const TextStyle(fontSize: 13, height: 1.4),
                         ),
                       ),
-                    ),
+                    ],
+                    if (pengumpulan.fileJawaban != null &&
+                        pengumpulan.fileJawaban!.isNotEmpty) ...[
+                      const SizedBox(height: 10),
+                      InkWell(
+                        onTap: () => onBukaLampiran(pengumpulan.fileJawaban!),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.link,
+                              size: 16,
+                              color: AppColors.primary,
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                pengumpulan.fileJawaban!,
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 12.5,
+                                  color: AppColors.primary,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ],
                 ),
-                if (pengumpulan.jawaban != null &&
-                    pengumpulan.jawaban!.isNotEmpty) ...[
-                  const SizedBox(height: 10),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      pengumpulan.jawaban!,
-                      style: const TextStyle(fontSize: 13, height: 1.4),
-                    ),
-                  ),
-                ],
-                if (pengumpulan.fileJawaban != null &&
-                    pengumpulan.fileJawaban!.isNotEmpty) ...[
-                  const SizedBox(height: 10),
-                  InkWell(
-                    onTap: () => onBukaLampiran(pengumpulan.fileJawaban!),
-                    child: Row(
+              ),
+            ],
+
+            // ── Penilaian ─────────────────────────────────────────────────────
+            if (pengumpulan != null && pengumpulan.sudahDinilai) ...[
+              const SizedBox(height: 12),
+              _SectionCard(
+                title: 'Penilaian',
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       children: [
-                        const Icon(
-                          Icons.link,
-                          size: 16,
-                          color: AppColors.primary,
+                        Container(
+                          constraints: const BoxConstraints(maxWidth: 140),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.success.withAlpha(30),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              pengumpulan.nilaiLabel,
+                              maxLines: 1,
+                              style: TextStyle(
+                                fontSize: Responsive.fontSize(context, 22),
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.success,
+                              ),
+                            ),
+                          ),
                         ),
-                        const SizedBox(width: 6),
-                        Expanded(
+                        const SizedBox(width: 12),
+                        const Flexible(
                           child: Text(
-                            pengumpulan.fileJawaban!,
-                            style: const TextStyle(
-                              fontSize: 12.5,
-                              color: AppColors.primary,
-                              decoration: TextDecoration.underline,
+                            'Nilai tugas',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
                             ),
                           ),
                         ),
                       ],
                     ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
-
-        // ── Penilaian ─────────────────────────────────────────────────────
-        if (pengumpulan != null && pengumpulan.sudahDinilai) ...[
-          const SizedBox(height: 12),
-          _SectionCard(
-            title: 'Penilaian',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.success.withAlpha(30),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        pengumpulan.nilaiLabel,
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.success,
+                    if (pengumpulan.catatanGuru != null &&
+                        pengumpulan.catatanGuru!.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      const Text(
+                        'Catatan guru',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    const Text(
-                      'Nilai tugas',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: AppColors.textSecondary,
+                      const SizedBox(height: 4),
+                      Text(
+                        pengumpulan.catatanGuru!,
+                        style: const TextStyle(fontSize: 13, height: 1.4),
                       ),
-                    ),
+                    ],
                   ],
                 ),
-                if (pengumpulan.catatanGuru != null &&
-                    pengumpulan.catatanGuru!.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Catatan guru',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    pengumpulan.catatanGuru!,
-                    style: const TextStyle(fontSize: 13, height: 1.4),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
+              ),
+            ],
 
-        // ── Tombol kumpulkan ──────────────────────────────────────────────
-        if (canSubmit) ...[
-          const SizedBox(height: 20),
-          ElevatedButton.icon(
-            onPressed: submitting ? null : onKumpulkan,
-            icon: const Icon(Icons.upload_outlined),
-            label: Text(
-              item.sudahDikumpulkan
-                  ? 'Perbarui Pengumpulan'
-                  : 'Kumpulkan Tugas',
-            ),
-          ),
-          if (tugas.isLewatDeadline) ...[
-            const SizedBox(height: 8),
-            const Text(
-              'Tenggat sudah lewat — pengumpulan akan ditandai terlambat.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, color: AppColors.error),
-            ),
+            // ── Tombol kumpulkan ──────────────────────────────────────────────
+            if (canSubmit) ...[
+              const SizedBox(height: 20),
+              ElevatedButton.icon(
+                onPressed: submitting ? null : onKumpulkan,
+                icon: const Icon(Icons.upload_outlined),
+                label: Text(
+                  item.sudahDikumpulkan
+                      ? 'Perbarui Pengumpulan'
+                      : 'Kumpulkan Tugas',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (tugas.isLewatDeadline) ...[
+                const SizedBox(height: 8),
+                const Text(
+                  'Tenggat sudah lewat — pengumpulan akan ditandai terlambat.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 12, color: AppColors.error),
+                ),
+              ],
+            ],
           ],
-        ],
-      ],
+        ),
+      ),
     );
   }
 }
@@ -525,121 +557,142 @@ class _KumpulkanSheetState extends State<_KumpulkanSheet> {
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final hPad = Responsive.isCompact(context) ? 14.0 : 20.0;
 
     return Padding(
+      // Sisakan ruang untuk keyboard supaya isi sheet tidak tertutup.
       padding: EdgeInsets.only(bottom: bottomInset),
       child: Container(
+        constraints: BoxConstraints(
+          // Sadar keyboard: tinggi maksimum menyusut saat keyboard muncul.
+          maxHeight: Responsive.tinggiSheet(context, rasio: 0.92),
+        ),
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
         ),
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.divider,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
-              Text(
-                widget.sudahDikumpulkan
-                    ? 'Perbarui Pengumpulan'
-                    : 'Kumpulkan Tugas',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                widget.judul,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 12.5,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _jawabanCtrl,
-                maxLines: 5,
-                minLines: 3,
-                textInputAction: TextInputAction.newline,
-                decoration: const InputDecoration(
-                  labelText: 'Jawaban',
-                  hintText: 'Tulis jawaban kamu di sini...',
-                  alignLabelWithHint: true,
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _fileCtrl,
-                keyboardType: TextInputType.url,
-                decoration: const InputDecoration(
-                  labelText: 'Tautan lampiran (opsional)',
-                  hintText: 'https://drive.google.com/...',
-                  prefixIcon: Icon(Icons.link),
-                ),
-                validator: (value) {
-                  final v = (value ?? '').trim();
-                  if (v.isEmpty) return null;
-                  if (v.length > 255) return 'Maksimal 255 karakter';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                'Unggah berkas langsung belum tersedia — salin tautan berkas '
-                '(Google Drive, dsb.) ke kolom di atas.',
-                style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-              ),
-              if (_errorUmum != null) ...[
-                const SizedBox(height: 8),
-                Text(
-                  _errorUmum!,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.error,
-                  ),
-                ),
-              ],
-              const SizedBox(height: 18),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: const Size(0, 48),
-                      ),
-                      child: const Text('Batal'),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 20),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.divider,
+                      borderRadius: BorderRadius.circular(2),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _kirim,
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(0, 48),
-                      ),
-                      child: const Text('Kirim'),
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  widget.sudahDikumpulkan
+                      ? 'Perbarui Pengumpulan'
+                      : 'Kumpulkan Tugas',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  widget.judul,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 12.5,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _jawabanCtrl,
+                  maxLines: 5,
+                  minLines: 3,
+                  textInputAction: TextInputAction.newline,
+                  decoration: const InputDecoration(
+                    labelText: 'Jawaban',
+                    hintText: 'Tulis jawaban kamu di sini...',
+                    alignLabelWithHint: true,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _fileCtrl,
+                  keyboardType: TextInputType.url,
+                  decoration: const InputDecoration(
+                    labelText: 'Tautan lampiran (opsional)',
+                    hintText: 'https://drive.google.com/...',
+                    prefixIcon: Icon(Icons.link),
+                  ),
+                  validator: (value) {
+                    final v = (value ?? '').trim();
+                    if (v.isEmpty) return null;
+                    if (v.length > 255) return 'Maksimal 255 karakter';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Unggah berkas langsung belum tersedia — salin tautan berkas '
+                  '(Google Drive, dsb.) ke kolom di atas.',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                if (_errorUmum != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    _errorUmum!,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.error,
                     ),
                   ),
                 ],
-              ),
-            ],
+                const SizedBox(height: 18),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(0, 48),
+                        ),
+                        child: const Text(
+                          'Batal',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: _kirim,
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(0, 48),
+                        ),
+                        child: const Text(
+                          'Kirim',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -688,7 +741,7 @@ class _SectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(Responsive.isCompact(context) ? 12 : 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -716,23 +769,27 @@ class _DetailEmptyView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(
-            Icons.assignment_late_outlined,
-            size: 64,
-            color: AppColors.textHint,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            message,
-            style: const TextStyle(
-              fontSize: 14,
-              color: AppColors.textSecondary,
+      child: Padding(
+        padding: Responsive.pagePadding(context) + const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.assignment_late_outlined,
+              size: 64,
+              color: AppColors.textHint,
             ),
-          ),
-        ],
+            const SizedBox(height: 12),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 14,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/tmb_bloc.dart';
 import '../widgets/tmb_widgets.dart';
@@ -240,38 +241,48 @@ class _TmbViewState extends State<_TmbView> {
             );
           }
           if (state is TmbLoaded) {
-            return RefreshIndicator(
-              onRefresh: () async {
-                context.read<TmbBloc>().add(const TmbRefreshRequested());
-              },
-              child: state.items.isEmpty
-                  ? _ScrollableEmpty(
-                      message: state.isModeSiswa
-                          ? 'Belum ada tes minat bakat untuk kelas Anda'
-                          : 'Belum ada tes minat bakat',
-                    )
-                  : ListView.builder(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.only(top: 6, bottom: 24),
-                      itemCount: state.items.length + (state.catatan != null ? 1 : 0),
-                      itemBuilder: (context, index) {
-                        if (state.catatan != null && index == 0) {
-                          return TmbCatatanBanner(message: state.catatan!);
-                        }
-                        final item = state
-                            .items[state.catatan != null ? index - 1 : index];
-                        return _TesCard(
-                          item: item,
-                          state: state,
-                          onDaftar: () => _konfirmasiDaftar(context, item),
-                          onKerjakan: () =>
-                              _bukaPengerjaan(context, state, item),
-                          onLihatHasil: () => _bukaHasil(context, state, item),
-                          onLihatPeserta: () =>
-                              _bukaPeserta(context, state, item),
-                        );
-                      },
-                    ),
+            return Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: Responsive.lebarKontenMaks(context),
+                ),
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    context.read<TmbBloc>().add(const TmbRefreshRequested());
+                  },
+                  child: state.items.isEmpty
+                      ? _ScrollableEmpty(
+                          message: state.isModeSiswa
+                              ? 'Belum ada tes minat bakat untuk kelas Anda'
+                              : 'Belum ada tes minat bakat',
+                        )
+                      : ListView.builder(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.only(top: 6, bottom: 24),
+                          itemCount:
+                              state.items.length +
+                              (state.catatan != null ? 1 : 0),
+                          itemBuilder: (context, index) {
+                            if (state.catatan != null && index == 0) {
+                              return TmbCatatanBanner(message: state.catatan!);
+                            }
+                            final item = state
+                                .items[state.catatan != null ? index - 1 : index];
+                            return _TesCard(
+                              item: item,
+                              state: state,
+                              onDaftar: () => _konfirmasiDaftar(context, item),
+                              onKerjakan: () =>
+                                  _bukaPengerjaan(context, state, item),
+                              onLihatHasil: () =>
+                                  _bukaHasil(context, state, item),
+                              onLihatPeserta: () =>
+                                  _bukaPeserta(context, state, item),
+                            );
+                          },
+                        ),
+                ),
+              ),
             );
           }
           return const SizedBox.shrink();
@@ -358,6 +369,8 @@ class _TesCard extends StatelessWidget {
                       children: [
                         Text(
                           tes.namaTes,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
@@ -508,7 +521,7 @@ class _ScrollableEmpty extends StatelessWidget {
       physics: const AlwaysScrollableScrollPhysics(),
       children: [
         SizedBox(
-          height: MediaQuery.of(context).size.height * 0.6,
+          height: Responsive.tinggiSheet(context, rasio: 0.6),
           child: _EmptyView(message: message),
         ),
       ],

@@ -55,14 +55,21 @@ class _MainShellState extends State<MainShell> {
         body: widget.child,
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: _currentIndex,
+          type: BottomNavigationBarType.fixed,
+          showSelectedLabels: true,
+          showUnselectedLabels: true,
+          selectedFontSize: 11,
+          unselectedFontSize: 10.5,
           onTap: (index) {
             setState(() => _currentIndex = index);
             context.go(_tabs[index].route);
           },
           items: _tabs
               .map(
-                (t) =>
-                    BottomNavigationBarItem(icon: Icon(t.icon), label: t.label),
+                (t) => BottomNavigationBarItem(
+                  icon: Icon(t.icon),
+                  label: t.label,
+                ),
               )
               .toList(),
         ),

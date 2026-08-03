@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../domain/entities/ppdb_gelombang_entity.dart';
 import '../../domain/entities/ppdb_pendaftar_entity.dart';
@@ -119,9 +120,8 @@ class _PpdbViewState extends State<_PpdbView> {
           if (state is PpdbError) {
             return _ErrorView(
               message: state.message,
-              onRetry: () => context.read<PpdbBloc>().add(
-                const PpdbRefreshRequested(),
-              ),
+              onRetry: () =>
+                  context.read<PpdbBloc>().add(const PpdbRefreshRequested()),
             );
           }
           if (state is! PpdbLoaded) {
@@ -153,55 +153,68 @@ class _PpdbViewState extends State<_PpdbView> {
                   onRefresh: () async {
                     context.read<PpdbBloc>().add(const PpdbRefreshRequested());
                   },
-                  child: CustomScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    slivers: [
-                      if (!state.adaFilterAktif) ...[
-                        SliverToBoxAdapter(
-                          child: _RingkasanSection(statistik: state.statistik),
-                        ),
-                        if (state.gelombangAktif != null)
-                          SliverToBoxAdapter(
-                            child: _GelombangAktifCard(
-                              gelombang: state.gelombangAktif!,
-                            ),
-                          ),
-                      ],
-                      SliverToBoxAdapter(
-                        child: _JudulDaftar(
-                          jumlah: state.pendaftarList.length,
-                          adaFilter: state.adaFilterAktif,
-                        ),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: Responsive.lebarKontenMaks(context),
                       ),
-                      if (state.sedangMemuatDaftar)
-                        const SliverToBoxAdapter(
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(vertical: 32),
-                            child: Center(child: CircularProgressIndicator()),
-                          ),
-                        )
-                      else if (state.pendaftarList.isEmpty)
-                        SliverToBoxAdapter(
-                          child: _EmptyView(
-                            message: state.adaFilterAktif
-                                ? 'Tidak ada pendaftar yang cocok dengan '
-                                      'pencarian/filter.'
-                                : 'Belum ada pendaftar PPDB.',
-                          ),
-                        )
-                      else
-                        SliverList(
-                          delegate: SliverChildBuilderDelegate(
-                            (_, i) => _PendaftarCard(
-                              pendaftar: state.pendaftarList[i],
-                              onTap: () =>
-                                  _bukaDetail(state.pendaftarList[i]),
+                      child: CustomScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        slivers: [
+                          if (!state.adaFilterAktif) ...[
+                            SliverToBoxAdapter(
+                              child: _RingkasanSection(
+                                statistik: state.statistik,
+                              ),
                             ),
-                            childCount: state.pendaftarList.length,
+                            if (state.gelombangAktif != null)
+                              SliverToBoxAdapter(
+                                child: _GelombangAktifCard(
+                                  gelombang: state.gelombangAktif!,
+                                ),
+                              ),
+                          ],
+                          SliverToBoxAdapter(
+                            child: _JudulDaftar(
+                              jumlah: state.pendaftarList.length,
+                              adaFilter: state.adaFilterAktif,
+                            ),
                           ),
-                        ),
-                      const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
-                    ],
+                          if (state.sedangMemuatDaftar)
+                            const SliverToBoxAdapter(
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(vertical: 32),
+                                child: Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              ),
+                            )
+                          else if (state.pendaftarList.isEmpty)
+                            SliverToBoxAdapter(
+                              child: _EmptyView(
+                                message: state.adaFilterAktif
+                                    ? 'Tidak ada pendaftar yang cocok dengan '
+                                          'pencarian/filter.'
+                                    : 'Belum ada pendaftar PPDB.',
+                              ),
+                            )
+                          else
+                            SliverList(
+                              delegate: SliverChildBuilderDelegate(
+                                (_, i) => _PendaftarCard(
+                                  pendaftar: state.pendaftarList[i],
+                                  onTap: () =>
+                                      _bukaDetail(state.pendaftarList[i]),
+                                ),
+                                childCount: state.pendaftarList.length,
+                              ),
+                            ),
+                          const SliverPadding(
+                            padding: EdgeInsets.only(bottom: 24),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -232,10 +245,7 @@ class _SearchBar extends StatelessWidget {
         textInputAction: TextInputAction.search,
         decoration: InputDecoration(
           hintText: 'Cari nama / no pendaftaran / NISN / email',
-          hintStyle: const TextStyle(
-            fontSize: 12.5,
-            color: AppColors.textHint,
-          ),
+          hintStyle: const TextStyle(fontSize: 12.5, color: AppColors.textHint),
           prefixIcon: const Icon(Icons.search, size: 20),
           isDense: true,
           contentPadding: const EdgeInsets.symmetric(
@@ -423,7 +433,20 @@ class _RingkasanSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Row(
+          // Lima kartu status: dulu satu `Row` ber-Expanded sehingga di layar
+          // 320dp tiap sel hanya ~55dp dan label ("Terverifikasi") terpotong
+          // jadi tak terbaca. Grid berbasis lebar membuat jumlah kolom
+          // menyesuaikan layar (3 di HP kecil, 5 di layar lebar).
+          GridView(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            padding: EdgeInsets.zero,
+            gridDelegate: Responsive.gridDelegate(
+              context,
+              lebarMaks: 118,
+              tinggi: 88,
+              spacing: 6,
+            ),
             children: [
               for (final status in const [
                 'draft',
@@ -431,17 +454,13 @@ class _RingkasanSection extends StatelessWidget {
                 'seleksi',
                 'cadangan',
                 'ditolak',
-              ]) ...[
-                Expanded(
-                  child: _KartuAngka(
-                    label: labelStatusPendaftaran(status),
-                    nilai: statistik.jumlahUntuk(status),
-                    warna: warnaStatusPendaftaran(status),
-                    ikon: ikonStatusPendaftaran(status),
-                  ),
+              ])
+                _KartuAngka(
+                  label: labelStatusPendaftaran(status),
+                  nilai: statistik.jumlahUntuk(status),
+                  warna: warnaStatusPendaftaran(status),
+                  ikon: ikonStatusPendaftaran(status),
                 ),
-                if (status != 'ditolak') const SizedBox(width: 6),
-              ],
             ],
           ),
           if (!statistik.dariServer)
@@ -487,6 +506,9 @@ class _KartuAngka extends StatelessWidget {
         border: Border.all(color: warna.withAlpha(60)),
       ),
       child: Column(
+        mainAxisAlignment: besar
+            ? MainAxisAlignment.start
+            : MainAxisAlignment.center,
         crossAxisAlignment: besar
             ? CrossAxisAlignment.start
             : CrossAxisAlignment.center,
@@ -499,6 +521,7 @@ class _KartuAngka extends StatelessWidget {
                 Expanded(
                   child: Text(
                     label,
+                    maxLines: 1,
                     style: const TextStyle(
                       fontSize: 11.5,
                       color: AppColors.textSecondary,
@@ -514,21 +537,26 @@ class _KartuAngka extends StatelessWidget {
           SizedBox(height: besar ? 6 : 4),
           Text(
             '$nilai',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontSize: besar ? 22 : 14,
+              fontSize: besar ? Responsive.fontSize(context, 22) : 14,
               fontWeight: FontWeight.bold,
               color: warna,
             ),
           ),
           if (!besar) ...[
             const SizedBox(height: 2),
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 9,
-                color: AppColors.textSecondary,
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 2,
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 9.5,
+                  color: AppColors.textSecondary,
+                ),
               ),
             ),
           ],
@@ -567,7 +595,11 @@ class _GelombangAktifCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.campaign_outlined, size: 18, color: Colors.white),
+              const Icon(
+                Icons.campaign_outlined,
+                size: 18,
+                color: Colors.white,
+              ),
               const SizedBox(width: 8),
               const Text(
                 'Gelombang Aktif',
@@ -588,6 +620,8 @@ class _GelombangAktifCard extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             gelombang.namaGelombang,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -636,6 +670,7 @@ class _BarisInfoGelombang extends StatelessWidget {
           Expanded(
             child: Text(
               teks,
+              maxLines: 1,
               style: const TextStyle(fontSize: 12, color: Colors.white),
               overflow: TextOverflow.ellipsis,
             ),
@@ -666,17 +701,23 @@ class _JudulDaftar extends StatelessWidget {
             color: AppColors.primary,
           ),
           const SizedBox(width: 7),
-          Text(
-            adaFilter ? 'Hasil Pencarian' : 'Daftar Pendaftar',
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: AppColors.primary,
+          Flexible(
+            child: Text(
+              adaFilter ? 'Hasil Pencarian' : 'Daftar Pendaftar',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: AppColors.primary,
+              ),
             ),
           ),
-          const Spacer(),
+          const SizedBox(width: 8),
           Text(
             '$jumlah pendaftar',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontSize: 11.5,
               color: AppColors.textSecondary,
@@ -731,6 +772,7 @@ class _PendaftarCard extends StatelessWidget {
                         Expanded(
                           child: Text(
                             pendaftar.namaLengkap,
+                            maxLines: 1,
                             style: const TextStyle(
                               fontSize: 13.5,
                               fontWeight: FontWeight.w600,
@@ -777,6 +819,7 @@ class _PendaftarCard extends StatelessWidget {
                           Expanded(
                             child: Text(
                               pendaftar.asalSekolah!,
+                              maxLines: 1,
                               style: const TextStyle(
                                 fontSize: 11,
                                 color: AppColors.textSecondary,
@@ -804,6 +847,7 @@ class _PendaftarCard extends StatelessWidget {
                           Flexible(
                             child: Text(
                               pendaftar.namaGelombang!,
+                              maxLines: 1,
                               style: const TextStyle(
                                 fontSize: 10.5,
                                 color: AppColors.textHint,

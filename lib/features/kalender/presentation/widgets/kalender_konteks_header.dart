@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/kalender_konteks_entity.dart';
 import 'kalender_visuals.dart';
 
@@ -23,10 +24,12 @@ class KalenderKonteksHeader extends StatelessWidget {
     final semester = konteks.semesterAktif;
     final hariSekolah = _ringkasHariOperasional(konteks.weekdayAktif);
 
+    final pad = Responsive.pagePadding(context);
+
     return Container(
       width: double.infinity,
       color: AppColors.primaryDark,
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
+      padding: EdgeInsets.fromLTRB(pad.left, 8, pad.right, 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

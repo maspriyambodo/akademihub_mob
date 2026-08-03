@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/kalender_agenda_item.dart';
 import 'kalender_visuals.dart';
 
@@ -22,6 +23,9 @@ class KalenderChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      // Chip kategori bisa berlabel panjang; dibatasi lebarnya agar
+      // meng-ellipsis, bukan meluber keluar kartu.
+      constraints: const BoxConstraints(maxWidth: 200),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: solid ? color : color.withAlpha(28),
@@ -35,13 +39,17 @@ class KalenderChip extends StatelessWidget {
             Icon(icon, size: 11, color: solid ? Colors.white : color),
             const SizedBox(width: 4),
           ],
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10.5,
-              height: 1.2,
-              fontWeight: FontWeight.w600,
-              color: solid ? Colors.white : color,
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 10.5,
+                height: 1.2,
+                fontWeight: FontWeight.w600,
+                color: solid ? Colors.white : color,
+              ),
             ),
           ),
         ],
@@ -78,7 +86,10 @@ class KalenderAgendaCard extends StatelessWidget {
     final statusLabel = labelStatus(item.status);
 
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+      margin: EdgeInsets.symmetric(
+        horizontal: Responsive.pagePadding(context).left,
+        vertical: 5,
+      ),
       clipBehavior: Clip.antiAlias,
       elevation: sorotHariIni ? 3 : 1.5,
       child: InkWell(
@@ -249,11 +260,15 @@ class _MetaBaris extends StatelessWidget {
       children: [
         Icon(icon, size: 13, color: AppColors.textSecondary),
         const SizedBox(width: 4),
-        Text(
-          teks,
-          style: const TextStyle(
-            fontSize: 11.5,
-            color: AppColors.textSecondary,
+        Flexible(
+          child: Text(
+            teks,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 11.5,
+              color: AppColors.textSecondary,
+            ),
           ),
         ),
       ],
@@ -279,13 +294,15 @@ class _BlokTanggal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final d = mulai;
+    final lebar = Responsive.isCompact(context) ? 42.0 : 46.0;
+
     return SizedBox(
-      width: 46,
+      width: lebar,
       child: Column(
         children: [
           Container(
-            width: 46,
-            padding: const EdgeInsets.symmetric(vertical: 6),
+            width: lebar,
+            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
             decoration: BoxDecoration(
               color: warna.withAlpha(28),
               borderRadius: BorderRadius.circular(10),
@@ -293,30 +310,40 @@ class _BlokTanggal extends StatelessWidget {
             ),
             child: Column(
               children: [
-                Text(
-                  d == null ? '--' : labelHariPendek(d.weekday),
-                  style: TextStyle(
-                    fontSize: 10,
-                    height: 1.1,
-                    fontWeight: FontWeight.w600,
-                    color: warna,
+                // FittedBox: blok tanggal harus tetap muat walau font sistem
+                // diperbesar (kolom ini sempit dan lebarnya pasti).
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    d == null ? '--' : labelHariPendek(d.weekday),
+                    maxLines: 1,
+                    style: TextStyle(
+                      fontSize: 10,
+                      height: 1.1,
+                      fontWeight: FontWeight.w600,
+                      color: warna,
+                    ),
                   ),
                 ),
-                Text(
-                  d == null ? '-' : '${d.day}',
-                  style: TextStyle(
-                    fontSize: 19,
-                    height: 1.15,
-                    fontWeight: FontWeight.bold,
-                    color: warna,
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    d == null ? '-' : '${d.day}',
+                    maxLines: 1,
+                    style: TextStyle(
+                      fontSize: Responsive.fontSize(context, 19),
+                      height: 1.15,
+                      fontWeight: FontWeight.bold,
+                      color: warna,
+                    ),
                   ),
                 ),
-                Text(
-                  d == null ? '' : labelBulanPendek(d.month),
-                  style: TextStyle(
-                    fontSize: 10,
-                    height: 1.1,
-                    color: warna,
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    d == null ? '' : labelBulanPendek(d.month),
+                    maxLines: 1,
+                    style: TextStyle(fontSize: 10, height: 1.1, color: warna),
                   ),
                 ),
               ],
@@ -324,13 +351,17 @@ class _BlokTanggal extends StatelessWidget {
           ),
           if (selesai != null && jumlahHari > 1) ...[
             const SizedBox(height: 4),
-            Text(
-              '$jumlahHari hari',
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 9.5,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textSecondary,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                '$jumlahHari hari',
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                style: const TextStyle(
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary,
+                ),
               ),
             ),
           ],

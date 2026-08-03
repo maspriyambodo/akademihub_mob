@@ -56,6 +56,14 @@ class _AuthInterceptor extends QueuedInterceptorsWrapper {
     ErrorInterceptorHandler handler,
   ) async {
     if (err.response?.statusCode == 401) {
+      final path = err.requestOptions.path;
+      // Jangan refresh token saat login/register gagal.
+      if (path.contains('/auth/login') ||
+          path.contains('/auth/register') ||
+          path.contains('/auth/refresh')) {
+        return handler.next(err);
+      }
+
       try {
         final refreshToken =
             await _storage.read(key: AppConfig.refreshTokenKey);

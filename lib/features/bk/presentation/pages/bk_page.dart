@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../auth/domain/entities/user_entity.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../domain/entities/bk_kasus_entity.dart';
@@ -23,10 +24,7 @@ class BkPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => sl<BkBloc>(),
-      child: const _BkView(),
-    );
+    return BlocProvider(create: (_) => sl<BkBloc>(), child: const _BkView());
   }
 }
 
@@ -83,8 +81,7 @@ class _BkViewState extends State<_BkView> {
           canViewTindakan: user?.hasPermission(bkPermTindakanView) ?? false,
           canManageSesi: user?.hasPermission(bkPermSesiManage) ?? false,
           canManageHasil: user?.hasPermission(bkPermHasilManage) ?? false,
-          canManageTindakan:
-              user?.hasPermission(bkPermTindakanManage) ?? false,
+          canManageTindakan: user?.hasPermission(bkPermTindakanManage) ?? false,
         ),
       ),
     );
@@ -103,9 +100,7 @@ class _BkViewState extends State<_BkView> {
           // backend bisa mengirim profile null (UserResource hanya memetakan
           // kode GURU/SISWA/WALI_SISWA) — form menyediakan isian ID guru
           // manual sebagai cadangan.
-          guruIdAwal: _role == 'guru'
-              ? (user?.profile?['id'] as int?)
-              : null,
+          guruIdAwal: _role == 'guru' ? (user?.profile?['id'] as int?) : null,
           bolehCariSiswa: user?.hasPermission(bkPermSiswaView) ?? false,
         ),
       ),
@@ -184,6 +179,7 @@ class _LoadedView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pad = context.pagePadding;
     return Column(
       children: [
         if (state.tampilkanNamaSiswa) _SearchBar(nilaiAwal: state.search),
@@ -196,33 +192,48 @@ class _LoadedView extends StatelessWidget {
         Expanded(
           child: RefreshIndicator(
             onRefresh: onRefresh,
-            child: state.items.isEmpty
-                ? ListView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    children: [
-                      SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.55,
-                        child: _EmptyView(
-                          message: state.adaFilterAktif
-                              ? 'Tidak ada kasus yang cocok dengan filter.'
-                              : 'Belum ada kasus bimbingan konseling.',
+            child: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: Responsive.lebarKontenMaks(context),
+                ),
+                child: state.items.isEmpty
+                    ? ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: [
+                          SizedBox(
+                            height: Responsive.tinggiSheet(
+                              context,
+                              rasio: 0.55,
+                            ),
+                            child: _EmptyView(
+                              message: state.adaFilterAktif
+                                  ? 'Tidak ada kasus yang cocok dengan filter.'
+                                  : 'Belum ada kasus bimbingan konseling.',
+                            ),
+                          ),
+                        ],
+                      )
+                    : ListView.builder(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: EdgeInsets.fromLTRB(
+                          pad.left,
+                          8,
+                          pad.right,
+                          pad.bottom + 80,
                         ),
+                        itemCount: state.items.length,
+                        itemBuilder: (context, i) {
+                          final kasus = state.items[i];
+                          return _KasusCard(
+                            kasus: kasus,
+                            tampilkanNamaSiswa: state.tampilkanNamaSiswa,
+                            onTap: () => onTapKasus(kasus),
+                          );
+                        },
                       ),
-                    ],
-                  )
-                : ListView.builder(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(12, 8, 12, 96),
-                    itemCount: state.items.length,
-                    itemBuilder: (context, i) {
-                      final kasus = state.items[i];
-                      return _KasusCard(
-                        kasus: kasus,
-                        tampilkanNamaSiswa: state.tampilkanNamaSiswa,
-                        onTap: () => onTapKasus(kasus),
-                      );
-                    },
-                  ),
+              ),
+            ),
           ),
         ),
       ],
@@ -239,9 +250,10 @@ class _SearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pad = context.pagePadding;
     return Container(
       color: AppColors.cardBg,
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
+      padding: EdgeInsets.fromLTRB(pad.left, 10, pad.right, 4),
       child: TextFormField(
         initialValue: nilaiAwal,
         onChanged: (v) => context.read<BkBloc>().add(BkSearchChanged(v)),
@@ -273,12 +285,13 @@ class _StatusFilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pad = context.pagePadding;
     return Container(
       height: 46,
       color: AppColors.cardBg,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        padding: EdgeInsets.symmetric(horizontal: pad.left, vertical: 7),
         itemCount: statusList.length + 1,
         separatorBuilder: (_, _) => const SizedBox(width: 6),
         itemBuilder: (context, i) {

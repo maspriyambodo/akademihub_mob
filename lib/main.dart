@@ -29,6 +29,18 @@ class AkademiHubApp extends StatelessWidget {
         darkTheme: AppTheme.darkTheme,
         themeMode: ThemeMode.light,
         routerConfig: router,
+        builder: (context, child) {
+          // Batasi skala font sistem. Pengaturan aksesibilitas Android bisa
+          // mencapai 2.0x dan itu merusak layout bertinggi tetap. Rentang
+          // 0.85–1.3 tetap menghormati preferensi pengguna tanpa membuat
+          // teks meluber dari kartu/baris.
+          final mq = MediaQuery.of(context);
+          final skala = mq.textScaler.scale(1).clamp(0.85, 1.3);
+          return MediaQuery(
+            data: mq.copyWith(textScaler: TextScaler.linear(skala)),
+            child: child ?? const SizedBox.shrink(),
+          );
+        },
       ),
     );
   }

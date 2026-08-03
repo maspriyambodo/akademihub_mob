@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../domain/entities/kalender_agenda_item.dart';
 import '../../domain/entities/kalender_tipe_entity.dart';
@@ -197,32 +198,36 @@ class _TipeFilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pad = Responsive.pagePadding(context);
+
+    // Tanpa tinggi tetap: deretan chip digulir horizontal sehingga tetap utuh
+    // di layar sempit dan ikut tumbuh saat font sistem diperbesar.
     return Container(
-      height: 46,
+      width: double.infinity,
       color: AppColors.cardBg,
-      child: ListView.separated(
+      child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-        itemCount: tipeList.length + 1,
-        separatorBuilder: (_, _) => const SizedBox(width: 6),
-        itemBuilder: (_, i) {
-          if (i == 0) {
-            return _ChipFilter(
+        padding: EdgeInsets.fromLTRB(pad.left, 7, pad.right, 7),
+        child: Row(
+          children: [
+            _ChipFilter(
               label: 'Semua',
               warna: AppColors.primary,
               aktif: terpilih == null,
               onTap: () => onPilih(null),
-            );
-          }
-          final tipe = tipeList[i - 1];
-          return _ChipFilter(
-            label: tipe.nama,
-            warna: warnaTipe(tipe),
-            ikon: ikonTipe(tipe),
-            aktif: terpilih == tipe.id,
-            onTap: () => onPilih(terpilih == tipe.id ? null : tipe.id),
-          );
-        },
+            ),
+            for (final tipe in tipeList) ...[
+              const SizedBox(width: 6),
+              _ChipFilter(
+                label: tipe.nama,
+                warna: warnaTipe(tipe),
+                ikon: ikonTipe(tipe),
+                aktif: terpilih == tipe.id,
+                onTap: () => onPilih(terpilih == tipe.id ? null : tipe.id),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -249,8 +254,10 @@ class _ChipFilter extends StatelessWidget {
       borderRadius: BorderRadius.circular(20),
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 11),
-        alignment: Alignment.center,
+        // Tanpa `alignment` supaya kotak menyesuaikan isi (dengan `alignment`
+        // + maxWidth semua chip akan melebar penuh ke batas tersebut).
+        constraints: const BoxConstraints(minHeight: 32, maxWidth: 220),
+        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
         decoration: BoxDecoration(
           color: aktif ? warna : warna.withAlpha(20),
           borderRadius: BorderRadius.circular(20),
@@ -263,12 +270,16 @@ class _ChipFilter extends StatelessWidget {
               Icon(ikon, size: 13, color: aktif ? Colors.white : warna),
               const SizedBox(width: 5),
             ],
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11.5,
-                fontWeight: FontWeight.w600,
-                color: aktif ? Colors.white : warna,
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                  color: aktif ? Colors.white : warna,
+                ),
               ),
             ),
           ],
@@ -288,9 +299,7 @@ class _LoadedView extends StatelessWidget {
 
   void _bukaDetail(BuildContext context, KalenderAgendaItem item) {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => KalenderDetailPage(item: item),
-      ),
+      MaterialPageRoute<void>(builder: (_) => KalenderDetailPage(item: item)),
     );
   }
 
@@ -305,7 +314,7 @@ class _LoadedView extends StatelessWidget {
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
             SizedBox(
-              height: MediaQuery.of(context).size.height * 0.55,
+              height: Responsive.tinggiSheet(context, rasio: 0.55),
               child: _EmptyView(
                 message: state.filterTipeId != null
                     ? 'Tidak ada agenda berkategori ini pada '
@@ -321,106 +330,113 @@ class _LoadedView extends StatelessWidget {
 
     return RefreshIndicator(
       onRefresh: onRefresh,
-      child: CustomScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        slivers: [
-          // ── Agenda Hari Ini ─────────────────────────────────────────────
-          if (state.agendaHariIni.isNotEmpty) ...[
-            SliverToBoxAdapter(
-              child: _JudulSeksi(
-                ikon: Icons.wb_sunny_outlined,
-                teks: 'Agenda Hari Ini',
-                keterangan: formatTanggalPanjang(sekarang),
-                warna: AppColors.warning,
-                jumlah: state.agendaHariIni.length,
-              ),
-            ),
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (_, i) => KalenderAgendaCard(
-                  item: state.agendaHariIni[i],
-                  sorotHariIni: true,
-                  onTap: () => _bukaDetail(context, state.agendaHariIni[i]),
-                ),
-                childCount: state.agendaHariIni.length,
-              ),
-            ),
-          ],
-
-          // ── Agenda bulan terpilih ───────────────────────────────────────
-          SliverToBoxAdapter(
-            child: _JudulSeksi(
-              ikon: Icons.calendar_month_outlined,
-              teks: '${labelBulan(state.bulan)} ${state.tahun}',
-              keterangan: '${state.totalBulanIni} agenda',
-              warna: AppColors.primary,
-            ),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: Responsive.lebarKontenMaks(context),
           ),
-
-          if (state.grupBulanIni.isEmpty)
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
-                child: Text(
-                  state.agendaHariIni.isNotEmpty
-                      ? 'Tidak ada agenda lain pada bulan ini.'
-                      : 'Belum ada agenda pada bulan ini.',
-                  style: const TextStyle(
-                    fontSize: 12.5,
-                    color: AppColors.textSecondary,
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              // ── Agenda Hari Ini ─────────────────────────────────────────────
+              if (state.agendaHariIni.isNotEmpty) ...[
+                SliverToBoxAdapter(
+                  child: _JudulSeksi(
+                    ikon: Icons.wb_sunny_outlined,
+                    teks: 'Agenda Hari Ini',
+                    keterangan: formatTanggalPanjang(sekarang),
+                    warna: AppColors.warning,
+                    jumlah: state.agendaHariIni.length,
                   ),
                 ),
-              ),
-            ),
-
-          for (final grup in state.grupBulanIni) ...[
-            SliverToBoxAdapter(
-              child: _HeaderTanggal(
-                tanggal: grup.tanggalDate,
-                hariIni: sekarang,
-              ),
-            ),
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (_, i) => KalenderAgendaCard(
-                  item: grup.items[i],
-                  onTap: () => _bukaDetail(context, grup.items[i]),
-                ),
-                childCount: grup.items.length,
-              ),
-            ),
-          ],
-
-          if (!state.harianTersedia)
-            const SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(16, 12, 16, 0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.info_outline,
-                      size: 14,
-                      color: AppColors.textHint,
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (_, i) => KalenderAgendaCard(
+                      item: state.agendaHariIni[i],
+                      sorotHariIni: true,
+                      onTap: () => _bukaDetail(context, state.agendaHariIni[i]),
                     ),
-                    SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        'Catatan agenda harian tidak ditampilkan karena akun '
-                        'Anda tidak memiliki izin "kalender-harian.view".',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: AppColors.textHint,
-                        ),
+                    childCount: state.agendaHariIni.length,
+                  ),
+                ),
+              ],
+
+              // ── Agenda bulan terpilih ───────────────────────────────────────
+              SliverToBoxAdapter(
+                child: _JudulSeksi(
+                  ikon: Icons.calendar_month_outlined,
+                  teks: '${labelBulan(state.bulan)} ${state.tahun}',
+                  keterangan: '${state.totalBulanIni} agenda',
+                  warna: AppColors.primary,
+                ),
+              ),
+
+              if (state.grupBulanIni.isEmpty)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
+                    child: Text(
+                      state.agendaHariIni.isNotEmpty
+                          ? 'Tidak ada agenda lain pada bulan ini.'
+                          : 'Belum ada agenda pada bulan ini.',
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        color: AppColors.textSecondary,
                       ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
 
-          const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
-        ],
+              for (final grup in state.grupBulanIni) ...[
+                SliverToBoxAdapter(
+                  child: _HeaderTanggal(
+                    tanggal: grup.tanggalDate,
+                    hariIni: sekarang,
+                  ),
+                ),
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (_, i) => KalenderAgendaCard(
+                      item: grup.items[i],
+                      onTap: () => _bukaDetail(context, grup.items[i]),
+                    ),
+                    childCount: grup.items.length,
+                  ),
+                ),
+              ],
+
+              if (!state.harianTersedia)
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(16, 12, 16, 0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 14,
+                          color: AppColors.textHint,
+                        ),
+                        SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            'Catatan agenda harian tidak ditampilkan karena akun '
+                            'Anda tidak memiliki izin "kalender-harian.view".',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textHint,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+              const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -445,18 +461,24 @@ class _JudulSeksi extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pad = Responsive.pagePadding(context);
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+      padding: EdgeInsets.fromLTRB(pad.left, 14, pad.right, 4),
       child: Row(
         children: [
           Icon(ikon, size: 17, color: warna),
           const SizedBox(width: 7),
-          Text(
-            teks,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: warna,
+          Flexible(
+            child: Text(
+              teks,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: warna,
+              ),
             ),
           ),
           if (jumlah != null) ...[
@@ -513,8 +535,10 @@ class _HeaderTanggal extends StatelessWidget {
         d.month == hariIni.month &&
         d.day == hariIni.day;
 
+    final pad = Responsive.pagePadding(context);
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 2),
+      padding: EdgeInsets.fromLTRB(pad.left, 12, pad.right, 2),
       child: Row(
         children: [
           Container(
@@ -526,18 +550,41 @@ class _HeaderTanggal extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          Text(
-            formatTanggalPanjang(d),
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: isHariIni ? AppColors.warning : AppColors.textSecondary,
+          // Teks tanggal + label relatif diberi porsi jauh lebih besar dari
+          // garis pemisah supaya tidak terpotong di layar sempit.
+          Flexible(
+            flex: 6,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: Text(
+                    formatTanggalPanjang(d),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: isHariIni
+                          ? AppColors.warning
+                          : AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    labelRelatif(d, hariIni),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textHint,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            labelRelatif(d, hariIni),
-            style: const TextStyle(fontSize: 11, color: AppColors.textHint),
           ),
           const SizedBox(width: 8),
           Expanded(child: Container(height: 1, color: AppColors.divider)),

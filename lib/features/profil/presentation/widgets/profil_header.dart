@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../auth/domain/entities/user_entity.dart';
 import 'profil_visuals.dart';
 
@@ -33,10 +34,13 @@ class ProfilHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final warna = warnaRole(user.role);
     final foto = _fotoUrl;
+    final pad = Responsive.pagePadding(context);
+    // Avatar sedikit lebih kecil di HP sempit agar nama & email tetap lega.
+    final ukuranAvatar = Responsive.isCompact(context) ? 76.0 : 92.0;
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
+      padding: EdgeInsets.fromLTRB(pad.left, 20, pad.right, 24),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -47,8 +51,8 @@ class ProfilHeader extends StatelessWidget {
       child: Column(
         children: [
           Container(
-            width: 92,
-            height: 92,
+            width: ukuranAvatar,
+            height: ukuranAvatar,
             decoration: BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
@@ -70,8 +74,10 @@ class ProfilHeader extends StatelessWidget {
           Text(
             user.name,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 19,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: Responsive.fontSize(context, 19),
               fontWeight: FontWeight.w600,
               color: Colors.white,
             ),
@@ -80,6 +86,8 @@ class ProfilHeader extends StatelessWidget {
           Text(
             user.email,
             textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(fontSize: 13, color: Colors.white.withAlpha(220)),
           ),
           const SizedBox(height: 12),
@@ -114,12 +122,16 @@ class _Inisial extends StatelessWidget {
     return Container(
       color: warna.withAlpha(45),
       alignment: Alignment.center,
-      child: Text(
-        inisialNama(nama),
-        style: TextStyle(
-          fontSize: 32,
-          fontWeight: FontWeight.bold,
-          color: warna,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(
+          inisialNama(nama),
+          maxLines: 1,
+          style: TextStyle(
+            fontSize: Responsive.fontSize(context, 32),
+            fontWeight: FontWeight.bold,
+            color: warna,
+          ),
         ),
       ),
     );
@@ -147,12 +159,16 @@ class _RoleChip extends StatelessWidget {
         children: [
           Icon(ikonRole(role), size: 15, color: Colors.white),
           const SizedBox(width: 6),
-          Text(
-            labelRole(role),
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
+          Flexible(
+            child: Text(
+              labelRole(role),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
             ),
           ),
         ],
@@ -185,12 +201,16 @@ class _StatusChip extends StatelessWidget {
         children: [
           Icon(ikon, size: 15, color: Colors.white),
           const SizedBox(width: 6),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
             ),
           ),
         ],

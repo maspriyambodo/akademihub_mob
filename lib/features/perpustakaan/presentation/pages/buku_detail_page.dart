@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/buku_entity.dart';
 import '../../domain/entities/buku_riwayat_entity.dart';
 import '../bloc/buku_detail_bloc.dart';
@@ -164,30 +165,44 @@ class _BukuDetailView extends StatelessWidget {
                   const BukuDetailRefreshRequested(),
                 );
               },
-              child: ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(12, 12, 12, 28),
-                children: [
-                  _KartuInfoBuku(state: state),
-                  if (canPinjam) ...[
-                    const SizedBox(height: 12),
-                    ElevatedButton.icon(
-                      onPressed: state.buku.tersedia
-                          ? () => _pinjam(context, state.buku)
-                          : null,
-                      icon: const Icon(Icons.library_add_outlined),
-                      label: Text(
-                        state.buku.tersedia
-                            ? 'Pinjamkan Buku'
-                            : 'Stok Tidak Tersedia',
-                      ),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: Responsive.lebarKontenMaks(context),
+                  ),
+                  child: ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.fromLTRB(
+                      Responsive.pagePadding(context).left,
+                      12,
+                      Responsive.pagePadding(context).right,
+                      28,
                     ),
-                  ],
-                  if (state.riwayatDiminta) ...[
-                    const SizedBox(height: 16),
-                    _BagianRiwayat(state: state),
-                  ],
-                ],
+                    children: [
+                      _KartuInfoBuku(state: state),
+                      if (canPinjam) ...[
+                        const SizedBox(height: 12),
+                        ElevatedButton.icon(
+                          onPressed: state.buku.tersedia
+                              ? () => _pinjam(context, state.buku)
+                              : null,
+                          icon: const Icon(Icons.library_add_outlined),
+                          label: Text(
+                            state.buku.tersedia
+                                ? 'Pinjamkan Buku'
+                                : 'Stok Tidak Tersedia',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                      if (state.riwayatDiminta) ...[
+                        const SizedBox(height: 16),
+                        _BagianRiwayat(state: state),
+                      ],
+                    ],
+                  ),
+                ),
               ),
             );
           },
@@ -238,6 +253,8 @@ class _KartuInfoBuku extends StatelessWidget {
                     children: [
                       Text(
                         buku.judul,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -249,6 +266,8 @@ class _KartuInfoBuku extends StatelessWidget {
                         buku.penulis?.isNotEmpty == true
                             ? buku.penulis!
                             : 'Pengarang tidak diketahui',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 13,
                           color: AppColors.textSecondary,
@@ -277,10 +296,7 @@ class _KartuInfoBuku extends StatelessWidget {
               nilai: buku.tahun?.toString() ?? '-',
             ),
             _BarisInfo(label: 'ISBN', nilai: buku.isbn ?? '-'),
-            _BarisInfo(
-              label: 'Stok Tersedia',
-              nilai: '${buku.stok} eksemplar',
-            ),
+            _BarisInfo(label: 'Stok Tersedia', nilai: '${buku.stok} eksemplar'),
             if (state.totalEksemplar != null)
               _BarisInfo(
                 label: 'Total Eksemplar',
@@ -307,9 +323,12 @@ class _BarisInfo extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 120,
+            // Kolom label dipersempit di layar sempit agar nilai tetap muat.
+            width: Responsive.isCompact(context) ? 96 : 120,
             child: Text(
               label,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 12,
                 color: AppColors.textSecondary,
@@ -377,10 +396,7 @@ class _BagianRiwayat extends StatelessWidget {
             else if (riwayat == null || riwayat.peminjamanAktif.isEmpty)
               const Text(
                 'Tidak ada eksemplar yang sedang dipinjam.',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: AppColors.textSecondary,
-                ),
+                style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
               )
             else
               ...riwayat.peminjamanAktif.map(_BarisPeminjam.new),

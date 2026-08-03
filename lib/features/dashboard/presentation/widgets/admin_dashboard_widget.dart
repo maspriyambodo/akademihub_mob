@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/dashboard_entity.dart';
 import 'dashboard_stat_card.dart';
 import 'dashboard_quick_actions.dart';
@@ -46,13 +47,10 @@ class AdminDashboardWidget extends StatelessWidget {
         const SizedBox(height: 20),
 
         // Summary stat cards
-        GridView.count(
+        GridView(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 2,
-          mainAxisSpacing: 10,
-          crossAxisSpacing: 10,
-          childAspectRatio: 1.15,
+          gridDelegate: Responsive.gridDelegate(context, tinggi: 140),
           children: [
             DashboardStatCard(
               title: 'Total Siswa Aktif',
@@ -93,13 +91,10 @@ class AdminDashboardWidget extends StatelessWidget {
 
         // PPDB summary (if available)
         if (ppdbSummary != null) ...[
-          GridView.count(
+          GridView(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: 2,
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
-            childAspectRatio: 1.15,
+            gridDelegate: Responsive.gridDelegate(context, tinggi: 140),
             children: [
               DashboardStatCard(
                 title: 'Total Pendaftar PPDB',

@@ -18,6 +18,7 @@ class OrganisasiStatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      constraints: const BoxConstraints(maxWidth: 120),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: color.withAlpha(26),
@@ -25,6 +26,8 @@ class OrganisasiStatusBadge extends StatelessWidget {
       ),
       child: Text(
         label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,
@@ -242,6 +245,8 @@ class AnggotaTile extends StatelessWidget {
                     anggota.siswaNis!.trim().isNotEmpty)
                   Text(
                     'NIS ${anggota.siswaNis}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 11.5,
                       color: AppColors.textSecondary,
@@ -250,6 +255,8 @@ class AnggotaTile extends StatelessWidget {
                 if (masa != null)
                   Text(
                     masa,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 11,
                       color: AppColors.textHint,
@@ -306,6 +313,8 @@ class JabatanStrukturCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     namaJabatan,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 13.5,
                       fontWeight: FontWeight.w700,

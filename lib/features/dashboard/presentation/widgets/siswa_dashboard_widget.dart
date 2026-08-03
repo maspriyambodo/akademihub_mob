@@ -120,10 +120,13 @@ class SiswaDashboardWidget extends StatelessWidget {
                         size: 16,
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        'Semua SPP lunas',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.success,
+                      Flexible(
+                        child: Text(
+                          'Semua SPP lunas',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: AppColors.success),
                         ),
                       ),
                     ],
@@ -188,10 +191,13 @@ class SiswaDashboardWidget extends StatelessWidget {
                         size: 16,
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        'Tidak ada tugas mendatang',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.success,
+                      Flexible(
+                        child: Text(
+                          'Tidak ada tugas mendatang',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: AppColors.success),
                         ),
                       ),
                     ],
@@ -228,11 +234,16 @@ class _SppRow extends StatelessWidget {
           Expanded(
             child: Text(
               '${spp['bulan_nama'] ?? ''} ${spp['tahun'] ?? ''}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ),
+          const SizedBox(width: 8),
           Text(
             'Rp ${_formatCurrency(amount)}',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: AppColors.error,
               fontWeight: FontWeight.w600,
@@ -281,6 +292,8 @@ class _GradeRow extends StatelessWidget {
               children: [
                 Text(
                   mapel?['nama'] ?? 'Ujian',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: Theme.of(
                     context,
                   ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
@@ -288,6 +301,8 @@ class _GradeRow extends StatelessWidget {
                 if (ujian?['nama'] != null)
                   Text(
                     ujian!['nama'] as String,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: AppColors.textSecondary,
                       fontSize: 11,
@@ -296,8 +311,11 @@ class _GradeRow extends StatelessWidget {
               ],
             ),
           ),
+          const SizedBox(width: 8),
           Text(
             nilai.toStringAsFixed(nilai % 1 == 0 ? 0 : 1),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
               color: gradeColor,
@@ -335,6 +353,8 @@ class _TaskRow extends StatelessWidget {
               children: [
                 Text(
                   task['judul'] ?? task['nama'] ?? 'Tugas',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: Theme.of(
                     context,
                   ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
@@ -342,6 +362,8 @@ class _TaskRow extends StatelessWidget {
                 if (task['deadline'] != null || task['batas_waktu'] != null)
                   Text(
                     'Deadline: ${task['deadline'] ?? task['batas_waktu']}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: AppColors.textSecondary,
                       fontSize: 11,
@@ -390,6 +412,8 @@ class _AttendanceBadge extends StatelessWidget {
               ),
               Text(
                 label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   fontSize: 11,
                   color: AppColors.textSecondary,

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../domain/entities/ekstrakurikuler_entity.dart';
 import '../../domain/entities/pendaftaran_ekskul_entity.dart';
@@ -258,11 +259,13 @@ class _TabSemua extends StatelessWidget {
   Widget build(BuildContext context) {
     final bloc = context.read<EkstrakurikulerBloc>();
 
+    final pad = Responsive.pagePadding(context);
+
     return Column(
       children: [
         Container(
           color: AppColors.cardBg,
-          padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+          padding: EdgeInsets.fromLTRB(pad.left, 10, pad.right, 10),
           child: Column(
             children: [
               TextField(
@@ -312,33 +315,35 @@ class _TabSemua extends StatelessWidget {
             onRefresh: () async {
               bloc.add(const EkstrakurikulerRefreshRequested());
             },
-            child: state.semua.isEmpty
-                ? _ScrollableEmpty(
-                    message: state.search.isNotEmpty
-                        ? 'Tidak ada ekskul yang cocok dengan pencarian'
-                        : 'Belum ada ekstrakurikuler',
-                    icon: Icons.sports_soccer,
-                  )
-                : ListView.builder(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.only(top: 6, bottom: 20),
-                    itemCount: state.semua.length,
-                    itemBuilder: (context, index) {
-                      final ekskul = state.semua[index];
-                      final terdaftar = state.sudahTerdaftar(ekskul.id);
-                      return EkstrakurikulerCard(
-                        ekskul: ekskul,
-                        sudahTerdaftar: terdaftar,
-                        onTap: () => onTapEkskul(ekskul),
-                        onDaftar:
-                            state.bisaDaftar(ekskul.id) && ekskul.isAktif
-                            ? () => bloc.add(
-                                EkstrakurikulerDaftarRequested(ekskul.id),
-                              )
-                            : null,
-                      );
-                    },
-                  ),
+            child: BatasLebarKonten(
+              child: state.semua.isEmpty
+                  ? _ScrollableEmpty(
+                      message: state.search.isNotEmpty
+                          ? 'Tidak ada ekskul yang cocok dengan pencarian'
+                          : 'Belum ada ekstrakurikuler',
+                      icon: Icons.sports_soccer,
+                    )
+                  : ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.only(top: 6, bottom: 20),
+                      itemCount: state.semua.length,
+                      itemBuilder: (context, index) {
+                        final ekskul = state.semua[index];
+                        final terdaftar = state.sudahTerdaftar(ekskul.id);
+                        return EkstrakurikulerCard(
+                          ekskul: ekskul,
+                          sudahTerdaftar: terdaftar,
+                          onTap: () => onTapEkskul(ekskul),
+                          onDaftar:
+                              state.bisaDaftar(ekskul.id) && ekskul.isAktif
+                              ? () => bloc.add(
+                                  EkstrakurikulerDaftarRequested(ekskul.id),
+                                )
+                              : null,
+                        );
+                      },
+                    ),
+            ),
           ),
         ),
       ],
@@ -410,7 +415,9 @@ class _TabSaya extends StatelessWidget {
       onRefresh: () async {
         bloc.add(const EkstrakurikulerRefreshRequested());
       },
-      child: state.isGuruMode ? _kontenGuru() : _kontenSiswa(),
+      child: BatasLebarKonten(
+        child: state.isGuruMode ? _kontenGuru() : _kontenSiswa(),
+      ),
     );
   }
 
@@ -506,10 +513,7 @@ class _TabSaya extends StatelessWidget {
       anak.add(const _SectionHeader(label: 'Riwayat'));
       for (final item in riwayatKeluar) {
         anak.add(
-          KeanggotaanCard(
-            pendaftaran: item,
-            tampilkanSiswa: tampilkanSiswa,
-          ),
+          KeanggotaanCard(pendaftaran: item, tampilkanSiswa: tampilkanSiswa),
         );
       }
     }
@@ -556,7 +560,8 @@ class _ScrollableEmpty extends StatelessWidget {
       physics: const AlwaysScrollableScrollPhysics(),
       children: [
         SizedBox(
-          height: MediaQuery.of(context).size.height * 0.6,
+          // Tinggi aman & sadar keyboard, bukan rasio tinggi layar mentah.
+          height: Responsive.tinggiSheet(context, rasio: 0.6),
           child: _EmptyView(message: message, icon: icon),
         ),
       ],

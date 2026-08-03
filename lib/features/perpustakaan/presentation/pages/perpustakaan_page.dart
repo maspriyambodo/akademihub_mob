@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../domain/entities/peminjaman_buku_entity.dart';
 import '../bloc/perpustakaan_bloc.dart';
@@ -276,11 +277,13 @@ class _KatalogTab extends StatelessWidget {
       );
     }
 
+    final pad = Responsive.pagePadding(context);
+
     return Column(
       children: [
         Container(
           color: Colors.white,
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+          padding: EdgeInsets.fromLTRB(pad.left, 12, pad.right, 10),
           child: Column(
             children: [
               TextField(
@@ -311,10 +314,20 @@ class _KatalogTab extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 10),
-              Row(
+              // Wrap: di layar sempit chip + jumlah buku turun baris,
+              // tidak meluber seperti Row + Spacer.
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   FilterChip(
-                    label: const Text('Hanya yang tersedia'),
+                    label: const Text(
+                      'Hanya yang tersedia',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     labelStyle: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
@@ -341,11 +354,12 @@ class _KatalogTab extends StatelessWidget {
                     onSelected: (value) =>
                         bloc.add(PerpustakaanHanyaTersediaChanged(value)),
                   ),
-                  const Spacer(),
                   Text(
                     state.buku.length == state.totalBuku
                         ? '${state.totalBuku} buku'
                         : '${state.buku.length} dari ${state.totalBuku} buku',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.textSecondary,
@@ -363,25 +377,27 @@ class _KatalogTab extends StatelessWidget {
                 const PerpustakaanRefreshRequested(PerpustakaanScope.katalog),
               );
             },
-            child: state.buku.isEmpty
-                ? ListView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    children: [
-                      SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.5,
-                        child: PerpustakaanEmptyView(message: _pesanKosong()),
+            child: _BatasLebarKonten(
+              child: state.buku.isEmpty
+                  ? ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: [
+                        SizedBox(
+                          height: Responsive.tinggiSheet(context, rasio: 0.5),
+                          child: PerpustakaanEmptyView(message: _pesanKosong()),
+                        ),
+                      ],
+                    )
+                  : ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.only(top: 6, bottom: 24),
+                      itemCount: state.buku.length,
+                      itemBuilder: (context, index) => BukuCard(
+                        buku: state.buku[index],
+                        onTap: () => onTapBuku(index),
                       ),
-                    ],
-                  )
-                : ListView.builder(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.only(top: 6, bottom: 24),
-                    itemCount: state.buku.length,
-                    itemBuilder: (context, index) => BukuCard(
-                      buku: state.buku[index],
-                      onTap: () => onTapBuku(index),
                     ),
-                  ),
+            ),
           ),
         ),
       ],
@@ -424,24 +440,31 @@ class _PeminjamanTab extends StatelessWidget {
         if (state.peminjaman.isNotEmpty)
           Container(
             color: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            child: Row(
+            padding: EdgeInsets.symmetric(
+              horizontal: Responsive.pagePadding(context).left,
+              vertical: 10,
+            ),
+            // Deretan badge dibungkus Wrap supaya turun baris di layar sempit.
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 PerpustakaanBadge(
                   label: '${state.jumlahAktif} sedang dipinjam',
                   color: AppColors.info,
                   icon: Icons.menu_book_outlined,
                 ),
-                const SizedBox(width: 8),
                 if (state.jumlahTerlambat > 0)
                   PerpustakaanBadge(
                     label: '${state.jumlahTerlambat} terlambat',
                     color: AppColors.error,
                     icon: Icons.warning_amber_rounded,
                   ),
-                const Spacer(),
                 Text(
                   '${state.peminjaman.length} data',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.textSecondary,
@@ -459,39 +482,61 @@ class _PeminjamanTab extends StatelessWidget {
                 ),
               );
             },
-            child: state.peminjaman.isEmpty
-                ? ListView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    children: [
-                      SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.6,
-                        child: PerpustakaanEmptyView(
-                          message: _pesanKosong(),
-                          icon: Icons.import_contacts_outlined,
+            child: _BatasLebarKonten(
+              child: state.peminjaman.isEmpty
+                  ? ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: [
+                        SizedBox(
+                          height: Responsive.tinggiSheet(context, rasio: 0.6),
+                          child: PerpustakaanEmptyView(
+                            message: _pesanKosong(),
+                            icon: Icons.import_contacts_outlined,
+                          ),
                         ),
-                      ),
-                    ],
-                  )
-                : ListView.builder(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.only(top: 6, bottom: 24),
-                    itemCount: state.peminjaman.length,
-                    itemBuilder: (context, index) {
-                      final item = state.peminjaman[index];
-                      return PeminjamanCard(
-                        item: item,
-                        terlambat: state.terlambat(item),
-                        tampilkanSiswa: !state.isSiswaMode,
-                        canPengembalian: state.canPengembalian,
-                        onPengembalian: state.aksiSedangDiproses
-                            ? null
-                            : () => onPengembalian(item),
-                      );
-                    },
-                  ),
+                      ],
+                    )
+                  : ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.only(top: 6, bottom: 24),
+                      itemCount: state.peminjaman.length,
+                      itemBuilder: (context, index) {
+                        final item = state.peminjaman[index];
+                        return PeminjamanCard(
+                          item: item,
+                          terlambat: state.terlambat(item),
+                          tampilkanSiswa: !state.isSiswaMode,
+                          canPengembalian: state.canPengembalian,
+                          onPengembalian: state.aksiSedangDiproses
+                              ? null
+                              : () => onPengembalian(item),
+                        );
+                      },
+                    ),
+            ),
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Membatasi lebar daftar di tablet agar kartu tidak melebar tak terbaca.
+class _BatasLebarKonten extends StatelessWidget {
+  final Widget child;
+
+  const _BatasLebarKonten({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    if (!Responsive.isExpanded(context)) return child;
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: Responsive.lebarKontenMaks(context),
+        ),
+        child: child,
+      ),
     );
   }
 }

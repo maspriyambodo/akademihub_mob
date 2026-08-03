@@ -108,12 +108,16 @@ class _ChildCard extends StatelessWidget {
                     children: [
                       Text(
                         child['nama']?.toString() ?? 'Anak',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                       Text(
                         'Kelas: ${child['kelas'] ?? '-'}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: AppColors.textSecondary,
                         ),

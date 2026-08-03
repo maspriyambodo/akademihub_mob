@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../domain/entities/organisasi_entity.dart';
 import '../bloc/organisasi_bloc.dart';
@@ -96,8 +97,7 @@ class _OrganisasiViewState extends State<_OrganisasiView> {
             return _LoadedView(
               state: state,
               cariController: _cariController,
-              onTapOrganisasi: (organisasi) =>
-                  _bukaDetail(context, organisasi),
+              onTapOrganisasi: (organisasi) => _bukaDetail(context, organisasi),
             );
           }
           return const Center(child: CircularProgressIndicator());
@@ -161,13 +161,15 @@ class _LoadedView extends StatelessWidget {
                   _StatusChip(
                     label: 'Aktif',
                     filter: StatusOrganisasiFilter.aktif,
-                    selected: state.filterStatus == StatusOrganisasiFilter.aktif,
+                    selected:
+                        state.filterStatus == StatusOrganisasiFilter.aktif,
                   ),
                   const SizedBox(width: 8),
                   _StatusChip(
                     label: 'Semua Status',
                     filter: StatusOrganisasiFilter.semua,
-                    selected: state.filterStatus == StatusOrganisasiFilter.semua,
+                    selected:
+                        state.filterStatus == StatusOrganisasiFilter.semua,
                   ),
                 ],
               ),
@@ -201,24 +203,31 @@ class _LoadedView extends StatelessWidget {
             onRefresh: () async {
               bloc.add(const OrganisasiRefreshRequested());
             },
-            child: tampil.isEmpty
-                ? _ScrollableEmpty(
-                    message: state.search.trim().isNotEmpty
-                        ? 'Tidak ada organisasi yang cocok dengan pencarian'
-                        : 'Belum ada data organisasi',
-                  )
-                : ListView.builder(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.only(top: 6, bottom: 20),
-                    itemCount: tampil.length,
-                    itemBuilder: (context, index) {
-                      final organisasi = tampil[index];
-                      return OrganisasiCard(
-                        organisasi: organisasi,
-                        onTap: () => onTapOrganisasi(organisasi),
-                      );
-                    },
-                  ),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: Responsive.lebarKontenMaks(context),
+                ),
+                child: tampil.isEmpty
+                    ? _ScrollableEmpty(
+                        message: state.search.trim().isNotEmpty
+                            ? 'Tidak ada organisasi yang cocok dengan pencarian'
+                            : 'Belum ada data organisasi',
+                      )
+                    : ListView.builder(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.only(top: 6, bottom: 20),
+                        itemCount: tampil.length,
+                        itemBuilder: (context, index) {
+                          final organisasi = tampil[index];
+                          return OrganisasiCard(
+                            organisasi: organisasi,
+                            onTap: () => onTapOrganisasi(organisasi),
+                          );
+                        },
+                      ),
+              ),
+            ),
           ),
         ),
       ],
@@ -325,7 +334,7 @@ class _ScrollableEmpty extends StatelessWidget {
       physics: const AlwaysScrollableScrollPhysics(),
       children: [
         SizedBox(
-          height: MediaQuery.of(context).size.height * 0.55,
+          height: Responsive.tinggiSheet(context, rasio: 0.55),
           child: _EmptyView(message: message),
         ),
       ],

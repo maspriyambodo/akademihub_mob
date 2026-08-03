@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/tugas_item_entity.dart';
 import '../../domain/entities/tugas_siswa_entity.dart';
 
@@ -63,16 +64,21 @@ class TugasBadge extends StatelessWidget {
   final Color color;
   final IconData? icon;
 
+  /// Batas lebar badge agar label panjang tidak mendorong isi `Row` lain.
+  final double maxWidth;
+
   const TugasBadge({
     super.key,
     required this.label,
     required this.color,
     this.icon,
+    this.maxWidth = 130,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      constraints: BoxConstraints(maxWidth: maxWidth),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: color.withAlpha(30),
@@ -86,12 +92,16 @@ class TugasBadge extends StatelessWidget {
             Icon(icon, size: 12, color: color),
             const SizedBox(width: 4),
           ],
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              color: color,
-              fontWeight: FontWeight.w600,
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 11,
+                color: color,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
@@ -128,15 +138,20 @@ class TugasCard extends StatelessWidget {
         (tugas.isLewatDeadline || tugas.isMendekatiDeadline);
     final Color deadlineColor = tugas.isLewatDeadline
         ? AppColors.error
-        : (tugas.isMendekatiDeadline ? AppColors.warning : AppColors.textSecondary);
+        : (tugas.isMendekatiDeadline
+              ? AppColors.warning
+              : AppColors.textSecondary);
 
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+      margin: EdgeInsets.symmetric(
+        horizontal: Responsive.pagePadding(context).left,
+        vertical: 5,
+      ),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(14),
+          padding: EdgeInsets.all(Responsive.isCompact(context) ? 10 : 14),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -187,8 +202,14 @@ class TugasCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  if (showStatus)
-                    TugasBadge(label: status.label, color: statusColor),
+                  if (showStatus) ...[
+                    const SizedBox(width: 6),
+                    TugasBadge(
+                      label: status.label,
+                      color: statusColor,
+                      maxWidth: 110,
+                    ),
+                  ],
                 ],
               ),
               const SizedBox(height: 10),
@@ -207,7 +228,7 @@ class TugasCard extends StatelessWidget {
                       deadline == null
                           ? 'Tanpa tenggat'
                           : '${formatTanggalWaktu(deadline)}  (${sisaWaktuLabel(deadline)})',
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 12,
@@ -218,12 +239,15 @@ class TugasCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  if (item.pengumpulan?.sudahDinilai == true)
+                  if (item.pengumpulan?.sudahDinilai == true) ...[
+                    const SizedBox(width: 6),
                     TugasBadge(
                       label: 'Nilai ${item.pengumpulan!.nilaiLabel}',
                       color: AppColors.success,
                       icon: Icons.star_rounded,
+                      maxWidth: 110,
                     ),
+                  ],
                 ],
               ),
             ],
@@ -240,11 +264,7 @@ class PengumpulanCard extends StatelessWidget {
   final TugasSiswaEntity item;
   final VoidCallback onNilai;
 
-  const PengumpulanCard({
-    super.key,
-    required this.item,
-    required this.onNilai,
-  });
+  const PengumpulanCard({super.key, required this.item, required this.onNilai});
 
   @override
   Widget build(BuildContext context) {
@@ -254,9 +274,12 @@ class PengumpulanCard extends StatelessWidget {
         : (item.isTerlambat ? AppColors.error : AppColors.info);
 
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+      margin: EdgeInsets.symmetric(
+        horizontal: Responsive.pagePadding(context).left,
+        vertical: 5,
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: EdgeInsets.all(Responsive.isCompact(context) ? 10 : 14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -289,6 +312,8 @@ class PengumpulanCard extends StatelessWidget {
                       if (item.siswaNis != null)
                         Text(
                           'NIS ${item.siswaNis}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             fontSize: 11,
                             color: AppColors.textSecondary,
@@ -297,9 +322,11 @@ class PengumpulanCard extends StatelessWidget {
                     ],
                   ),
                 ),
+                const SizedBox(width: 6),
                 TugasBadge(
                   label: item.statusLabel ?? (dinilai ? 'Dinilai' : 'Belum'),
                   color: statusColor,
+                  maxWidth: 110,
                 ),
               ],
             ),
@@ -317,6 +344,8 @@ class PengumpulanCard extends StatelessWidget {
                     item.waktuKumpulDate == null
                         ? 'Belum dikumpulkan'
                         : 'Dikumpulkan ${formatTanggalWaktu(item.waktuKumpulDate)}',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.textSecondary,
@@ -370,7 +399,13 @@ class PengumpulanCard extends StatelessWidget {
               ),
             ],
             const SizedBox(height: 10),
-            Row(
+            // Badge + tombol: pakai Wrap agar tombol turun baris di layar
+            // sempit alih-alih meluber ke samping.
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 if (dinilai)
                   TugasBadge(
@@ -383,11 +418,14 @@ class PengumpulanCard extends StatelessWidget {
                     label: 'Belum dinilai',
                     color: AppColors.warning,
                   ),
-                const Spacer(),
                 TextButton.icon(
                   onPressed: onNilai,
                   icon: const Icon(Icons.grading, size: 18),
-                  label: Text(dinilai ? 'Ubah Nilai' : 'Beri Nilai'),
+                  label: Text(
+                    dinilai ? 'Ubah Nilai' : 'Beri Nilai',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ),
@@ -395,6 +433,8 @@ class PengumpulanCard extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 'Catatan: ${item.catatanGuru}',
+                maxLines: 4,
+                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   fontSize: 12,
                   fontStyle: FontStyle.italic,

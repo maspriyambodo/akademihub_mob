@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/tugas_bloc.dart';
 import '../widgets/tugas_widgets.dart';
@@ -42,7 +43,9 @@ class _TugasViewState extends State<_TugasView> {
       final profileId = (profile?['id'] as num?)?.toInt();
 
       final kelasRaw = profile?['kelas'];
-      final kelasId = kelasRaw is Map ? (kelasRaw['id'] as num?)?.toInt() : null;
+      final kelasId = kelasRaw is Map
+          ? (kelasRaw['id'] as num?)?.toInt()
+          : null;
 
       final guruMapelId =
           (profile?['mst_guru_mapel_id'] as num?)?.toInt() ??
@@ -136,36 +139,49 @@ class _TugasViewState extends State<_TugasView> {
                 if (state.isSiswaMode || state.isWaliMode)
                   _FilterBar(state: state),
                 Expanded(
-                  child: RefreshIndicator(
-                    onRefresh: () async {
-                      context.read<TugasBloc>().add(
-                        const TugasRefreshRequested(),
-                      );
-                    },
-                    child: state.items.isEmpty
-                        ? ListView(
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            children: [
-                              SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.6,
-                                child: _EmptyView(
-                                  message: _emptyMessage(state),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: Responsive.lebarKontenMaks(context),
+                      ),
+                      child: RefreshIndicator(
+                        onRefresh: () async {
+                          context.read<TugasBloc>().add(
+                            const TugasRefreshRequested(),
+                          );
+                        },
+                        child: state.items.isEmpty
+                            ? ListView(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                children: [
+                                  SizedBox(
+                                    height: Responsive.tinggiSheet(
+                                      context,
+                                      rasio: 0.6,
+                                    ),
+                                    child: _EmptyView(
+                                      message: _emptyMessage(state),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : ListView.builder(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                padding: const EdgeInsets.only(
+                                  top: 6,
+                                  bottom: 20,
+                                ),
+                                itemCount: state.items.length,
+                                itemBuilder: (context, index) => TugasCard(
+                                  item: state.items[index],
+                                  showStatus:
+                                      state.isSiswaMode || state.isWaliMode,
+                                  onTap: () =>
+                                      _openDetail(context, state, index),
                                 ),
                               ),
-                            ],
-                          )
-                        : ListView.builder(
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            padding: const EdgeInsets.only(top: 6, bottom: 20),
-                            itemCount: state.items.length,
-                            itemBuilder: (context, index) => TugasCard(
-                              item: state.items[index],
-                              showStatus:
-                                  state.isSiswaMode || state.isWaliMode,
-                              onTap: () => _openDetail(context, state, index),
-                            ),
-                          ),
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -197,7 +213,10 @@ class _FilterBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: EdgeInsets.symmetric(
+        horizontal: Responsive.isCompact(context) ? 8 : 12,
+        vertical: 10,
+      ),
       child: Row(
         children: [
           _FilterChip(
@@ -246,7 +265,7 @@ class _FilterChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         onTap: () => context.read<TugasBloc>().add(TugasFilterChanged(filter)),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
           decoration: BoxDecoration(
             color: selected ? AppColors.primary : AppColors.surface,
             borderRadius: BorderRadius.circular(20),
@@ -254,13 +273,17 @@ class _FilterChip extends StatelessWidget {
               color: selected ? AppColors.primary : AppColors.divider,
             ),
           ),
-          child: Text(
-            '$label ($count)',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: selected ? Colors.white : AppColors.textSecondary,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              '$label ($count)',
+              maxLines: 1,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: selected ? Colors.white : AppColors.textSecondary,
+              ),
             ),
           ),
         ),
@@ -278,9 +301,9 @@ class _ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
+    return SingleChildScrollView(
+      padding: Responsive.pagePadding(context) + const EdgeInsets.all(16),
+      child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -313,24 +336,27 @@ class _EmptyView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(
-            Icons.assignment_outlined,
-            size: 64,
-            color: AppColors.textHint,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 14,
-              color: AppColors.textSecondary,
+      child: Padding(
+        padding: Responsive.pagePadding(context) + const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.assignment_outlined,
+              size: 64,
+              color: AppColors.textHint,
             ),
-          ),
-        ],
+            const SizedBox(height: 12),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 14,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

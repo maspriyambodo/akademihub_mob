@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/materi_entity.dart';
 
 // ── Format tanggal (manual, tanpa bergantung init locale id_ID) ──────────────
@@ -96,6 +97,7 @@ class MateriBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      constraints: const BoxConstraints(maxWidth: 130),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: color.withAlpha(30),
@@ -109,12 +111,16 @@ class MateriBadge extends StatelessWidget {
             Icon(icon, size: 12, color: color),
             const SizedBox(width: 4),
           ],
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              color: color,
-              fontWeight: FontWeight.w600,
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 11,
+                color: color,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
@@ -146,7 +152,10 @@ class MateriCard extends StatelessWidget {
     final ext = materi.ekstensiFile;
 
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+      margin: EdgeInsets.symmetric(
+        horizontal: Responsive.pagePadding(context).left,
+        vertical: 5,
+      ),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: onTap,
@@ -195,14 +204,19 @@ class MateriCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  if (tampilkanStatus)
-                    MateriBadge(
-                      label: materi.statusLabel ??
-                          (materi.isAktif ? 'Aktif' : 'Draft'),
-                      color: materi.isAktif
-                          ? AppColors.success
-                          : AppColors.warning,
+                  if (tampilkanStatus) ...[
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: MateriBadge(
+                        label:
+                            materi.statusLabel ??
+                            (materi.isAktif ? 'Aktif' : 'Draft'),
+                        color: materi.isAktif
+                            ? AppColors.success
+                            : AppColors.warning,
+                      ),
                     ),
+                  ],
                 ],
               ),
               if (materi.deskripsi != null &&
@@ -222,12 +236,14 @@ class MateriCard extends StatelessWidget {
               const SizedBox(height: 10),
               Row(
                 children: [
-                  MateriBadge(
-                    label: ext == null
-                        ? tipe.label
-                        : '${tipe.label} · ${ext.toUpperCase()}',
-                    color: warna,
-                    icon: ikonMateri(tipe),
+                  Flexible(
+                    child: MateriBadge(
+                      label: ext == null
+                          ? tipe.label
+                          : '${tipe.label} · ${ext.toUpperCase()}',
+                      color: warna,
+                      icon: ikonMateri(tipe),
+                    ),
                   ),
                   const SizedBox(width: 8),
                   const Icon(
@@ -276,8 +292,10 @@ class MateriGroupHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pad = Responsive.pagePadding(context);
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+      padding: EdgeInsets.fromLTRB(pad.left, 14, pad.right, 4),
       child: Row(
         children: [
           Container(
@@ -301,8 +319,11 @@ class MateriGroupHeader extends StatelessWidget {
               ),
             ),
           ),
+          const SizedBox(width: 8),
           Text(
             '$total materi',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontSize: 11.5,
               color: AppColors.textSecondary,
@@ -342,12 +363,16 @@ class MateriSectionCard extends StatelessWidget {
                   Icon(icon, size: 16, color: AppColors.primary),
                   const SizedBox(width: 6),
                 ],
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                Expanded(
+                  child: Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
                 ),
               ],

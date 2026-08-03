@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../domain/entities/chat_message_entity.dart';
 import '../bloc/chatbot_bloc.dart';
@@ -186,27 +187,41 @@ class _ChatbotViewState extends State<_ChatbotView> {
           final jumlahItem =
               state.messages.length + (state.sedangMengetik ? 1 : 0);
 
+          final horizontalPad = Responsive.pagePadding(context).horizontal / 2;
+
           return Column(
             children: [
               Expanded(
-                child: ListView.builder(
-                  controller: _scroll,
-                  padding: const EdgeInsets.fromLTRB(12, 14, 12, 8),
-                  itemCount: jumlahItem,
-                  itemBuilder: (context, i) {
-                    if (i >= state.messages.length) {
-                      return const _TypingBubble();
-                    }
-                    final pesan = state.messages[i];
-                    return _ChatBubble(
-                      pesan: pesan,
-                      onKirimUlang: pesan.gagal && !state.sedangMengetik
-                          ? () => context.read<ChatbotBloc>().add(
-                              ChatbotKirimUlangDiminta(pesan.id),
-                            )
-                          : null,
-                    );
-                  },
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: Responsive.lebarKontenMaks(context),
+                    ),
+                    child: ListView.builder(
+                      controller: _scroll,
+                      padding: EdgeInsets.fromLTRB(
+                        horizontalPad,
+                        14,
+                        horizontalPad,
+                        8,
+                      ),
+                      itemCount: jumlahItem,
+                      itemBuilder: (context, i) {
+                        if (i >= state.messages.length) {
+                          return const _TypingBubble();
+                        }
+                        final pesan = state.messages[i];
+                        return _ChatBubble(
+                          pesan: pesan,
+                          onKirimUlang: pesan.gagal && !state.sedangMengetik
+                              ? () => context.read<ChatbotBloc>().add(
+                                  ChatbotKirimUlangDiminta(pesan.id),
+                                )
+                              : null,
+                        );
+                      },
+                    ),
+                  ),
                 ),
               ),
               _InputBar(
@@ -238,7 +253,13 @@ class _ChatBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dariPengguna = pesan.dariPengguna;
-    final lebarMaks = MediaQuery.of(context).size.width * 0.78;
+    // Bubble sedikit lebih lebar di layar sempit agar ruang teks tidak
+    // terlalu sempit, tetap dibatasi lebar konten maksimum di tablet.
+    final rasioLebar = Responsive.isCompact(context) ? 0.85 : 0.78;
+    final lebarMaks = math.min(
+      MediaQuery.of(context).size.width * rasioLebar,
+      Responsive.lebarKontenMaks(context) * 0.78,
+    );
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),

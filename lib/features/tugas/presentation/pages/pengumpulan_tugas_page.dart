@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/tugas_entity.dart';
 import '../../domain/entities/tugas_siswa_entity.dart';
 import '../bloc/pengumpulan_bloc.dart';
@@ -51,10 +52,7 @@ class _PengumpulanView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Pengumpulan'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Pengumpulan'), centerTitle: true),
       body: BlocConsumer<PengumpulanBloc, PengumpulanState>(
         listenWhen: (_, current) =>
             current is PengumpulanActionSuccess ||
@@ -97,39 +95,51 @@ class _PengumpulanView extends StatelessWidget {
               children: [
                 _HeaderTugas(tugas: tugas, state: state),
                 Expanded(
-                  child: RefreshIndicator(
-                    onRefresh: () async {
-                      context.read<PengumpulanBloc>().add(
-                        const PengumpulanRefreshRequested(),
-                      );
-                    },
-                    child: state.items.isEmpty
-                        ? ListView(
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            children: [
-                              SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.5,
-                                child: const _EmptyView(
-                                  message:
-                                      'Belum ada siswa yang mengumpulkan tugas ini',
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: Responsive.lebarKontenMaks(context),
+                      ),
+                      child: RefreshIndicator(
+                        onRefresh: () async {
+                          context.read<PengumpulanBloc>().add(
+                            const PengumpulanRefreshRequested(),
+                          );
+                        },
+                        child: state.items.isEmpty
+                            ? ListView(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                children: [
+                                  SizedBox(
+                                    height: Responsive.tinggiSheet(
+                                      context,
+                                      rasio: 0.5,
+                                    ),
+                                    child: const _EmptyView(
+                                      message:
+                                          'Belum ada siswa yang mengumpulkan tugas ini',
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : ListView.builder(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                padding: const EdgeInsets.only(
+                                  top: 6,
+                                  bottom: 20,
                                 ),
+                                itemCount: state.items.length,
+                                itemBuilder: (context, index) {
+                                  final item = state.items[index];
+                                  return PengumpulanCard(
+                                    item: item,
+                                    onNilai: () =>
+                                        _bukaDialogNilai(context, item),
+                                  );
+                                },
                               ),
-                            ],
-                          )
-                        : ListView.builder(
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            padding: const EdgeInsets.only(top: 6, bottom: 20),
-                            itemCount: state.items.length,
-                            itemBuilder: (context, index) {
-                              final item = state.items[index];
-                              return PengumpulanCard(
-                                item: item,
-                                onNilai: () =>
-                                    _bukaDialogNilai(context, item),
-                              );
-                            },
-                          ),
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -152,17 +162,20 @@ class _HeaderTugas extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hPad = Responsive.pagePadding(context).left;
     return Container(
       width: double.infinity,
       color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+      padding: EdgeInsets.fromLTRB(hPad, 14, hPad, 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             tugas.judul,
-            style: const TextStyle(
-              fontSize: 15,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: Responsive.fontSize(context, 15),
               fontWeight: FontWeight.bold,
               color: AppColors.textPrimary,
             ),
@@ -174,32 +187,52 @@ class _HeaderTugas extends StatelessWidget {
               if (tugas.kelasNama != null) 'Kelas ${tugas.kelasNama}',
               'Tenggat ${formatTanggalWaktu(tugas.tenggatWaktuDate)}',
             ].join(' · '),
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontSize: 12,
               color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 10),
-          Row(
-            children: [
-              _StatBox(
-                label: 'Terkumpul',
-                value: state.items.length,
-                color: AppColors.info,
-              ),
-              const SizedBox(width: 8),
-              _StatBox(
-                label: 'Dinilai',
-                value: state.totalDinilai,
-                color: AppColors.success,
-              ),
-              const SizedBox(width: 8),
-              _StatBox(
-                label: 'Belum dinilai',
-                value: state.totalBelumDinilai,
-                color: AppColors.warning,
-              ),
-            ],
+          // Tiga kotak statistik — Wrap agar turun baris di layar sempit.
+          LayoutBuilder(
+            builder: (context, c) {
+              const spacing = 8.0;
+              final perBaris = c.maxWidth >= 300 ? 3 : 2;
+              final lebarSel =
+                  (c.maxWidth - spacing * (perBaris - 1)) / perBaris;
+              return Wrap(
+                spacing: spacing,
+                runSpacing: spacing,
+                children: [
+                  SizedBox(
+                    width: lebarSel,
+                    child: _StatBox(
+                      label: 'Terkumpul',
+                      value: state.items.length,
+                      color: AppColors.info,
+                    ),
+                  ),
+                  SizedBox(
+                    width: lebarSel,
+                    child: _StatBox(
+                      label: 'Dinilai',
+                      value: state.totalDinilai,
+                      color: AppColors.success,
+                    ),
+                  ),
+                  SizedBox(
+                    width: lebarSel,
+                    child: _StatBox(
+                      label: 'Belum dinilai',
+                      value: state.totalBelumDinilai,
+                      color: AppColors.warning,
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -220,32 +253,37 @@ class _StatBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        decoration: BoxDecoration(
-          color: color.withAlpha(25),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: color.withAlpha(77)),
-        ),
-        child: Column(
-          children: [
-            Text(
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+      decoration: BoxDecoration(
+        color: color.withAlpha(25),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withAlpha(77)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
               '$value',
+              maxLines: 1,
               style: TextStyle(
-                fontSize: 18,
+                fontSize: Responsive.fontSize(context, 18),
                 fontWeight: FontWeight.bold,
                 color: color,
               ),
             ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 10.5, color: color),
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 10.5, color: color),
+          ),
+        ],
       ),
     );
   }
@@ -292,53 +330,69 @@ class _NilaiDialogState extends State<_NilaiDialog> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     final nilai = double.parse(_nilaiCtrl.text.trim().replaceAll(',', '.'));
     final catatan = _catatanCtrl.text.trim();
-    Navigator.of(context).pop(
-      _HasilNilai(nilai: nilai, catatan: catatan.isEmpty ? null : catatan),
-    );
+    Navigator.of(
+      context,
+    ).pop(_HasilNilai(nilai: nilai, catatan: catatan.isEmpty ? null : catatan));
   }
 
   @override
   Widget build(BuildContext context) {
+    // Lebar dialog dibatasi agar tidak melebar di tablet dan tidak memaksa
+    // lebar minimum yang meluber di HP kecil.
+    final lebarDialog = MediaQuery.sizeOf(context).width;
+
     return AlertDialog(
+      insetPadding: EdgeInsets.symmetric(
+        horizontal: Responsive.isCompact(context) ? 16 : 24,
+        vertical: 24,
+      ),
       title: Text(
         'Nilai — ${widget.item.siswaNama ?? 'Siswa'}',
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
         style: const TextStyle(fontSize: 16),
       ),
-      content: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextFormField(
-              controller: _nilaiCtrl,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              autofocus: true,
-              decoration: const InputDecoration(
-                labelText: 'Nilai (0 - 100)',
-                hintText: 'Contoh: 85',
-              ),
-              validator: (value) {
-                final v = (value ?? '').trim().replaceAll(',', '.');
-                if (v.isEmpty) return 'Nilai wajib diisi';
-                final n = double.tryParse(v);
-                if (n == null) return 'Nilai harus berupa angka';
-                if (n < 0 || n > 100) return 'Nilai antara 0 sampai 100';
-                return null;
-              },
+      // Isi bisa digulir supaya tetap terjangkau saat keyboard muncul.
+      content: SingleChildScrollView(
+        child: SizedBox(
+          width: lebarDialog >= 400 ? 360 : double.maxFinite,
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: _nilaiCtrl,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  autofocus: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Nilai (0 - 100)',
+                    hintText: 'Contoh: 85',
+                  ),
+                  validator: (value) {
+                    final v = (value ?? '').trim().replaceAll(',', '.');
+                    if (v.isEmpty) return 'Nilai wajib diisi';
+                    final n = double.tryParse(v);
+                    if (n == null) return 'Nilai harus berupa angka';
+                    if (n < 0 || n > 100) return 'Nilai antara 0 sampai 100';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _catatanCtrl,
+                  maxLines: 3,
+                  minLines: 2,
+                  decoration: const InputDecoration(
+                    labelText: 'Catatan (opsional)',
+                    alignLabelWithHint: true,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _catatanCtrl,
-              maxLines: 3,
-              minLines: 2,
-              decoration: const InputDecoration(
-                labelText: 'Catatan (opsional)',
-                alignLabelWithHint: true,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
       actions: [
@@ -361,9 +415,9 @@ class _ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
+    return SingleChildScrollView(
+      padding: Responsive.pagePadding(context) + const EdgeInsets.all(16),
+      child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -397,7 +451,7 @@ class _EmptyView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
+        padding: Responsive.pagePadding(context) + const EdgeInsets.all(16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

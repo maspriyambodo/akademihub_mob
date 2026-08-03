@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/forum_entity.dart';
 import 'forum_visuals.dart';
 
@@ -30,9 +31,10 @@ class ForumCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final tipe = forumTipeOf(post.tipe);
     final adaMenu = bolehUbah || bolehHapus;
+    final margin = Responsive.isCompact(context) ? 8.0 : 12.0;
 
     return Card(
-      margin: const EdgeInsets.fromLTRB(12, 6, 12, 6),
+      margin: EdgeInsets.fromLTRB(margin, 6, margin, 6),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: onTap,
@@ -44,28 +46,33 @@ class ForumCard extends StatelessWidget {
               // ── Baris atas: badge tipe/status + menu aksi ──────────────────
               Row(
                 children: [
-                  ForumBadge(
-                    label: tipe.label,
-                    color: tipe.color,
-                    icon: tipe.icon,
+                  // Deretan badge dibungkus Wrap supaya turun baris di layar
+                  // sempit alih-alih meluber.
+                  Expanded(
+                    child: Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        ForumBadge(
+                          label: tipe.label,
+                          color: tipe.color,
+                          icon: tipe.icon,
+                        ),
+                        if (post.isDisematkan)
+                          const ForumBadge(
+                            label: 'Disematkan',
+                            color: AppColors.warning,
+                            icon: Icons.push_pin_outlined,
+                          ),
+                        if (post.isDitutup)
+                          const ForumBadge(
+                            label: 'Ditutup',
+                            color: AppColors.textSecondary,
+                            icon: Icons.lock_outline,
+                          ),
+                      ],
+                    ),
                   ),
-                  if (post.isDisematkan) ...[
-                    const SizedBox(width: 6),
-                    const ForumBadge(
-                      label: 'Disematkan',
-                      color: AppColors.warning,
-                      icon: Icons.push_pin_outlined,
-                    ),
-                  ],
-                  if (post.isDitutup) ...[
-                    const SizedBox(width: 6),
-                    const ForumBadge(
-                      label: 'Ditutup',
-                      color: AppColors.textSecondary,
-                      icon: Icons.lock_outline,
-                    ),
-                  ],
-                  const Spacer(),
                   if (adaMenu)
                     SizedBox(
                       width: 32,
@@ -178,12 +185,16 @@ class ForumCard extends StatelessWidget {
                   ),
                   if (milikSaya) ...[
                     const SizedBox(width: 4),
-                    const Text(
-                      '(Anda)',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w600,
+                    const Flexible(
+                      child: Text(
+                        '(Anda)',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ],
@@ -315,8 +326,8 @@ class ForumErrorView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
+      child: SingleChildScrollView(
+        padding: Responsive.pagePadding(context) * 2,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -350,7 +361,7 @@ class ForumEmptyView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: Responsive.pagePadding(context) * 1.5,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

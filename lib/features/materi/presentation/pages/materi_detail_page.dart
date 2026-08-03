@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/config/app_config.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/log_akses_materi_entity.dart';
 import '../../domain/entities/materi_entity.dart';
 import '../../domain/usecases/log_akses_materi_usecase.dart';
@@ -177,9 +178,7 @@ class _MateriDetailViewState extends State<_MateriDetailView> {
     final path = bersih.startsWith('/') ? bersih.substring(1) : bersih;
     final berawalanStorage =
         path.startsWith('storage/') || path.startsWith('public/');
-    return base.replace(
-      path: berawalanStorage ? '/$path' : '/storage/$path',
-    );
+    return base.replace(path: berawalanStorage ? '/$path' : '/storage/$path');
   }
 
   Future<void> _bukaLampiran(String raw) async {
@@ -268,157 +267,162 @@ class _DetailBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final m = state.materi;
     final warna = warnaMateri(m.tipe);
+    final pad = Responsive.pagePadding(context);
 
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-      children: [
-        // ── Header ────────────────────────────────────────────────────────
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: warna.withAlpha(30),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(ikonMateri(m.tipe), size: 24, color: warna),
+    final isi = <Widget>[
+      // ── Header ────────────────────────────────────────────────────────
+      Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: warna.withAlpha(30),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        m.judul,
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                _InfoRow(icon: Icons.menu_book_outlined, text: m.mapelLabel),
-                _InfoRow(icon: Icons.person_outline, text: m.guruLabel),
-                _InfoRow(
-                  icon: Icons.schedule,
-                  text: m.createdAtDate == null
-                      ? 'Tanggal tidak diketahui'
-                      : 'Diunggah ${formatTanggalWaktu(m.createdAtDate)}'
-                            ' · ${waktuRelatif(m.createdAtDate)}',
-                ),
-                const SizedBox(height: 10),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    MateriBadge(
-                      label: m.tipe.label,
-                      color: warna,
-                      icon: ikonMateri(m.tipe),
-                    ),
-                    if (tampilkanStatistik)
-                      MateriBadge(
-                        label: m.statusLabel ?? (m.isAktif ? 'Aktif' : 'Draft'),
-                        color: m.isAktif
-                            ? AppColors.success
-                            : AppColors.warning,
-                      ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-
-        // ── Deskripsi ─────────────────────────────────────────────────────
-        const SizedBox(height: 12),
-        MateriSectionCard(
-          title: 'Deskripsi',
-          icon: Icons.notes_outlined,
-          child: Text(
-            (m.deskripsi == null || m.deskripsi!.trim().isEmpty)
-                ? 'Tidak ada deskripsi untuk materi ini.'
-                : m.deskripsi!.trim(),
-            style: const TextStyle(
-              fontSize: 13.5,
-              height: 1.6,
-              color: AppColors.textPrimary,
-            ),
-          ),
-        ),
-
-        // ── Lampiran ──────────────────────────────────────────────────────
-        const SizedBox(height: 12),
-        MateriSectionCard(
-          title: 'Lampiran',
-          icon: Icons.attachment_outlined,
-          child: m.punyaLampiran
-              ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (m.punyaFile) ...[
-                      _LampiranTile(
-                        icon: Icons.description_outlined,
-                        judul: m.ekstensiFile == null
-                            ? 'Berkas materi'
-                            : 'Berkas materi (${m.ekstensiFile!.toUpperCase()})',
-                        nilai: m.fileMateri!,
-                        warna: AppColors.primary,
-                        onTap: () => onBukaLampiran(m.fileMateri!),
-                      ),
-                      if (m.punyaVideo) const SizedBox(height: 10),
-                    ],
-                    if (m.punyaVideo)
-                      _LampiranTile(
-                        icon: Icons.play_circle_outline,
-                        judul: 'Video pembelajaran',
-                        nilai: m.linkVideo!,
-                        warna: AppColors.error,
-                        onTap: () => onBukaLampiran(m.linkVideo!),
-                      ),
-                    const SizedBox(height: 14),
-                    if (m.punyaFile)
-                      ElevatedButton.icon(
-                        onPressed: () => onBukaLampiran(m.fileMateri!),
-                        icon: const Icon(Icons.open_in_new),
-                        label: const Text('Buka Berkas Materi'),
-                      ),
-                    if (m.punyaFile && m.punyaVideo) const SizedBox(height: 8),
-                    if (m.punyaVideo)
-                      OutlinedButton.icon(
-                        onPressed: () => onBukaLampiran(m.linkVideo!),
-                        style: OutlinedButton.styleFrom(
-                          minimumSize: const Size(double.infinity, 48),
-                        ),
-                        icon: const Icon(Icons.play_arrow),
-                        label: const Text('Tonton Video'),
-                      ),
-                  ],
-                )
-              : const Text(
-                  'Materi ini tidak memiliki berkas atau video lampiran.',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: AppColors.textSecondary,
+                    child: Icon(ikonMateri(m.tipe), size: 24, color: warna),
                   ),
-                ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      m.judul,
+                      style: TextStyle(
+                        fontSize: Responsive.fontSize(context, 17),
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              _InfoRow(icon: Icons.menu_book_outlined, text: m.mapelLabel),
+              _InfoRow(icon: Icons.person_outline, text: m.guruLabel),
+              _InfoRow(
+                icon: Icons.schedule,
+                text: m.createdAtDate == null
+                    ? 'Tanggal tidak diketahui'
+                    : 'Diunggah ${formatTanggalWaktu(m.createdAtDate)}'
+                          ' · ${waktuRelatif(m.createdAtDate)}',
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  MateriBadge(
+                    label: m.tipe.label,
+                    color: warna,
+                    icon: ikonMateri(m.tipe),
+                  ),
+                  if (tampilkanStatistik)
+                    MateriBadge(
+                      label: m.statusLabel ?? (m.isAktif ? 'Aktif' : 'Draft'),
+                      color: m.isAktif ? AppColors.success : AppColors.warning,
+                    ),
+                ],
+              ),
+            ],
+          ),
         ),
+      ),
 
-        // ── Statistik pembaca (guru & admin) ──────────────────────────────
-        if (tampilkanStatistik) ...[
-          const SizedBox(height: 12),
-          _StatistikCard(state: state),
-        ],
+      // ── Deskripsi ─────────────────────────────────────────────────────
+      const SizedBox(height: 12),
+      MateriSectionCard(
+        title: 'Deskripsi',
+        icon: Icons.notes_outlined,
+        child: Text(
+          (m.deskripsi == null || m.deskripsi!.trim().isEmpty)
+              ? 'Tidak ada deskripsi untuk materi ini.'
+              : m.deskripsi!.trim(),
+          style: const TextStyle(
+            fontSize: 13.5,
+            height: 1.6,
+            color: AppColors.textPrimary,
+          ),
+        ),
+      ),
+
+      // ── Lampiran ──────────────────────────────────────────────────────
+      const SizedBox(height: 12),
+      MateriSectionCard(
+        title: 'Lampiran',
+        icon: Icons.attachment_outlined,
+        child: m.punyaLampiran
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (m.punyaFile) ...[
+                    _LampiranTile(
+                      icon: Icons.description_outlined,
+                      judul: m.ekstensiFile == null
+                          ? 'Berkas materi'
+                          : 'Berkas materi (${m.ekstensiFile!.toUpperCase()})',
+                      nilai: m.fileMateri!,
+                      warna: AppColors.primary,
+                      onTap: () => onBukaLampiran(m.fileMateri!),
+                    ),
+                    if (m.punyaVideo) const SizedBox(height: 10),
+                  ],
+                  if (m.punyaVideo)
+                    _LampiranTile(
+                      icon: Icons.play_circle_outline,
+                      judul: 'Video pembelajaran',
+                      nilai: m.linkVideo!,
+                      warna: AppColors.error,
+                      onTap: () => onBukaLampiran(m.linkVideo!),
+                    ),
+                  const SizedBox(height: 14),
+                  if (m.punyaFile)
+                    ElevatedButton.icon(
+                      onPressed: () => onBukaLampiran(m.fileMateri!),
+                      icon: const Icon(Icons.open_in_new),
+                      label: const Text('Buka Berkas Materi'),
+                    ),
+                  if (m.punyaFile && m.punyaVideo) const SizedBox(height: 8),
+                  if (m.punyaVideo)
+                    OutlinedButton.icon(
+                      onPressed: () => onBukaLampiran(m.linkVideo!),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 48),
+                      ),
+                      icon: const Icon(Icons.play_arrow),
+                      label: const Text('Tonton Video'),
+                    ),
+                ],
+              )
+            : const Text(
+                'Materi ini tidak memiliki berkas atau video lampiran.',
+                style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+              ),
+      ),
+
+      // ── Statistik pembaca (guru & admin) ──────────────────────────────
+      if (tampilkanStatistik) ...[
+        const SizedBox(height: 12),
+        _StatistikCard(state: state),
       ],
+    ];
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: Responsive.lebarKontenMaks(context),
+        ),
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.fromLTRB(pad.left, pad.top, pad.right, 32),
+          children: isi,
+        ),
+      ),
     );
   }
 }
@@ -458,10 +462,7 @@ class _StatistikCard extends StatelessWidget {
           state.statistikGagal
               ? 'Statistik pembaca belum dapat dimuat.'
               : 'Statistik pembaca tidak tersedia.',
-          style: const TextStyle(
-            fontSize: 13,
-            color: AppColors.textSecondary,
-          ),
+          style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
         ),
       );
     }
@@ -556,12 +557,18 @@ class _StatistikCard extends StatelessWidget {
               ),
             ),
           ),
-          Text(
-            '${log.durasiLabel ?? formatDurasi(log.durasiDetik)} · '
-            '${waktuRelatif(log.waktuAksesDate)}',
-            style: const TextStyle(
-              fontSize: 11,
-              color: AppColors.textSecondary,
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              '${log.durasiLabel ?? formatDurasi(log.durasiDetik)} · '
+              '${waktuRelatif(log.waktuAksesDate)}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.right,
+              style: const TextStyle(
+                fontSize: 11,
+                color: AppColors.textSecondary,
+              ),
             ),
           ),
         ],
@@ -597,20 +604,27 @@ class _StatTile extends StatelessWidget {
           children: [
             Icon(icon, size: 18, color: color),
             const SizedBox(height: 4),
-            Text(
-              value,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-                color: color,
+            // Nilai (mis. "1 jam 5 menit") wajib muat satu baris di sel sempit.
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
               ),
             ),
             const SizedBox(height: 2),
             Text(
               label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 10.5,
                 color: AppColors.textSecondary,
@@ -709,6 +723,8 @@ class _InfoRow extends StatelessWidget {
           Expanded(
             child: Text(
               text,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 12.5,
                 color: AppColors.textSecondary,
@@ -729,8 +745,8 @@ class _DetailErrorView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
+      child: SingleChildScrollView(
+        padding: Responsive.pagePadding(context) * 2,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

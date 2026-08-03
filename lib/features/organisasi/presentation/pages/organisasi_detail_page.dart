@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/organisasi_entity.dart';
 import '../bloc/organisasi_detail_bloc.dart';
 import '../widgets/organisasi_widgets.dart';
@@ -38,8 +39,9 @@ class _OrganisasiDetailPageState extends State<OrganisasiDetailPage> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => sl<OrganisasiDetailBloc>()
-        ..add(OrganisasiDetailLoadRequested(widget.organisasiId)),
+      create: (_) =>
+          sl<OrganisasiDetailBloc>()
+            ..add(OrganisasiDetailLoadRequested(widget.organisasiId)),
       child: Scaffold(
         appBar: AppBar(title: Text(widget.namaAwal), centerTitle: true),
         body: BlocBuilder<OrganisasiDetailBloc, OrganisasiDetailState>(
@@ -136,38 +138,45 @@ class _LoadedView extends StatelessWidget {
             onRefresh: () async {
               bloc.add(const OrganisasiDetailRefreshRequested());
             },
-            child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.only(top: 8, bottom: 20),
-              children: [
-                _ProfilCard(state: state),
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(16, 12, 16, 4),
-                  child: Text(
-                    'Struktur Kepengurusan',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: Responsive.lebarKontenMaks(context),
                 ),
-                if (struktur.isEmpty)
-                  _EmptyStruktur(
-                    message: state.detail.anggota.isEmpty
-                        ? 'Belum ada anggota terdaftar di organisasi ini'
-                        : state.adaFilterAktif
-                        ? 'Tidak ada anggota yang cocok dengan '
-                              'pencarian/filter'
-                        : 'Belum ada anggota terdaftar di organisasi ini',
-                  )
-                else
-                  for (final kelompok in struktur)
-                    JabatanStrukturCard(
-                      namaJabatan: kelompok.nama,
-                      anggota: kelompok.anggota,
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.only(top: 8, bottom: 20),
+                  children: [
+                    _ProfilCard(state: state),
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(16, 12, 16, 4),
+                      child: Text(
+                        'Struktur Kepengurusan',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                     ),
-              ],
+                    if (struktur.isEmpty)
+                      _EmptyStruktur(
+                        message: state.detail.anggota.isEmpty
+                            ? 'Belum ada anggota terdaftar di organisasi ini'
+                            : state.adaFilterAktif
+                            ? 'Tidak ada anggota yang cocok dengan '
+                                  'pencarian/filter'
+                            : 'Belum ada anggota terdaftar di organisasi ini',
+                      )
+                    else
+                      for (final kelompok in struktur)
+                        JabatanStrukturCard(
+                          namaJabatan: kelompok.nama,
+                          anggota: kelompok.anggota,
+                        ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
@@ -217,6 +226,8 @@ class _ProfilCard extends StatelessWidget {
                     children: [
                       Text(
                         organisasi.nama,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
@@ -226,6 +237,8 @@ class _ProfilCard extends StatelessWidget {
                       if (organisasi.kode != null)
                         Text(
                           'Kode: ${organisasi.kode}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             fontSize: 12,
                             color: AppColors.textSecondary,
@@ -315,6 +328,8 @@ class _InfoBaris extends StatelessWidget {
           Expanded(
             child: Text(
               nilai,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w600,

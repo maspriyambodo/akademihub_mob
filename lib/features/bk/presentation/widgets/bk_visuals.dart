@@ -106,12 +106,19 @@ class BkStatusBadge extends StatelessWidget {
         children: [
           Icon(bkIkonStatus(label), size: 12, color: warna),
           const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10.5,
-              fontWeight: FontWeight.w700,
-              color: warna,
+          // Batas lebar agar badge tidak pernah memanjang tak terkendali di
+          // dalam Row kartu pada layar sempit; label dipotong dengan ellipsis.
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 132),
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 10.5,
+                fontWeight: FontWeight.w700,
+                color: warna,
+              ),
             ),
           ),
         ],

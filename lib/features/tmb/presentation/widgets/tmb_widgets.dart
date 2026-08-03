@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/tmb_hasil_entity.dart';
 import '../../domain/entities/tmb_peserta_entity.dart';
 import '../../domain/entities/tmb_tes_entity.dart';
@@ -84,6 +85,7 @@ class TmbStatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      constraints: const BoxConstraints(maxWidth: 120),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: color.withAlpha(26),
@@ -91,6 +93,8 @@ class TmbStatusChip extends StatelessWidget {
       ),
       child: Text(
         label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,
@@ -185,6 +189,10 @@ class TmbAspekBar extends StatelessWidget {
     final persen = hasil.skorPersen;
     final nilaiLabel = persen != null ? '$persen%' : '${hasil.skorTotal}';
     final kategori = hasil.kategoriTampil;
+    final gap = Responsive.gap(context, base: 8);
+    // Lebar maksimum chip kategori dibatasi agar Row tidak pernah overflow
+    // meski label aspek dan kategori sama-sama panjang di layar sempit.
+    final lebarMaksChip = Responsive.isCompact(context) ? 72.0 : 96.0;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 7),
@@ -204,6 +212,8 @@ class TmbAspekBar extends StatelessWidget {
                   ),
                   child: Text(
                     hasil.aspekKode!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
@@ -211,11 +221,13 @@ class TmbAspekBar extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: gap),
               ],
               Expanded(
                 child: Text(
                   hasil.namaTampil,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -224,15 +236,27 @@ class TmbAspekBar extends StatelessWidget {
                 ),
               ),
               if (kategori != null) ...[
-                TmbStatusChip(label: kategori, color: _warna),
-                const SizedBox(width: 8),
+                SizedBox(width: gap * 0.75),
+                ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: lebarMaksChip),
+                  child: TmbStatusChip(label: kategori, color: _warna),
+                ),
               ],
-              Text(
-                nilaiLabel,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: _warna,
+              SizedBox(width: gap),
+              ConstrainedBox(
+                constraints: const BoxConstraints(minWidth: 32, maxWidth: 56),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    nilaiLabel,
+                    maxLines: 1,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: _warna,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -283,6 +307,8 @@ class TmbInfoRow extends StatelessWidget {
           Expanded(
             child: Text(
               text,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 12,
                 color: AppColors.textSecondary,

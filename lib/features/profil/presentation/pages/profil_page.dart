@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../auth/domain/entities/user_entity.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/profil_bloc.dart';
@@ -68,9 +69,7 @@ class _ProfilViewState extends State<_ProfilView> {
     final setuju = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Keluar dari Akun'),
         content: const Text(
           'Anda yakin ingin keluar? Anda harus masuk kembali untuk '
@@ -107,6 +106,7 @@ class _ProfilViewState extends State<_ProfilView> {
           }
 
           final user = authState.user;
+          final pad = Responsive.pagePadding(context);
 
           return RefreshIndicator(
             onRefresh: _refresh,
@@ -115,14 +115,28 @@ class _ProfilViewState extends State<_ProfilView> {
               padding: EdgeInsets.zero,
               children: [
                 ProfilHeader(user: user),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-                  child: BlocBuilder<ProfilBloc, ProfilState>(
-                    builder: (context, state) => _Konten(
-                      user: user,
-                      state: state,
-                      onRetry: _muat,
-                      onLogout: _konfirmasiLogout,
+                // Di tablet lebar konten dibatasi agar baris label–nilai
+                // tidak melebar tak terbaca.
+                Center(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: Responsive.lebarKontenMaks(context),
+                    ),
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        pad.left,
+                        pad.top,
+                        pad.right,
+                        24,
+                      ),
+                      child: BlocBuilder<ProfilBloc, ProfilState>(
+                        builder: (context, state) => _Konten(
+                          user: user,
+                          state: state,
+                          onRetry: _muat,
+                          onLogout: _konfirmasiLogout,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -319,8 +333,8 @@ class _ErrorView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
+      child: SingleChildScrollView(
+        padding: Responsive.pagePadding(context) * 2,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

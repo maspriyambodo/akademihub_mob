@@ -24,6 +24,7 @@ class DashboardStatCard extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
               padding: const EdgeInsets.all(8),
@@ -49,7 +50,7 @@ class DashboardStatCard extends StatelessWidget {
               style: Theme.of(
                 context,
               ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
-              maxLines: 2,
+              maxLines: description != null ? 1 : 2,
               overflow: TextOverflow.ellipsis,
             ),
             if (description != null) ...[
@@ -60,7 +61,7 @@ class DashboardStatCard extends StatelessWidget {
                   color: AppColors.textHint,
                   fontSize: 11,
                 ),
-                maxLines: 2,
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
             ],

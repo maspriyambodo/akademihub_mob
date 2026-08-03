@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 
 /// Kartu bersudut tumpul dengan judul + ikon, dipakai semua seksi di halaman
 /// profil supaya tampilannya konsisten.
@@ -46,6 +47,8 @@ class ProfilInfoCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     judul,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
@@ -88,9 +91,11 @@ class ProfilInfoRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(ikon, size: 18, color: AppColors.textSecondary),
-          const SizedBox(width: 12),
+          SizedBox(width: Responsive.isCompact(context) ? 8 : 12),
           SizedBox(
-            width: 110,
+            // Label dipersempit di layar kecil supaya nilai panjang
+            // (alamat, email, nama sekolah) tetap punya ruang baca.
+            width: Responsive.isCompact(context) ? 88 : 110,
             child: Text(
               label,
               style: const TextStyle(
@@ -102,6 +107,8 @@ class ProfilInfoRow extends StatelessWidget {
           Expanded(
             child: Text(
               nilai,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,

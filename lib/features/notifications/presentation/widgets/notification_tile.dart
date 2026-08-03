@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/notification_entity.dart';
 import 'notification_visuals.dart';
 
@@ -10,25 +11,20 @@ class NotificationTile extends StatelessWidget {
   final NotificationEntity item;
   final VoidCallback onTap;
 
-  const NotificationTile({
-    super.key,
-    required this.item,
-    required this.onTap,
-  });
+  const NotificationTile({super.key, required this.item, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final visual = visualForType(item.type);
     final unread = !item.isRead;
+    final pad = Responsive.pagePadding(context);
 
     return Material(
-      color: unread
-          ? AppColors.primary.withAlpha(15)
-          : AppColors.cardBg,
+      color: unread ? AppColors.primary.withAlpha(15) : AppColors.cardBg,
       child: InkWell(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          padding: EdgeInsets.symmetric(horizontal: pad.left, vertical: 14),
           decoration: const BoxDecoration(
             border: Border(
               bottom: BorderSide(color: AppColors.divider, width: 0.6),
@@ -62,9 +58,7 @@ class NotificationTile extends StatelessWidget {
                         fontSize: 14,
                         height: 1.3,
                         color: AppColors.textPrimary,
-                        fontWeight: unread
-                            ? FontWeight.w700
-                            : FontWeight.w500,
+                        fontWeight: unread ? FontWeight.w700 : FontWeight.w500,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -79,16 +73,21 @@ class NotificationTile extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
+                    // Chip tipe + waktu relatif: keduanya fleksibel supaya
+                    // baris ini tidak pernah meluber di layar sempit.
                     Row(
                       children: [
-                        _TypeChip(
-                          label: visual.label,
-                          color: visual.color,
+                        Flexible(
+                          child: _TypeChip(
+                            label: visual.label,
+                            color: visual.color,
+                          ),
                         ),
                         const SizedBox(width: 8),
                         Flexible(
                           child: Text(
                             waktuRelatif(item.createdAt),
+                            maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontSize: 11,
@@ -137,6 +136,8 @@ class _TypeChip extends StatelessWidget {
       ),
       child: Text(
         label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.w600,

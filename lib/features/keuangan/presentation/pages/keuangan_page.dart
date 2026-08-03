@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../domain/entities/pembayaran_spp_entity.dart';
 import '../../domain/entities/tunggakan_entity.dart';
@@ -171,9 +172,7 @@ class _KeuanganViewState extends State<_KeuanganView> {
     );
 
     if (setuju == true) {
-      bloc.add(
-        KeuanganBayarMultipleRequested(bulan: bulan, tahun: tahun),
-      );
+      bloc.add(KeuanganBayarMultipleRequested(bulan: bulan, tahun: tahun));
     }
   }
 
@@ -255,10 +254,7 @@ class _KeuanganViewState extends State<_KeuanganView> {
                                 .read<KeuanganBloc>()
                                 .add(KeuanganTahunChanged(tahun)),
                           )
-                        : _TampilanDaftar(
-                            state: state,
-                            onDetail: _bukaDetail,
-                          ),
+                        : _TampilanDaftar(state: state, onDetail: _bukaDetail),
                   );
                 }
                 return const SizedBox.shrink();
@@ -295,74 +291,87 @@ class _TampilanPribadi extends StatelessWidget {
     final riwayat = state.pembayaran;
     final tunggakan = state.tunggakan;
     final sedangProses = state.aksiStatus == KeuanganAksiStatus.loading;
+    final pad = Responsive.pagePadding(context);
 
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
-      children: [
-        _KartuRingkasan(state: state),
-        const SizedBox(height: 12),
-        _TahunSelector(tahun: state.tahun, onGanti: onGantiTahun),
-        if (state.catatan != null) ...[
-          const SizedBox(height: 12),
-          _Catatan(pesan: state.catatan!),
-        ],
+    // Di tablet lebar konten dibatasi supaya baris tidak melebar tak terbaca.
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: Responsive.lebarKontenMaks(context),
+        ),
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.fromLTRB(pad.left, 12, pad.right, 32),
+          children: [
+            _KartuRingkasan(state: state),
+            const SizedBox(height: 12),
+            _TahunSelector(tahun: state.tahun, onGanti: onGantiTahun),
+            if (state.catatan != null) ...[
+              const SizedBox(height: 12),
+              _Catatan(pesan: state.catatan!),
+            ],
 
-        // ── Tunggakan ──────────────────────────────────────────────────────
-        if (tunggakan.isNotEmpty) ...[
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              const Expanded(
-                child: _JudulSeksi(
-                  judul: 'Tunggakan',
-                  ikon: Icons.warning_amber_rounded,
-                  warna: AppColors.error,
+            // ── Tunggakan ──────────────────────────────────────────────────
+            if (tunggakan.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  const Expanded(
+                    child: _JudulSeksi(
+                      judul: 'Tunggakan',
+                      ikon: Icons.warning_amber_rounded,
+                      warna: AppColors.error,
+                    ),
+                  ),
+                  if (canBayar && state.bulanMenunggak.isNotEmpty)
+                    Flexible(
+                      child: TextButton.icon(
+                        onPressed: sedangProses ? null : onLunasiSemua,
+                        icon: const Icon(Icons.done_all, size: 16),
+                        label: const Text(
+                          'Lunasi semua',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              ...tunggakan.map(
+                (t) => _KartuTunggakan(
+                  tunggakan: t,
+                  canBayar: canBayar,
+                  sedangProses: sedangProses,
+                  onBayar: () => onBayarOnline(t.bulan, t.tahun),
                 ),
               ),
-              if (canBayar && state.bulanMenunggak.isNotEmpty)
-                TextButton.icon(
-                  onPressed: sedangProses ? null : onLunasiSemua,
-                  icon: const Icon(Icons.done_all, size: 16),
-                  label: const Text(
-                    'Lunasi semua',
-                    style: TextStyle(fontSize: 12),
-                  ),
-                ),
             ],
-          ),
-          const SizedBox(height: 4),
-          ...tunggakan.map(
-            (t) => _KartuTunggakan(
-              tunggakan: t,
-              canBayar: canBayar,
-              sedangProses: sedangProses,
-              onBayar: () => onBayarOnline(t.bulan, t.tahun),
-            ),
-          ),
-        ],
 
-        // ── Riwayat / tagihan tercatat ─────────────────────────────────────
-        const SizedBox(height: 20),
-        const _JudulSeksi(
-          judul: 'Riwayat & Tagihan',
-          ikon: Icons.receipt_long_outlined,
-          warna: AppColors.primary,
-        ),
-        const SizedBox(height: 8),
-        if (riwayat.isEmpty)
-          const _EmptyView(
-            message: 'Belum ada catatan pembayaran SPP untuk akun ini',
-          )
-        else
-          ...riwayat.map(
-            (p) => _KartuPembayaran(
-              pembayaran: p,
-              tampilkanSiswa: false,
-              onTap: () => onDetail(p),
+            // ── Riwayat / tagihan tercatat ─────────────────────────────────
+            const SizedBox(height: 20),
+            const _JudulSeksi(
+              judul: 'Riwayat & Tagihan',
+              ikon: Icons.receipt_long_outlined,
+              warna: AppColors.primary,
             ),
-          ),
-      ],
+            const SizedBox(height: 8),
+            if (riwayat.isEmpty)
+              const _EmptyView(
+                message: 'Belum ada catatan pembayaran SPP untuk akun ini',
+              )
+            else
+              ...riwayat.map(
+                (p) => _KartuPembayaran(
+                  pembayaran: p,
+                  tampilkanSiswa: false,
+                  onTap: () => onDetail(p),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -378,28 +387,36 @@ class _TampilanDaftar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = state.pembayaran;
+    final pad = Responsive.pagePadding(context);
 
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
-      children: [
-        if (state.laporan != null) _KartuLaporan(state: state),
-        if (state.laporan != null) const SizedBox(height: 16),
-        if (items.isEmpty)
-          _EmptyView(
-            message: state.search.trim().isNotEmpty
-                ? 'Tidak ada pembayaran yang cocok dengan pencarian'
-                : 'Belum ada data pembayaran SPP',
-          )
-        else
-          ...items.map(
-            (p) => _KartuPembayaran(
-              pembayaran: p,
-              tampilkanSiswa: true,
-              onTap: () => onDetail(p),
-            ),
-          ),
-      ],
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: Responsive.lebarKontenMaks(context),
+        ),
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.fromLTRB(pad.left, 12, pad.right, 32),
+          children: [
+            if (state.laporan != null) _KartuLaporan(state: state),
+            if (state.laporan != null) const SizedBox(height: 16),
+            if (items.isEmpty)
+              _EmptyView(
+                message: state.search.trim().isNotEmpty
+                    ? 'Tidak ada pembayaran yang cocok dengan pencarian'
+                    : 'Belum ada data pembayaran SPP',
+              )
+            else
+              ...items.map(
+                (p) => _KartuPembayaran(
+                  pembayaran: p,
+                  tampilkanSiswa: true,
+                  onTap: () => onDetail(p),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -481,12 +498,23 @@ class _KartuRingkasan extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 2),
-                      Text(
-                        adaTunggakan ? formatRupiah(total) : 'Tidak ada',
-                        style: TextStyle(
-                          fontSize: adaTunggakan ? 26 : 20,
-                          fontWeight: FontWeight.bold,
-                          color: warna,
+                      // Nominal bisa panjang ("Rp 14.000.000") — dikecilkan
+                      // otomatis agar selalu muat satu baris.
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          adaTunggakan ? formatRupiah(total) : 'Tidak ada',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: Responsive.fontSize(
+                              context,
+                              adaTunggakan ? 26 : 20,
+                            ),
+                            fontWeight: FontWeight.bold,
+                            color: warna,
+                          ),
                         ),
                       ),
                     ],
@@ -530,28 +558,36 @@ class _KartuRingkasan extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (status != null)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      const Text(
-                        'Bulan lunas',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
+                if (status != null) ...[
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        const Text(
+                          'Bulan lunas',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${status.lunas}/${status.totalBulan}',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
+                        const SizedBox(height: 4),
+                        Text(
+                          '${status.lunas}/${status.totalBulan}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: Responsive.fontSize(context, 18),
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
+                ],
               ],
             ),
             if (status != null) ...[
@@ -570,10 +606,7 @@ class _KartuRingkasan extends StatelessWidget {
               const SizedBox(height: 6),
               Text(
                 'Tahun ajaran ${status.tahunAjaran ?? '-'}',
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: AppColors.textHint,
-                ),
+                style: const TextStyle(fontSize: 11, color: AppColors.textHint),
               ),
             ],
           ],
@@ -623,8 +656,8 @@ class _KartuLaporan extends StatelessWidget {
               ],
             ),
             const Divider(height: 20, color: AppColors.divider),
-            Row(
-              children: [
+            _BarisMetrik(
+              metrik: [
                 _Metrik(
                   label: 'Pendapatan',
                   nilai: formatRupiah(laporan.totalPendapatan),
@@ -649,6 +682,33 @@ class _KartuLaporan extends StatelessWidget {
   }
 }
 
+/// Tiga metrik berdampingan di layar normal, ditumpuk vertikal di layar
+/// sempit supaya nominal rupiah panjang tidak tergencet.
+class _BarisMetrik extends StatelessWidget {
+  final List<Widget> metrik;
+
+  const _BarisMetrik({required this.metrik});
+
+  @override
+  Widget build(BuildContext context) {
+    if (Responsive.isCompact(context)) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (var i = 0; i < metrik.length; i++) ...[
+            if (i > 0) const SizedBox(height: 10),
+            metrik[i],
+          ],
+        ],
+      );
+    }
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [for (final m in metrik) Expanded(child: m)],
+    );
+  }
+}
+
 class _Metrik extends StatelessWidget {
   final String label;
   final String nilai;
@@ -662,28 +722,31 @@ class _Metrik extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 10,
-              color: AppColors.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+        ),
+        const SizedBox(height: 2),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(
             nilai,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w700,
               color: warna,
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -739,6 +802,8 @@ class _KartuTunggakan extends StatelessWidget {
                     children: [
                       Text(
                         '${namaBulan(tunggakan.bulan)} ${tunggakan.tahun}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -749,6 +814,8 @@ class _KartuTunggakan extends StatelessWidget {
                       Text(
                         'SPP ${formatRupiah(tunggakan.nominal)}'
                         '${tunggakan.adaDenda ? ' + denda ${formatRupiah(tunggakan.denda)}' : ''}',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 11,
                           color: AppColors.textSecondary,
@@ -757,28 +824,41 @@ class _KartuTunggakan extends StatelessWidget {
                     ],
                   ),
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      formatRupiah(tunggakan.total),
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.error,
-                      ),
-                    ),
-                    if (tunggakan.bulanTerlambat > 0)
-                      Text(
-                        'telat ${tunggakan.bulanTerlambat} bln'
-                        ' (${formatPersen(tunggakan.dendaPersen)})',
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: AppColors.warning,
-                          fontWeight: FontWeight.w600,
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      // Nominal total wajib muat satu baris.
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerRight,
+                        child: Text(
+                          formatRupiah(tunggakan.total),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.error,
+                          ),
                         ),
                       ),
-                  ],
+                      if (tunggakan.bulanTerlambat > 0)
+                        Text(
+                          'telat ${tunggakan.bulanTerlambat} bln'
+                          ' (${formatPersen(tunggakan.dendaPersen)})',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.right,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: AppColors.warning,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -869,6 +949,8 @@ class _KartuPembayaran extends StatelessWidget {
                     if (tampilkanSiswa) ...[
                       Text(
                         pembayaran.siswaNama ?? 'Siswa',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -878,6 +960,8 @@ class _KartuPembayaran extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         pembayaran.labelPeriode,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 11,
                           color: AppColors.textSecondary,
@@ -886,6 +970,8 @@ class _KartuPembayaran extends StatelessWidget {
                     ] else
                       Text(
                         pembayaran.labelPeriode,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -893,12 +979,18 @@ class _KartuPembayaran extends StatelessWidget {
                         ),
                       ),
                     const SizedBox(height: 6),
-                    Text(
-                      formatRupiah(pembayaran.nominalEfektif),
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        formatRupiah(pembayaran.nominalEfektif),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -968,12 +1060,16 @@ class _JudulSeksi extends StatelessWidget {
       children: [
         Icon(ikon, size: 18, color: warna),
         const SizedBox(width: 8),
-        Text(
-          judul,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
+        Expanded(
+          child: Text(
+            judul,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
           ),
         ),
       ],
@@ -1007,22 +1103,29 @@ class _TahunSelector extends StatelessWidget {
             onPressed: () => onGanti(tahun - 1),
             tooltip: 'Tahun sebelumnya',
           ),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Tahun $tahun',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+          Flexible(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Tahun $tahun',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
-              ),
-              const Text(
-                'periode tunggakan & status',
-                style: TextStyle(fontSize: 10, color: AppColors.textHint),
-              ),
-            ],
+                const Text(
+                  'periode tunggakan & status',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 10, color: AppColors.textHint),
+                ),
+              ],
+            ),
           ),
           IconButton(
             icon: const Icon(Icons.chevron_right, size: 22),
@@ -1087,9 +1190,11 @@ class _SearchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pad = Responsive.pagePadding(context);
+
     return Container(
       color: AppColors.primary,
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+      padding: EdgeInsets.fromLTRB(pad.left, 8, pad.right, 12),
       child: TextField(
         controller: controller,
         onChanged: onChanged,
@@ -1126,9 +1231,11 @@ class _ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Dibungkus scroll view supaya tetap terbaca di layar pendek / saat
+    // pengguna memperbesar font sistem.
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
+      child: SingleChildScrollView(
+        padding: Responsive.pagePadding(context) * 2,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/notification_entity.dart';
 import 'notification_visuals.dart';
 
@@ -26,15 +27,24 @@ class NotificationDetailSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final visual = visualForType(item.type);
     final payload = _payloadEntries();
+    final pad = Responsive.pagePadding(context);
+    final bawahKeyboard = MediaQuery.viewInsetsOf(context).bottom;
 
     return SafeArea(
       top: false,
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.8,
+          // Tinggi aman: memperhitungkan keyboard & area sistem, tidak
+          // sekadar 80% tinggi layar.
+          maxHeight: Responsive.tinggiSheet(context, rasio: 0.8),
         ),
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+          padding: EdgeInsets.fromLTRB(
+            pad.left + 4,
+            12,
+            pad.right + 4,
+            20 + bawahKeyboard,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -71,6 +81,8 @@ class NotificationDetailSheet extends StatelessWidget {
                       children: [
                         Text(
                           visual.label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -80,6 +92,8 @@ class NotificationDetailSheet extends StatelessWidget {
                         const SizedBox(height: 2),
                         Text(
                           '${waktuRelatif(item.createdAt)} • ${waktuLengkap(item.createdAt)}',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             fontSize: 11,
                             color: AppColors.textHint,
@@ -88,25 +102,31 @@ class NotificationDetailSheet extends StatelessWidget {
                       ],
                     ),
                   ),
-                  if (item.urgency.isNotEmpty)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: colorForUrgency(item.urgency).withAlpha(30),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        labelForUrgency(item.urgency),
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: colorForUrgency(item.urgency),
+                  if (item.urgency.isNotEmpty) ...[
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: colorForUrgency(item.urgency).withAlpha(30),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          labelForUrgency(item.urgency),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: colorForUrgency(item.urgency),
+                          ),
                         ),
                       ),
                     ),
+                  ],
                 ],
               ),
               const SizedBox(height: 18),
@@ -114,8 +134,8 @@ class NotificationDetailSheet extends StatelessWidget {
               // ── Judul & pesan ───────────────────────────────────────────
               Text(
                 item.judul.isEmpty ? visual.label : item.judul,
-                style: const TextStyle(
-                  fontSize: 17,
+                style: TextStyle(
+                  fontSize: Responsive.fontSize(context, 17),
                   fontWeight: FontWeight.w700,
                   color: AppColors.textPrimary,
                   height: 1.3,
@@ -160,7 +180,7 @@ class NotificationDetailSheet extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               SizedBox(
-                                width: 120,
+                                width: Responsive.isCompact(context) ? 96 : 120,
                                 child: Text(
                                   e.key,
                                   style: const TextStyle(
@@ -222,8 +242,6 @@ class NotificationDetailSheet extends StatelessWidget {
 
   String _humanizeKey(String key) {
     final words = key.split('_').where((w) => w.isNotEmpty);
-    return words
-        .map((w) => w[0].toUpperCase() + w.substring(1))
-        .join(' ');
+    return words.map((w) => w[0].toUpperCase() + w.substring(1)).join(' ');
   }
 }

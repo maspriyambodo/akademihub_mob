@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/bk_hasil_entity.dart';
 import '../../domain/entities/bk_kasus_entity.dart';
 import '../../domain/entities/bk_sesi_entity.dart';
@@ -52,7 +53,10 @@ class BkDetailPage extends StatelessWidget {
             canManageTindakan: canManageTindakan,
           ),
         ),
-      child: _BkDetailView(kasus: kasus, tampilkanNamaSiswa: tampilkanNamaSiswa),
+      child: _BkDetailView(
+        kasus: kasus,
+        tampilkanNamaSiswa: tampilkanNamaSiswa,
+      ),
     );
   }
 }
@@ -103,25 +107,38 @@ class _BkDetailView extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
 
+          final pad = context.pagePadding;
           return RefreshIndicator(
             onRefresh: () async => context.read<BkDetailBloc>().add(
               const BkDetailRefreshRequested(),
             ),
-            child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(12, 12, 12, 32),
-              children: [
-                _KasusInfoCard(
-                  kasus: kasus,
-                  tampilkanNamaSiswa: tampilkanNamaSiswa,
+            child: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: Responsive.lebarKontenMaks(context),
                 ),
-                const SizedBox(height: 16),
-                _SeksiSesi(state: state),
-                const SizedBox(height: 16),
-                _SeksiHasil(state: state),
-                const SizedBox(height: 16),
-                _SeksiTindakan(state: state),
-              ],
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.fromLTRB(
+                    pad.left,
+                    pad.top,
+                    pad.right,
+                    32,
+                  ),
+                  children: [
+                    _KasusInfoCard(
+                      kasus: kasus,
+                      tampilkanNamaSiswa: tampilkanNamaSiswa,
+                    ),
+                    const SizedBox(height: 16),
+                    _SeksiSesi(state: state),
+                    const SizedBox(height: 16),
+                    _SeksiHasil(state: state),
+                    const SizedBox(height: 16),
+                    _SeksiTindakan(state: state),
+                  ],
+                ),
+              ),
             ),
           );
         },
@@ -153,6 +170,8 @@ class _KasusInfoCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     kasus.judul ?? kasus.jenisNama ?? 'Kasus BK #${kasus.id}',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
@@ -238,9 +257,11 @@ class _BarisInfo extends StatelessWidget {
           Icon(ikon, size: 15, color: AppColors.textHint),
           const SizedBox(width: 8),
           SizedBox(
-            width: 110,
+            width: context.isCompact ? 92 : 110,
             child: Text(
               label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 12,
                 color: AppColors.textSecondary,
@@ -250,6 +271,8 @@ class _BarisInfo extends StatelessWidget {
           Expanded(
             child: Text(
               nilai,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w600,
@@ -283,7 +306,8 @@ class _SeksiSesi extends StatelessWidget {
           : null,
       child: !state.canViewSesi
           ? const _CatatanIzin(
-              pesan: 'Sesi konseling tidak ditampilkan karena akun Anda tidak '
+              pesan:
+                  'Sesi konseling tidak ditampilkan karena akun Anda tidak '
                   'memiliki izin "bk-sesi.view".',
             )
           : state.errorSesi != null
@@ -291,9 +315,7 @@ class _SeksiSesi extends StatelessWidget {
           : state.sesi.isEmpty
           ? const _SeksiKosong(pesan: 'Belum ada sesi konseling.')
           : Column(
-              children: [
-                for (final sesi in state.sesi) _SesiTile(sesi: sesi),
-              ],
+              children: [for (final sesi in state.sesi) _SesiTile(sesi: sesi)],
             ),
     );
   }
@@ -302,10 +324,8 @@ class _SeksiSesi extends StatelessWidget {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      builder: (sheetContext) => BlocProvider.value(
-        value: bloc,
-        child: const _FormSesiSheet(),
-      ),
+      builder: (sheetContext) =>
+          BlocProvider.value(value: bloc, child: const _FormSesiSheet()),
     );
   }
 }
@@ -335,20 +355,29 @@ class _SesiTile extends StatelessWidget {
                 color: AppColors.primary,
               ),
               const SizedBox(width: 6),
-              Text(
-                sesi.metodeLabel,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.primary,
+              Expanded(
+                child: Text(
+                  sesi.metodeLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primary,
+                  ),
                 ),
               ),
-              const Spacer(),
-              Text(
-                bkFormatTanggal(sesi.tanggal ?? sesi.createdAt),
-                style: const TextStyle(
-                  fontSize: 11.5,
-                  color: AppColors.textSecondary,
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  bkFormatTanggal(sesi.tanggal ?? sesi.createdAt),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.end,
+                  style: const TextStyle(
+                    fontSize: 11.5,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ),
             ],
@@ -390,7 +419,8 @@ class _SeksiHasil extends StatelessWidget {
           : null,
       child: !state.canViewHasil
           ? const _CatatanIzin(
-              pesan: 'Hasil konseling tidak ditampilkan karena akun Anda tidak '
+              pesan:
+                  'Hasil konseling tidak ditampilkan karena akun Anda tidak '
                   'memiliki izin "bk-hasil.view".',
             )
           : state.errorHasil != null
@@ -409,10 +439,8 @@ class _SeksiHasil extends StatelessWidget {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      builder: (sheetContext) => BlocProvider.value(
-        value: bloc,
-        child: const _FormHasilSheet(),
-      ),
+      builder: (sheetContext) =>
+          BlocProvider.value(value: bloc, child: const _FormHasilSheet()),
     );
   }
 }
@@ -442,20 +470,29 @@ class _HasilTile extends StatelessWidget {
                 color: AppColors.success,
               ),
               const SizedBox(width: 6),
-              const Text(
-                'Hasil',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.success,
+              const Expanded(
+                child: Text(
+                  'Hasil',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.success,
+                  ),
                 ),
               ),
-              const Spacer(),
-              Text(
-                bkFormatTanggal(hasil.createdAt),
-                style: const TextStyle(
-                  fontSize: 11.5,
-                  color: AppColors.textSecondary,
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  bkFormatTanggal(hasil.createdAt),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.end,
+                  style: const TextStyle(
+                    fontSize: 11.5,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ),
             ],
@@ -515,7 +552,8 @@ class _SeksiTindakan extends StatelessWidget {
           : null,
       child: !state.canViewTindakan
           ? const _CatatanIzin(
-              pesan: 'Tindak lanjut tidak ditampilkan karena akun Anda tidak '
+              pesan:
+                  'Tindak lanjut tidak ditampilkan karena akun Anda tidak '
                   'memiliki izin "bk-tindakan.view".',
             )
           : state.errorTindakan != null
@@ -538,10 +576,8 @@ class _SeksiTindakan extends StatelessWidget {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      builder: (sheetContext) => BlocProvider.value(
-        value: bloc,
-        child: const _FormTindakanSheet(),
-      ),
+      builder: (sheetContext) =>
+          BlocProvider.value(value: bloc, child: const _FormTindakanSheet()),
     );
   }
 }
@@ -563,11 +599,7 @@ class _TindakanTile extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
-            Icons.arrow_right_alt,
-            size: 17,
-            color: AppColors.warning,
-          ),
+          const Icon(Icons.arrow_right_alt, size: 17, color: AppColors.warning),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -627,12 +659,16 @@ class _SeksiCard extends StatelessWidget {
               children: [
                 Icon(ikon, size: 17, color: warna),
                 const SizedBox(width: 7),
-                Text(
-                  judul,
-                  style: TextStyle(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.bold,
-                    color: warna,
+                Flexible(
+                  child: Text(
+                    judul,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.bold,
+                      color: warna,
+                    ),
                   ),
                 ),
                 if (jumlah != null) ...[
@@ -658,19 +694,23 @@ class _SeksiCard extends StatelessWidget {
                 ],
                 const Spacer(),
                 if (tambahLabel != null && onTambah != null)
-                  TextButton.icon(
-                    onPressed: onTambah,
-                    style: TextButton.styleFrom(
-                      foregroundColor: warna,
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      visualDensity: VisualDensity.compact,
-                    ),
-                    icon: const Icon(Icons.add, size: 16),
-                    label: Text(
-                      tambahLabel!,
-                      style: const TextStyle(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w700,
+                  Flexible(
+                    child: TextButton.icon(
+                      onPressed: onTambah,
+                      style: TextButton.styleFrom(
+                        foregroundColor: warna,
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        visualDensity: VisualDensity.compact,
+                      ),
+                      icon: const Icon(Icons.add, size: 16),
+                      label: Text(
+                        tambahLabel!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ),
@@ -813,72 +853,74 @@ class _FormSesiSheetState extends State<_FormSesiSheet> {
         top: 16,
         bottom: MediaQuery.of(context).viewInsets.bottom + 20,
       ),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Tambah Sesi Konseling',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            InkWell(
-              onTap: _pilihTanggal,
-              borderRadius: BorderRadius.circular(12),
-              child: InputDecorator(
+      child: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Tambah Sesi Konseling',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              InkWell(
+                onTap: _pilihTanggal,
+                borderRadius: BorderRadius.circular(12),
+                child: InputDecorator(
+                  decoration: const InputDecoration(
+                    labelText: 'Tanggal Sesi',
+                    prefixIcon: Icon(Icons.event_outlined, size: 20),
+                    isDense: true,
+                  ),
+                  child: Text(
+                    bkFormatTanggalDate(_tanggal),
+                    style: const TextStyle(fontSize: 13.5),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<int>(
+                initialValue: _metode,
                 decoration: const InputDecoration(
-                  labelText: 'Tanggal Sesi',
-                  prefixIcon: Icon(Icons.event_outlined, size: 20),
+                  labelText: 'Metode',
+                  prefixIcon: Icon(Icons.route_outlined, size: 20),
                   isDense: true,
                 ),
-                child: Text(
-                  bkFormatTanggalDate(_tanggal),
-                  style: const TextStyle(fontSize: 13.5),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<int>(
-              initialValue: _metode,
-              decoration: const InputDecoration(
-                labelText: 'Metode',
-                prefixIcon: Icon(Icons.route_outlined, size: 20),
-                isDense: true,
-              ),
-              items: [
-                for (final entry in _metodeOpsi.entries)
-                  DropdownMenuItem(
-                    value: entry.key,
-                    child: Text(
-                      entry.value,
-                      style: const TextStyle(fontSize: 13.5),
+                items: [
+                  for (final entry in _metodeOpsi.entries)
+                    DropdownMenuItem(
+                      value: entry.key,
+                      child: Text(
+                        entry.value,
+                        style: const TextStyle(fontSize: 13.5),
+                      ),
                     ),
-                  ),
-              ],
-              onChanged: (v) => setState(() => _metode = v ?? 1),
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _catatanController,
-              maxLines: 4,
-              decoration: const InputDecoration(
-                labelText: 'Catatan Sesi',
-                alignLabelWithHint: true,
+                ],
+                onChanged: (v) => setState(() => _metode = v ?? 1),
               ),
-              style: const TextStyle(fontSize: 13.5),
-              validator: (v) => (v == null || v.trim().isEmpty)
-                  ? 'Catatan wajib diisi'
-                  : null,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: _simpan,
-              icon: const Icon(Icons.save_outlined, size: 18),
-              label: const Text('Simpan Sesi'),
-            ),
-          ],
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _catatanController,
+                maxLines: 4,
+                decoration: const InputDecoration(
+                  labelText: 'Catatan Sesi',
+                  alignLabelWithHint: true,
+                ),
+                style: const TextStyle(fontSize: 13.5),
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? 'Catatan wajib diisi'
+                    : null,
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: _simpan,
+                icon: const Icon(Icons.save_outlined, size: 18),
+                label: const Text('Simpan Sesi'),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -926,48 +968,51 @@ class _FormHasilSheetState extends State<_FormHasilSheet> {
         top: 16,
         bottom: MediaQuery.of(context).viewInsets.bottom + 20,
       ),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Tambah Hasil Konseling',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _hasilController,
-              maxLines: 3,
-              decoration: const InputDecoration(
-                labelText: 'Hasil',
-                alignLabelWithHint: true,
+      child: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Tambah Hasil Konseling',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
               ),
-              style: const TextStyle(fontSize: 13.5),
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'Hasil wajib diisi' : null,
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _rekomendasiController,
-              maxLines: 3,
-              decoration: const InputDecoration(
-                labelText: 'Rekomendasi',
-                alignLabelWithHint: true,
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _hasilController,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  labelText: 'Hasil',
+                  alignLabelWithHint: true,
+                ),
+                style: const TextStyle(fontSize: 13.5),
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? 'Hasil wajib diisi'
+                    : null,
               ),
-              style: const TextStyle(fontSize: 13.5),
-              validator: (v) => (v == null || v.trim().isEmpty)
-                  ? 'Rekomendasi wajib diisi'
-                  : null,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: _simpan,
-              icon: const Icon(Icons.save_outlined, size: 18),
-              label: const Text('Simpan Hasil'),
-            ),
-          ],
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _rekomendasiController,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  labelText: 'Rekomendasi',
+                  alignLabelWithHint: true,
+                ),
+                style: const TextStyle(fontSize: 13.5),
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? 'Rekomendasi wajib diisi'
+                    : null,
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: _simpan,
+                icon: const Icon(Icons.save_outlined, size: 18),
+                label: const Text('Simpan Hasil'),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1010,36 +1055,38 @@ class _FormTindakanSheetState extends State<_FormTindakanSheet> {
         top: 16,
         bottom: MediaQuery.of(context).viewInsets.bottom + 20,
       ),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Tambah Tindak Lanjut',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _deskripsiController,
-              maxLines: 4,
-              decoration: const InputDecoration(
-                labelText: 'Deskripsi Tindakan',
-                alignLabelWithHint: true,
+      child: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Tambah Tindak Lanjut',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
               ),
-              style: const TextStyle(fontSize: 13.5),
-              validator: (v) => (v == null || v.trim().isEmpty)
-                  ? 'Deskripsi wajib diisi'
-                  : null,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: _simpan,
-              icon: const Icon(Icons.save_outlined, size: 18),
-              label: const Text('Simpan Tindakan'),
-            ),
-          ],
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _deskripsiController,
+                maxLines: 4,
+                decoration: const InputDecoration(
+                  labelText: 'Deskripsi Tindakan',
+                  alignLabelWithHint: true,
+                ),
+                style: const TextStyle(fontSize: 13.5),
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? 'Deskripsi wajib diisi'
+                    : null,
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: _simpan,
+                icon: const Icon(Icons.save_outlined, size: 18),
+                label: const Text('Simpan Tindakan'),
+              ),
+            ],
+          ),
         ),
       ),
     );

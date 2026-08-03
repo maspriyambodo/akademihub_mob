@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import 'kalender_visuals.dart';
 
 /// Selector bulan/tahun untuk halaman kalender.
@@ -30,31 +31,50 @@ class KalenderMonthSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     final now = DateTime.now();
     final isBulanIni = bulan == now.month && tahun == now.year;
+    final rapat = Responsive.isCompact(context);
+
+    // Di 320dp tiga tombol ikon berukuran penuh menyisakan ruang sangat sempit
+    // untuk label bulan, jadi tombol dirapatkan dan label di-scale-down.
+    final batasTombol = BoxConstraints(
+      minWidth: rapat ? 36 : 44,
+      minHeight: rapat ? 36 : 44,
+    );
 
     return Container(
       color: AppColors.primary,
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+      padding: EdgeInsets.symmetric(horizontal: rapat ? 2 : 4, vertical: 6),
       child: Row(
         children: [
           IconButton(
             tooltip: 'Bulan sebelumnya',
+            padding: EdgeInsets.zero,
+            constraints: batasTombol,
+            visualDensity: VisualDensity.compact,
             icon: const Icon(Icons.chevron_left, color: Colors.white),
             onPressed: onPrev,
           ),
           Expanded(
             child: Center(
-              child: Text(
-                '${labelBulan(bulan)} $tahun',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  '${labelBulan(bulan)} $tahun',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: Responsive.fontSize(context, 16),
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),
           ),
           IconButton(
             tooltip: 'Kembali ke bulan ini',
+            padding: EdgeInsets.zero,
+            constraints: batasTombol,
+            visualDensity: VisualDensity.compact,
             icon: Icon(
               Icons.today_outlined,
               size: 20,
@@ -64,6 +84,9 @@ class KalenderMonthSelector extends StatelessWidget {
           ),
           IconButton(
             tooltip: 'Bulan berikutnya',
+            padding: EdgeInsets.zero,
+            constraints: batasTombol,
+            visualDensity: VisualDensity.compact,
             icon: const Icon(Icons.chevron_right, color: Colors.white),
             onPressed: onNext,
           ),

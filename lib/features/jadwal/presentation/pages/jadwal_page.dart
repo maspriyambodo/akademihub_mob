@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/jadwal_bloc.dart';
 import '../../domain/entities/jadwal_pelajaran_entity.dart';
@@ -90,19 +91,26 @@ class _JadwalViewState extends State<_JadwalView> {
                       context.read<JadwalBloc>().add(JadwalHariChanged(hari)),
                 ),
                 Expanded(
-                  child: RefreshIndicator(
-                    onRefresh: () async {
-                      context.read<JadwalBloc>().add(
-                        const JadwalRefreshRequested(),
-                      );
-                    },
-                    child: state.items.isEmpty
-                        ? _EmptyScrollView(
-                            message:
-                                'Tidak ada jadwal pelajaran pada hari '
-                                '${hariLabel(state.selectedHari)}',
-                          )
-                        : _JadwalList(state: state),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: Responsive.lebarKontenMaks(context),
+                      ),
+                      child: RefreshIndicator(
+                        onRefresh: () async {
+                          context.read<JadwalBloc>().add(
+                            const JadwalRefreshRequested(),
+                          );
+                        },
+                        child: state.items.isEmpty
+                            ? _EmptyScrollView(
+                                message:
+                                    'Tidak ada jadwal pelajaran pada hari '
+                                    '${hariLabel(state.selectedHari)}',
+                              )
+                            : _JadwalList(state: state),
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -164,9 +172,7 @@ class _HariSelector extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: isSelected
-                              ? AppColors.primary
-                              : Colors.white,
+                          color: isSelected ? AppColors.primary : Colors.white,
                         ),
                       ),
                       if (isToday)
@@ -226,16 +232,21 @@ class _ListHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hPad = Responsive.pagePadding(context).left;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      padding: EdgeInsets.fromLTRB(hPad, 8, hPad, 4),
       child: Row(
         children: [
-          Text(
-            hariLabel(state.selectedHari),
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+          Flexible(
+            child: Text(
+              hariLabel(state.selectedHari),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
             ),
           ),
           const SizedBox(width: 8),
@@ -248,6 +259,8 @@ class _ListHeader extends StatelessWidget {
               ),
               child: const Text(
                 'Hari ini',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: 11,
                   color: AppColors.primary,
@@ -256,8 +269,11 @@ class _ListHeader extends StatelessWidget {
               ),
             ),
           const Spacer(),
+          const SizedBox(width: 8),
           Text(
             '${state.items.length} pelajaran',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontSize: 12,
               color: AppColors.textSecondary,
@@ -301,23 +317,33 @@ class _JadwalCard extends StatelessWidget {
         children: [
           // ── Kolom jam + garis timeline ────────────────────────────────
           SizedBox(
-            width: 62,
+            width: Responsive.isCompact(context) ? 52 : 62,
             child: Column(
               children: [
                 const SizedBox(height: 14),
-                Text(
-                  item.jamMulai ?? '--:--',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: selesai ? AppColors.textHint : AppColors.textPrimary,
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    item.jamMulai ?? '--:--',
+                    maxLines: 1,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: selesai
+                          ? AppColors.textHint
+                          : AppColors.textPrimary,
+                    ),
                   ),
                 ),
-                Text(
-                  item.jamSelesai ?? '--:--',
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: AppColors.textSecondary,
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    item.jamSelesai ?? '--:--',
+                    maxLines: 1,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 ),
               ],
@@ -329,7 +355,12 @@ class _JadwalCard extends StatelessWidget {
             child: Opacity(
               opacity: selesai ? 0.6 : 1,
               child: Card(
-                margin: const EdgeInsets.fromLTRB(10, 6, 16, 6),
+                margin: EdgeInsets.fromLTRB(
+                  10,
+                  6,
+                  Responsive.pagePadding(context).right,
+                  6,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                   side: BorderSide(
@@ -347,7 +378,10 @@ class _JadwalCard extends StatelessWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              item.mapelNama ?? 'Mata pelajaran tidak diketahui',
+                              item.mapelNama ??
+                                  'Mata pelajaran tidak diketahui',
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
@@ -355,7 +389,10 @@ class _JadwalCard extends StatelessWidget {
                               ),
                             ),
                           ),
-                          if (berlangsung) const _BadgeBerlangsung(),
+                          if (berlangsung) ...[
+                            const SizedBox(width: 6),
+                            const _BadgeBerlangsung(),
+                          ],
                         ],
                       ),
                       const SizedBox(height: 6),
@@ -364,29 +401,35 @@ class _JadwalCard extends StatelessWidget {
                         text: item.guruNama ?? 'Guru belum ditentukan',
                       ),
                       const SizedBox(height: 4),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 4,
-                        children: [
-                          _Chip(
-                            icon: Icons.schedule,
-                            label: item.durasiMenit != null
-                                ? '${item.rentangJam} · ${item.durasiMenit} mnt'
-                                : item.rentangJam,
-                          ),
-                          if (item.ruangan != null && item.ruangan!.isNotEmpty)
+                      LayoutBuilder(
+                        builder: (context, c) => Wrap(
+                          spacing: 6,
+                          runSpacing: 4,
+                          children: [
                             _Chip(
-                              icon: Icons.meeting_room_outlined,
-                              label: item.ruangan!,
+                              icon: Icons.schedule,
+                              maxWidth: c.maxWidth,
+                              label: item.durasiMenit != null
+                                  ? '${item.rentangJam} · ${item.durasiMenit} mnt'
+                                  : item.rentangJam,
                             ),
-                          if (showKelas &&
-                              item.kelasNama != null &&
-                              item.kelasNama!.isNotEmpty)
-                            _Chip(
-                              icon: Icons.class_outlined,
-                              label: item.kelasNama!,
-                            ),
-                        ],
+                            if (item.ruangan != null &&
+                                item.ruangan!.isNotEmpty)
+                              _Chip(
+                                icon: Icons.meeting_room_outlined,
+                                maxWidth: c.maxWidth,
+                                label: item.ruangan!,
+                              ),
+                            if (showKelas &&
+                                item.kelasNama != null &&
+                                item.kelasNama!.isNotEmpty)
+                              _Chip(
+                                icon: Icons.class_outlined,
+                                maxWidth: c.maxWidth,
+                                label: item.kelasNama!,
+                              ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -480,6 +523,8 @@ class _InfoRow extends StatelessWidget {
         Expanded(
           child: Text(
             text,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontSize: 12,
               color: AppColors.textSecondary,
@@ -495,11 +540,19 @@ class _Chip extends StatelessWidget {
   final IconData icon;
   final String label;
 
-  const _Chip({required this.icon, required this.label});
+  /// Batas lebar chip agar label panjang tidak meluber keluar `Wrap`.
+  final double? maxWidth;
+
+  const _Chip({required this.icon, required this.label, this.maxWidth});
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      constraints: BoxConstraints(
+        maxWidth: maxWidth != null && maxWidth!.isFinite
+            ? maxWidth!
+            : double.infinity,
+      ),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -511,11 +564,15 @@ class _Chip extends StatelessWidget {
         children: [
           Icon(icon, size: 12, color: AppColors.textSecondary),
           const SizedBox(width: 4),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 11,
-              color: AppColors.textSecondary,
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 11,
+                color: AppColors.textSecondary,
+              ),
             ),
           ),
         ],
@@ -533,9 +590,9 @@ class _ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
+    return SingleChildScrollView(
+      padding: Responsive.pagePadding(context) + const EdgeInsets.all(16),
+      child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -569,7 +626,7 @@ class _EmptyView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: Responsive.pagePadding(context) + const EdgeInsets.all(16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

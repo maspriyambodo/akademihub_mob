@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../domain/entities/forum_entity.dart';
 import '../bloc/forum_bloc.dart';
@@ -294,42 +295,53 @@ class _Daftar extends StatelessWidget {
       onRefresh: () async {
         context.read<ForumBloc>().add(const ForumRefreshRequested());
       },
-      child: state.items.isEmpty
-          ? ListView(
-              controller: scrollController,
-              physics: const AlwaysScrollableScrollPhysics(),
-              children: [
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.55,
-                  child: ForumEmptyView(message: _pesanKosong),
-                ),
-              ],
-            )
-          : ListView.builder(
-              controller: scrollController,
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.only(top: 6, bottom: 88),
-              itemCount: state.items.length + 1,
-              itemBuilder: (context, index) {
-                if (index == state.items.length) return _Footer(state: state);
-
-                final post = state.items[index];
-                return ForumCard(
-                  post: post,
-                  bolehUbah: state.bolehUbah(post),
-                  bolehHapus: state.bolehHapus(post),
-                  milikSaya: post.milikUser(state.userId),
-                  onTap: () => onTap(post),
-                  onAksi: (aksi) {
-                    if (aksi == ForumAksi.ubah) {
-                      onUbah(post);
-                    } else {
-                      onHapus(post);
+      // Lebar daftar dibatasi di tablet supaya kartu tidak melebar.
+      child: Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: Responsive.lebarKontenMaks(context),
+          ),
+          child: state.items.isEmpty
+              ? ListView(
+                  controller: scrollController,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: [
+                    SizedBox(
+                      // Tinggi aman (sadar keyboard & area sistem).
+                      height: Responsive.tinggiSheet(context, rasio: 0.55),
+                      child: ForumEmptyView(message: _pesanKosong),
+                    ),
+                  ],
+                )
+              : ListView.builder(
+                  controller: scrollController,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.only(top: 6, bottom: 88),
+                  itemCount: state.items.length + 1,
+                  itemBuilder: (context, index) {
+                    if (index == state.items.length) {
+                      return _Footer(state: state);
                     }
+
+                    final post = state.items[index];
+                    return ForumCard(
+                      post: post,
+                      bolehUbah: state.bolehUbah(post),
+                      bolehHapus: state.bolehHapus(post),
+                      milikSaya: post.milikUser(state.userId),
+                      onTap: () => onTap(post),
+                      onAksi: (aksi) {
+                        if (aksi == ForumAksi.ubah) {
+                          onUbah(post);
+                        } else {
+                          onHapus(post);
+                        }
+                      },
+                    );
                   },
-                );
-              },
-            ),
+                ),
+        ),
+      ),
     );
   }
 }
@@ -383,9 +395,11 @@ class _SearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pad = Responsive.pagePadding(context);
+
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+      padding: EdgeInsets.fromLTRB(pad.left, 10, pad.right, 6),
       child: TextField(
         controller: controller,
         onChanged: onChanged,
@@ -426,11 +440,15 @@ class _TipeFilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pad = Responsive.pagePadding(context);
+    final skala = MediaQuery.textScalerOf(context).scale(1);
+
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+      padding: EdgeInsets.fromLTRB(pad.left, 0, pad.right, 10),
       child: SizedBox(
-        height: 32,
+        // Tinggi chip ikut skala font sistem agar label tidak terpotong.
+        height: 32.0 * (skala > 1 ? skala : 1.0),
         child: ListView(
           scrollDirection: Axis.horizontal,
           children: [
@@ -496,8 +514,12 @@ class _Chip extends StatelessWidget {
               ),
               const SizedBox(width: 5),
             ],
+            // Tanpa Flexible: chip berada di dalam ListView horizontal
+            // (lebar tak terbatas), jadi anak flex tidak boleh dipakai.
             Text(
               label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,

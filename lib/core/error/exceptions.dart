@@ -44,7 +44,9 @@ AppException mapDioException(DioException e) {
           ? (data['message'] ?? 'Terjadi kesalahan')
           : 'Terjadi kesalahan';
 
-      if (status == 401) return const AuthException();
+      if (status == 401) {
+        return AuthException(message.toString());
+      }
       if (status == 404) return NotFoundException(message.toString());
       if (status == 422) {
         final errors = data is Map

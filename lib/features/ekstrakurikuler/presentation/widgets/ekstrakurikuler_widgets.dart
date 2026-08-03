@@ -1,8 +1,30 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/ekstrakurikuler_entity.dart';
 import '../../domain/entities/pendaftaran_ekskul_entity.dart';
+
+/// Membatasi lebar konten daftar di tablet agar teks tidak melebar
+/// tak terbaca. Dipakai di level halaman, bukan per kartu.
+class BatasLebarKonten extends StatelessWidget {
+  final Widget child;
+
+  const BatasLebarKonten({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    if (!Responsive.isExpanded(context)) return child;
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: Responsive.lebarKontenMaks(context),
+        ),
+        child: child,
+      ),
+    );
+  }
+}
 
 // ── Format tanggal (manual, tanpa initializeDateFormatting) ──────────────────
 
@@ -55,6 +77,8 @@ class StatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      // Batas lebar agar label panjang meng-ellipsis alih-alih meluber.
+      constraints: const BoxConstraints(maxWidth: 160),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
@@ -63,6 +87,8 @@ class StatusBadge extends StatelessWidget {
       ),
       child: Text(
         label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,
@@ -99,6 +125,8 @@ class InfoBaris extends StatelessWidget {
           Expanded(
             child: Text(
               text,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 12,
                 color: AppColors.textSecondary,
@@ -165,6 +193,8 @@ class EkstrakurikulerCard extends StatelessWidget {
                       children: [
                         Text(
                           ekskul.nama,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
@@ -176,6 +206,8 @@ class EkstrakurikulerCard extends StatelessWidget {
                             padding: const EdgeInsets.only(top: 2),
                             child: Text(
                               ekskul.kode!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                 fontSize: 11,
                                 color: AppColors.textHint,
@@ -199,15 +231,9 @@ class EkstrakurikulerCard extends StatelessWidget {
                     ? 'Pembina: ${ekskul.pembinaNama}'
                     : 'Pembina belum ditentukan',
               ),
-              InfoBaris(
-                icon: Icons.event_outlined,
-                text: ekskul.jadwalLabel,
-              ),
+              InfoBaris(icon: Icons.event_outlined, text: ekskul.jadwalLabel),
               if (ekskul.lokasi != null && ekskul.lokasi!.isNotEmpty)
-                InfoBaris(
-                  icon: Icons.place_outlined,
-                  text: ekskul.lokasi!,
-                ),
+                InfoBaris(icon: Icons.place_outlined, text: ekskul.lokasi!),
               if (jumlahPeserta != null)
                 InfoBaris(
                   icon: Icons.groups_outlined,
@@ -215,8 +241,11 @@ class EkstrakurikulerCard extends StatelessWidget {
                 ),
               if (sudahTerdaftar || onDaftar != null) ...[
                 const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                // Wrap: badge/tombol turun baris di layar sempit.
+                Wrap(
+                  alignment: WrapAlignment.end,
+                  spacing: 8,
+                  runSpacing: 8,
                   children: [
                     if (sudahTerdaftar)
                       const StatusBadge(
@@ -224,16 +253,17 @@ class EkstrakurikulerCard extends StatelessWidget {
                         color: AppColors.info,
                       )
                     else if (onDaftar != null)
-                      SizedBox(
-                        height: 32,
-                        child: ElevatedButton.icon(
-                          onPressed: onDaftar,
-                          icon: const Icon(Icons.add, size: 16),
-                          label: const Text('Daftar'),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            textStyle: const TextStyle(fontSize: 12),
-                          ),
+                      ElevatedButton.icon(
+                        onPressed: onDaftar,
+                        icon: const Icon(Icons.add, size: 16),
+                        label: const Text('Daftar'),
+                        style: ElevatedButton.styleFrom(
+                          // minimumSize (bukan tinggi mati) supaya tombol ikut
+                          // tumbuh saat font sistem diperbesar.
+                          minimumSize: const Size(0, 32),
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          textStyle: const TextStyle(fontSize: 12),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
                       ),
                   ],
@@ -301,6 +331,8 @@ class KeanggotaanCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       pendaftaran.namaTampil,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -344,21 +376,22 @@ class KeanggotaanCard extends StatelessWidget {
                 ),
               if (aktif && onKeluar != null) ...[
                 const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                Wrap(
+                  alignment: WrapAlignment.end,
+                  spacing: 8,
+                  runSpacing: 8,
                   children: [
-                    SizedBox(
-                      height: 32,
-                      child: OutlinedButton.icon(
-                        onPressed: onKeluar,
-                        icon: const Icon(Icons.logout, size: 16),
-                        label: const Text('Keluar'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.error,
-                          side: const BorderSide(color: AppColors.error),
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          textStyle: const TextStyle(fontSize: 12),
-                        ),
+                    OutlinedButton.icon(
+                      onPressed: onKeluar,
+                      icon: const Icon(Icons.logout, size: 16),
+                      label: const Text('Keluar'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.error,
+                        side: const BorderSide(color: AppColors.error),
+                        minimumSize: const Size(0, 32),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        textStyle: const TextStyle(fontSize: 12),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                     ),
                   ],
@@ -398,18 +431,25 @@ class StatistikTile extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Text(
-              '$nilai',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: color,
+            // Angka statistik bisa 3–4 digit di kolom sempit → scaleDown.
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                '$nilai',
+                maxLines: 1,
+                style: TextStyle(
+                  fontSize: Responsive.fontSize(context, 20),
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                ),
               ),
             ),
             const SizedBox(height: 2),
             Text(
               label,
               textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 11,
                 color: AppColors.textSecondary,

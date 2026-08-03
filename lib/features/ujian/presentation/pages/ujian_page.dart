@@ -4,6 +4,7 @@ import 'package:open_filex/open_filex.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../domain/entities/ranking_entity.dart';
 import '../../domain/entities/ujian_entity.dart';
@@ -149,69 +150,74 @@ class _UjianViewState extends State<_UjianView>
           20,
           20 + MediaQuery.of(sheetContext).viewInsets.bottom,
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              judul,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                judul,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
               ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Kelas: ${state.kelasNama ?? state.kelasId ?? '-'}',
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 13,
-                color: AppColors.textSecondary,
+              const SizedBox(height: 6),
+              Text(
+                'Kelas: ${state.kelasNama ?? state.kelasId ?? '-'}',
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.textSecondary,
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: semesterController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'ID Semester (mst_semester)',
-                helperText: 'Terisi otomatis dari data ranking/ujian yang ada',
+              const SizedBox(height: 16),
+              TextField(
+                controller: semesterController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'ID Semester (mst_semester)',
+                  helperText:
+                      'Terisi otomatis dari data ranking/ujian yang ada',
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: tahunController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'ID Tahun Ajaran (mst_tahun_ajaran)',
-                helperText: 'Terisi otomatis dari tahun ajaran kelas',
+              const SizedBox(height: 12),
+              TextField(
+                controller: tahunController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'ID Tahun Ajaran (mst_tahun_ajaran)',
+                  helperText: 'Terisi otomatis dari tahun ajaran kelas',
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                final semesterId = int.tryParse(
-                  semesterController.text.trim(),
-                );
-                final tahunId = int.tryParse(tahunController.text.trim());
-                if (semesterId == null || tahunId == null) {
-                  ScaffoldMessenger.of(sheetContext).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'ID semester dan tahun ajaran wajib berupa angka',
-                      ),
-                      backgroundColor: AppColors.error,
-                    ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  final semesterId = int.tryParse(
+                    semesterController.text.trim(),
                   );
-                  return;
-                }
-                Navigator.of(sheetContext).pop((semesterId, tahunId));
-              },
-              child: Text(labelTombol),
-            ),
-          ],
+                  final tahunId = int.tryParse(tahunController.text.trim());
+                  if (semesterId == null || tahunId == null) {
+                    ScaffoldMessenger.of(sheetContext).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'ID semester dan tahun ajaran wajib berupa angka',
+                        ),
+                        backgroundColor: AppColors.error,
+                      ),
+                    );
+                    return;
+                  }
+                  Navigator.of(sheetContext).pop((semesterId, tahunId));
+                },
+                child: Text(labelTombol),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -436,41 +442,48 @@ class _UjianTab extends StatelessWidget {
       );
     }
 
-    return RefreshIndicator(
-      onRefresh: () async => bloc.add(const UjianRefreshRequested()),
-      child: state.ujianItems.isEmpty
-          ? ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              children: [
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.5,
-                  child: const _EmptyView(
-                    icon: Icons.assignment_outlined,
-                    message: 'Belum ada ujian untuk kelas ini',
-                  ),
-                ),
-              ],
-            )
-          : ListView.builder(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.only(top: 8, bottom: 24),
-              itemCount: state.ujianItems.length,
-              itemBuilder: (context, index) {
-                final ujian = state.ujianItems[index];
-                return _UjianCard(
-                  ujian: ujian,
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => UjianNilaiPage(
-                        ujianId: ujian.id,
-                        judulAwal: ujian.nama,
-                        siswaId: state.siswaId,
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: Responsive.lebarKontenMaks(context),
+        ),
+        child: RefreshIndicator(
+          onRefresh: () async => bloc.add(const UjianRefreshRequested()),
+          child: state.ujianItems.isEmpty
+              ? ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: [
+                    SizedBox(
+                      height: Responsive.tinggiSheet(context, rasio: 0.5),
+                      child: const _EmptyView(
+                        icon: Icons.assignment_outlined,
+                        message: 'Belum ada ujian untuk kelas ini',
                       ),
                     ),
-                  ),
-                );
-              },
-            ),
+                  ],
+                )
+              : ListView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.only(top: 8, bottom: 24),
+                  itemCount: state.ujianItems.length,
+                  itemBuilder: (context, index) {
+                    final ujian = state.ujianItems[index];
+                    return _UjianCard(
+                      ujian: ujian,
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => UjianNilaiPage(
+                            ujianId: ujian.id,
+                            judulAwal: ujian.nama,
+                            siswaId: state.siswaId,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ),
     );
   }
 }
@@ -534,6 +547,8 @@ class _UjianCard extends StatelessWidget {
                   children: [
                     Text(
                       ujian.nama,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -546,6 +561,8 @@ class _UjianCard extends StatelessWidget {
                         if (ujian.mapelNama != null) ujian.mapelNama!,
                         _tanggalLabel(),
                       ].join(' · '),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
@@ -555,6 +572,8 @@ class _UjianCard extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         semesterInfo,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 11,
                           color: AppColors.textHint,
@@ -569,24 +588,29 @@ class _UjianCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   if (ujian.jenisLabel != null)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.info.withAlpha(25),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: AppColors.info.withAlpha(90),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 110),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
                         ),
-                      ),
-                      child: Text(
-                        ujian.jenisLabel!,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: AppColors.info,
-                          fontWeight: FontWeight.w600,
+                        decoration: BoxDecoration(
+                          color: AppColors.info.withAlpha(25),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: AppColors.info.withAlpha(90),
+                          ),
+                        ),
+                        child: Text(
+                          ujian.jenisLabel!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: AppColors.info,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
@@ -650,102 +674,127 @@ class _RankingTab extends StatelessWidget {
             if (pertama.tahunAjaran != null) pertama.tahunAjaran!,
           ].join(' · ');
 
-    return Column(
-      children: [
-        if (state.canGenerate || state.canExport)
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                if (state.canGenerate)
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: state.aksiSedangDiproses ? null : onGenerate,
-                      icon: const Icon(Icons.auto_awesome, size: 18),
-                      label: const Text(
-                        'Generate Ranking',
-                        style: TextStyle(fontSize: 13),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(0, 42),
-                      ),
-                    ),
-                  ),
-                if (state.canGenerate && state.canExport)
-                  const SizedBox(width: 8),
-                if (state.canExport)
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: state.aksiSedangDiproses ? null : onExport,
-                      icon: const Icon(Icons.download_outlined, size: 18),
-                      label: const Text(
-                        'Export xlsx',
-                        style: TextStyle(fontSize: 13),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: const Size(0, 42),
-                        foregroundColor: AppColors.primary,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        Expanded(
-          child: RefreshIndicator(
-            onRefresh: () async => bloc.add(const UjianRefreshRequested()),
-            child: state.rankingItems.isEmpty
-                ? ListView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    children: [
-                      SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.5,
-                        child: _EmptyView(
-                          icon: Icons.emoji_events_outlined,
-                          message: state.canGenerate
-                              ? 'Belum ada ranking untuk kelas ini.\n'
-                                    'Gunakan tombol "Generate Ranking" untuk '
-                                    'menyusun peringkat dari rata-rata rapor.'
-                              : 'Belum ada ranking untuk kelas ini',
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: Responsive.lebarKontenMaks(context),
+        ),
+        child: Column(
+          children: [
+            if (state.canGenerate || state.canExport)
+              Container(
+                color: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: Row(
+                  children: [
+                    if (state.canGenerate)
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: state.aksiSedangDiproses
+                              ? null
+                              : onGenerate,
+                          icon: const Icon(Icons.auto_awesome, size: 18),
+                          label: const Text(
+                            'Generate Ranking',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 13),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size(0, 42),
+                          ),
                         ),
                       ),
-                    ],
-                  )
-                : ListView.builder(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.only(top: 8, bottom: 24),
-                    itemCount:
-                        state.rankingItems.length +
-                        (periodeInfo == null || periodeInfo.isEmpty ? 0 : 1),
-                    itemBuilder: (context, index) {
-                      final punyaHeader =
-                          periodeInfo != null && periodeInfo.isNotEmpty;
-                      if (punyaHeader && index == 0) {
-                        return Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 6),
-                          child: Text(
-                            periodeInfo,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textSecondary,
+                    if (state.canGenerate && state.canExport)
+                      const SizedBox(width: 8),
+                    if (state.canExport)
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: state.aksiSedangDiproses
+                              ? null
+                              : onExport,
+                          icon: const Icon(Icons.download_outlined, size: 18),
+                          label: const Text(
+                            'Export xlsx',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 13),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size(0, 42),
+                            foregroundColor: AppColors.primary,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () async => bloc.add(const UjianRefreshRequested()),
+                child: state.rankingItems.isEmpty
+                    ? ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: [
+                          SizedBox(
+                            height: Responsive.tinggiSheet(
+                              context,
+                              rasio: 0.5,
+                            ),
+                            child: _EmptyView(
+                              icon: Icons.emoji_events_outlined,
+                              message: state.canGenerate
+                                  ? 'Belum ada ranking untuk kelas ini.\n'
+                                        'Gunakan tombol "Generate Ranking" untuk '
+                                        'menyusun peringkat dari rata-rata rapor.'
+                                  : 'Belum ada ranking untuk kelas ini',
                             ),
                           ),
-                        );
-                      }
-                      final item = state
-                          .rankingItems[punyaHeader ? index - 1 : index];
-                      return _RankingRow(
-                        item: item,
-                        milikSaya:
-                            state.siswaId != null &&
-                            item.siswaId == state.siswaId,
-                      );
-                    },
-                  ),
-          ),
+                        ],
+                      )
+                    : ListView.builder(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.only(top: 8, bottom: 24),
+                        itemCount:
+                            state.rankingItems.length +
+                            (periodeInfo == null || periodeInfo.isEmpty
+                                ? 0
+                                : 1),
+                        itemBuilder: (context, index) {
+                          final punyaHeader =
+                              periodeInfo != null && periodeInfo.isNotEmpty;
+                          if (punyaHeader && index == 0) {
+                            return Padding(
+                              padding: const EdgeInsets.fromLTRB(20, 0, 20, 6),
+                              child: Text(
+                                periodeInfo,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            );
+                          }
+                          final item = state
+                              .rankingItems[punyaHeader ? index - 1 : index];
+                          return _RankingRow(
+                            item: item,
+                            milikSaya:
+                                state.siswaId != null &&
+                                item.siswaId == state.siswaId,
+                          );
+                        },
+                      ),
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
@@ -886,6 +935,8 @@ class _RankingRow extends StatelessWidget {
                 item.rataRata == null
                     ? '-'
                     : item.rataRata!.toStringAsFixed(2),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
@@ -894,6 +945,8 @@ class _RankingRow extends StatelessWidget {
               ),
               const Text(
                 'rata-rata',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(fontSize: 10, color: AppColors.textHint),
               ),
             ],

@@ -4,6 +4,7 @@ import 'package:open_filex/open_filex.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/rapor_detail_entity.dart';
 import '../../domain/entities/rapor_entity.dart';
 import '../../domain/entities/rapor_mapel_entity.dart';
@@ -134,69 +135,87 @@ class _Content extends StatelessWidget {
     final siswaId = detail.siswaId ?? rapor.siswaId;
     final exporting = state.exportStatus == RaporExportStatus.loading;
 
-    return RefreshIndicator(
-      onRefresh: onRefresh,
-      child: ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-        children: [
-          _HeaderCard(rapor: rapor, detail: detail),
-          const SizedBox(height: 16),
+    final pad = Responsive.pagePadding(context);
 
-          // ── Nilai per mapel ────────────────────────────────────────────
-          const _SectionTitle('Nilai per Mata Pelajaran'),
-          const SizedBox(height: 8),
-          if (detail.mapel.isEmpty)
-            const _EmptyView(message: 'Belum ada rincian nilai mata pelajaran')
-          else
-            ...detail.mapel.map((m) => _MapelCard(mapel: m)),
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: Responsive.lebarKontenMaks(context),
+        ),
+        child: RefreshIndicator(
+          onRefresh: onRefresh,
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.fromLTRB(pad.left, pad.top, pad.right, 32),
+            children: [
+              _HeaderCard(rapor: rapor, detail: detail),
+              const SizedBox(height: 16),
 
-          // ── Rekap kehadiran ────────────────────────────────────────────
-          if (detail.punyaKehadiran) ...[
-            const SizedBox(height: 20),
-            const _SectionTitle('Rekap Kehadiran'),
-            const SizedBox(height: 8),
-            _KehadiranCard(detail: detail),
-          ],
+              // ── Nilai per mapel ────────────────────────────────────────────
+              const _SectionTitle('Nilai per Mata Pelajaran'),
+              const SizedBox(height: 8),
+              if (detail.mapel.isEmpty)
+                const _EmptyView(
+                  message: 'Belum ada rincian nilai mata pelajaran',
+                )
+              else
+                ...detail.mapel.map((m) => _MapelCard(mapel: m)),
 
-          // ── Catatan / narasi wali kelas ────────────────────────────────
-          if (detail.punyaCatatan) ...[
-            const SizedBox(height: 20),
-            const _SectionTitle('Catatan Wali Kelas'),
-            const SizedBox(height: 8),
-            _CatatanCard(catatan: detail.catatanWali!),
-          ],
+              // ── Rekap kehadiran ────────────────────────────────────────────
+              if (detail.punyaKehadiran) ...[
+                const SizedBox(height: 20),
+                const _SectionTitle('Rekap Kehadiran'),
+                const SizedBox(height: 8),
+                _KehadiranCard(detail: detail),
+              ],
 
-          // ── Unduh rapor (hanya bila punya permission `rapor.export`) ───
-          if (canExport && siswaId != null) ...[
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: exporting
-                  ? null
-                  : () => context.read<RaporDetailBloc>().add(
-                      RaporDetailExportRequested(siswaId),
-                    ),
-              icon: exporting
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Icon(Icons.download_outlined),
-              label: Text(exporting ? 'Menyiapkan berkas...' : 'Unduh Rapor'),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Berkas rapor diunduh dalam format Excel (.xlsx) lalu dibuka '
-              'dengan aplikasi yang tersedia di perangkat Anda.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-            ),
-          ],
-        ],
+              // ── Catatan / narasi wali kelas ────────────────────────────────
+              if (detail.punyaCatatan) ...[
+                const SizedBox(height: 20),
+                const _SectionTitle('Catatan Wali Kelas'),
+                const SizedBox(height: 8),
+                _CatatanCard(catatan: detail.catatanWali!),
+              ],
+
+              // ── Unduh rapor (hanya bila punya permission `rapor.export`) ───
+              if (canExport && siswaId != null) ...[
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: exporting
+                      ? null
+                      : () => context.read<RaporDetailBloc>().add(
+                          RaporDetailExportRequested(siswaId),
+                        ),
+                  icon: exporting
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(Icons.download_outlined),
+                  label: Text(
+                    exporting ? 'Menyiapkan berkas...' : 'Unduh Rapor',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Berkas rapor diunduh dalam format Excel (.xlsx) lalu dibuka '
+                  'dengan aplikasi yang tersedia di perangkat Anda.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -220,7 +239,7 @@ class _HeaderCard extends StatelessWidget {
     final rata = rapor.rataRata ?? detail.rataRataHitung;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(Responsive.isCompact(context) ? 12 : 16),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [AppColors.primary, AppColors.primaryLight],
@@ -250,6 +269,8 @@ class _HeaderCard extends StatelessWidget {
                   children: [
                     Text(
                       nama,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 16,
@@ -262,6 +283,8 @@ class _HeaderCard extends StatelessWidget {
                         if (nis != null && nis.isNotEmpty) 'NIS $nis',
                         if (kelas != null && kelas.isNotEmpty) kelas,
                       ].join('  ·  '),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: Colors.white.withAlpha(220),
                         fontSize: 12,
@@ -275,30 +298,41 @@ class _HeaderCard extends StatelessWidget {
           const SizedBox(height: 14),
           const Divider(color: Colors.white24, height: 1),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              _HeaderStat(
-                label: 'Semester',
-                value: (semester != null && semester.isNotEmpty)
-                    ? semester
-                    : '-',
-              ),
-              _HeaderStat(
-                label: 'Tahun Ajaran',
-                value: (tahunAjaran != null && tahunAjaran.isNotEmpty)
-                    ? tahunAjaran
-                    : '-',
-              ),
-              _HeaderStat(
-                label: 'Rata-rata',
-                value: rata != null ? rata.toStringAsFixed(2) : '-',
-              ),
-              if (rapor.peringkat != null)
-                _HeaderStat(
-                  label: 'Peringkat',
-                  value: '${rapor.peringkat}',
+          // Statistik header: Wrap berbasis lebar nyata supaya label panjang
+          // ("Tahun Ajaran") tidak meluber di layar sempit.
+          LayoutBuilder(
+            builder: (context, c) {
+              final stats = <(String, String)>[
+                (
+                  'Semester',
+                  (semester != null && semester.isNotEmpty) ? semester : '-',
                 ),
-            ],
+                (
+                  'Tahun Ajaran',
+                  (tahunAjaran != null && tahunAjaran.isNotEmpty)
+                      ? tahunAjaran
+                      : '-',
+                ),
+                ('Rata-rata', rata != null ? rata.toStringAsFixed(2) : '-'),
+                if (rapor.peringkat != null)
+                  ('Peringkat', '${rapor.peringkat}'),
+              ];
+              const spacing = 10.0;
+              final perBaris = c.maxWidth >= 380 ? stats.length : 2;
+              final lebarSel =
+                  (c.maxWidth - spacing * (perBaris - 1)) / perBaris;
+              return Wrap(
+                spacing: spacing,
+                runSpacing: 10,
+                children: [
+                  for (final (label, value) in stats)
+                    SizedBox(
+                      width: lebarSel,
+                      child: _HeaderStat(label: label, value: value),
+                    ),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -314,25 +348,28 @@ class _HeaderStat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white70, fontSize: 10),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(color: Colors.white70, fontSize: 10),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
           ),
-          const SizedBox(height: 2),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -351,7 +388,7 @@ class _MapelCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: EdgeInsets.all(Responsive.isCompact(context) ? 10 : 14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -364,6 +401,8 @@ class _MapelCard extends StatelessWidget {
                     children: [
                       Text(
                         mapel.mapelNama ?? 'Mata Pelajaran',
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -375,6 +414,8 @@ class _MapelCard extends StatelessWidget {
                         const SizedBox(height: 2),
                         Text(
                           mapel.mapelKode!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             fontSize: 11,
                             color: AppColors.textSecondary,
@@ -385,63 +426,90 @@ class _MapelCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 10),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      nilai != null ? nilai.toStringAsFixed(2) : '-',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: color,
-                      ),
-                    ),
-                    if (mapel.predikat != null &&
-                        mapel.predikat!.isNotEmpty) ...[
-                      const SizedBox(height: 2),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: color.withAlpha(25),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: color.withAlpha(70)),
-                        ),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 96),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
                         child: Text(
-                          mapel.predikat!,
+                          nilai != null ? nilai.toStringAsFixed(2) : '-',
+                          maxLines: 1,
                           style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
+                            fontSize: Responsive.fontSize(context, 20),
+                            fontWeight: FontWeight.bold,
                             color: color,
                           ),
                         ),
                       ),
+                      if (mapel.predikat != null &&
+                          mapel.predikat!.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: color.withAlpha(25),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: color.withAlpha(70)),
+                          ),
+                          child: Text(
+                            mapel.predikat!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: color,
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ],
             ),
             if (mapel.punyaNilaiPengetahuan ||
                 mapel.punyaNilaiKeterampilan) ...[
               const SizedBox(height: 10),
-              Row(
-                children: [
-                  if (mapel.punyaNilaiPengetahuan)
-                    _NilaiPill(
-                      label: 'Pengetahuan',
-                      value: mapel.nilaiPengetahuan!,
-                    ),
-                  if (mapel.punyaNilaiPengetahuan &&
-                      mapel.punyaNilaiKeterampilan)
-                    const SizedBox(width: 8),
-                  if (mapel.punyaNilaiKeterampilan)
-                    _NilaiPill(
-                      label: 'Keterampilan',
-                      value: mapel.nilaiKeterampilan!,
-                    ),
-                ],
+              // Dua pil nilai: Wrap agar turun baris di layar sempit.
+              LayoutBuilder(
+                builder: (context, c) {
+                  const spacing = 8.0;
+                  final keduanya =
+                      mapel.punyaNilaiPengetahuan &&
+                      mapel.punyaNilaiKeterampilan;
+                  final perBaris = (keduanya && c.maxWidth >= 300) ? 2 : 1;
+                  final lebarSel =
+                      (c.maxWidth - spacing * (perBaris - 1)) / perBaris;
+                  return Wrap(
+                    spacing: spacing,
+                    runSpacing: spacing,
+                    children: [
+                      if (mapel.punyaNilaiPengetahuan)
+                        SizedBox(
+                          width: lebarSel,
+                          child: _NilaiPill(
+                            label: 'Pengetahuan',
+                            value: mapel.nilaiPengetahuan!,
+                          ),
+                        ),
+                      if (mapel.punyaNilaiKeterampilan)
+                        SizedBox(
+                          width: lebarSel,
+                          child: _NilaiPill(
+                            label: 'Keterampilan',
+                            value: mapel.nilaiKeterampilan!,
+                          ),
+                        ),
+                    ],
+                  );
+                },
               ),
             ],
             if (mapel.deskripsi != null && mapel.deskripsi!.isNotEmpty) ...[
@@ -478,34 +546,39 @@ class _NilaiPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppColors.divider),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.divider),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Flexible(
+            child: Text(
               label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 11,
                 color: AppColors.textSecondary,
               ),
             ),
-            Text(
-              value.toStringAsFixed(2),
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-              ),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            value.toStringAsFixed(2),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -523,24 +596,42 @@ class _KehadiranCard extends StatelessWidget {
       margin: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            _KehadiranItem(
-              label: 'Sakit',
-              value: detail.sakit ?? 0,
-              color: AppColors.warning,
-            ),
-            _KehadiranItem(
-              label: 'Izin',
-              value: detail.izin ?? 0,
-              color: AppColors.info,
-            ),
-            _KehadiranItem(
-              label: 'Tanpa Ket.',
-              value: detail.tanpaKeterangan ?? 0,
-              color: AppColors.error,
-            ),
-          ],
+        child: LayoutBuilder(
+          builder: (context, c) {
+            const spacing = 8.0;
+            final perBaris = c.maxWidth >= 280 ? 3 : 2;
+            final lebarSel = (c.maxWidth - spacing * (perBaris - 1)) / perBaris;
+            return Wrap(
+              spacing: spacing,
+              runSpacing: spacing,
+              children: [
+                SizedBox(
+                  width: lebarSel,
+                  child: _KehadiranItem(
+                    label: 'Sakit',
+                    value: detail.sakit ?? 0,
+                    color: AppColors.warning,
+                  ),
+                ),
+                SizedBox(
+                  width: lebarSel,
+                  child: _KehadiranItem(
+                    label: 'Izin',
+                    value: detail.izin ?? 0,
+                    color: AppColors.info,
+                  ),
+                ),
+                SizedBox(
+                  width: lebarSel,
+                  child: _KehadiranItem(
+                    label: 'Tanpa Ket.',
+                    value: detail.tanpaKeterangan ?? 0,
+                    color: AppColors.error,
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -560,29 +651,37 @@ class _KehadiranItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 4),
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: color.withAlpha(25),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: color.withAlpha(70)),
-        ),
-        child: Column(
-          children: [
-            Text(
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+      decoration: BoxDecoration(
+        color: color.withAlpha(25),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withAlpha(70)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
               '$value',
+              maxLines: 1,
               style: TextStyle(
-                fontSize: 20,
+                fontSize: Responsive.fontSize(context, 20),
                 fontWeight: FontWeight.bold,
                 color: color,
               ),
             ),
-            const SizedBox(height: 2),
-            Text(label, style: TextStyle(fontSize: 11, color: color)),
-          ],
-        ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 11, color: color),
+          ),
+        ],
       ),
     );
   }
@@ -599,15 +698,11 @@ class _CatatanCard extends StatelessWidget {
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: EdgeInsets.all(Responsive.isCompact(context) ? 10 : 14),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(
-              Icons.format_quote,
-              size: 20,
-              color: AppColors.textHint,
-            ),
+            const Icon(Icons.format_quote, size: 20, color: AppColors.textHint),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
@@ -654,9 +749,9 @@ class _ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
+    return SingleChildScrollView(
+      padding: Responsive.pagePadding(context) + const EdgeInsets.all(16),
+      child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

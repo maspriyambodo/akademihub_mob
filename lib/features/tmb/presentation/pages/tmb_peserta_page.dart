@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/tmb_peserta_entity.dart';
 import '../../domain/entities/tmb_tes_entity.dart';
 import '../bloc/tmb_peserta_bloc.dart';
@@ -69,40 +70,51 @@ class _PesertaView extends StatelessWidget {
             );
           }
           if (state is TmbPesertaLoaded) {
-            return RefreshIndicator(
-              onRefresh: () async {
-                context.read<TmbPesertaBloc>().add(
-                  const TmbPesertaRefreshRequested(),
-                );
-              },
-              child: state.pesertaList.isEmpty
-                  ? ListView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      children: [
-                        SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.6,
-                          child: const _PesertaEmpty(),
+            return Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: Responsive.lebarKontenMaks(context),
+                ),
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    context.read<TmbPesertaBloc>().add(
+                      const TmbPesertaRefreshRequested(),
+                    );
+                  },
+                  child: state.pesertaList.isEmpty
+                      ? ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          children: [
+                            SizedBox(
+                              height: Responsive.tinggiSheet(
+                                context,
+                                rasio: 0.6,
+                              ),
+                              child: const _PesertaEmpty(),
+                            ),
+                          ],
+                        )
+                      : ListView.builder(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.only(bottom: 24),
+                          itemCount: state.pesertaList.length + 1,
+                          itemBuilder: (context, index) {
+                            if (index == 0) {
+                              return _RingkasanHeader(tes: tes, state: state);
+                            }
+                            final peserta = state.pesertaList[index - 1];
+                            return _PesertaCard(
+                              peserta: peserta,
+                              onTap:
+                                  peserta.isSelesai ||
+                                      peserta.hasil.isNotEmpty
+                                  ? () => _bukaHasil(context, peserta)
+                                  : null,
+                            );
+                          },
                         ),
-                      ],
-                    )
-                  : ListView.builder(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.only(bottom: 24),
-                      itemCount: state.pesertaList.length + 1,
-                      itemBuilder: (context, index) {
-                        if (index == 0) {
-                          return _RingkasanHeader(tes: tes, state: state);
-                        }
-                        final peserta = state.pesertaList[index - 1];
-                        return _PesertaCard(
-                          peserta: peserta,
-                          onTap:
-                              peserta.isSelesai || peserta.hasil.isNotEmpty
-                              ? () => _bukaHasil(context, peserta)
-                              : null,
-                        );
-                      },
-                    ),
+                ),
+              ),
             );
           }
           return const SizedBox.shrink();
@@ -135,6 +147,8 @@ class _RingkasanHeader extends StatelessWidget {
         children: [
           Text(
             tes.namaTes,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w700,
@@ -214,6 +228,8 @@ class _PesertaCard extends StatelessWidget {
                   children: [
                     Text(
                       nama,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -224,6 +240,8 @@ class _PesertaCard extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         detail,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 11,
                           color: AppColors.textSecondary,

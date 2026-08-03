@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/buku_entity.dart';
 import 'perpustakaan_format.dart';
 
@@ -114,12 +115,16 @@ class _FormPinjamState extends State<_FormPinjam> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    final pad = Responsive.pagePadding(context);
+
+    // Isi sheet digulir + padding bawah mengikuti tinggi keyboard supaya
+    // tombol tetap terjangkau di layar pendek.
+    return SingleChildScrollView(
       padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
+        left: pad.left + 4,
+        right: pad.right + 4,
         top: 16,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+        bottom: MediaQuery.viewInsetsOf(context).bottom + 20,
       ),
       child: Form(
         key: _formKey,
@@ -138,10 +143,12 @@ class _FormPinjamState extends State<_FormPinjam> {
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'Buat Peminjaman',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: 18,
+                fontSize: Responsive.fontSize(context, 18),
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
               ),
@@ -220,6 +227,8 @@ class _FormPinjamState extends State<_FormPinjam> {
                     Expanded(
                       child: Text(
                         formatTanggalDate(_jatuhTempo),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 14,
                           color: AppColors.textPrimary,

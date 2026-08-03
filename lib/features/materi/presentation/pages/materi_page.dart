@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../domain/entities/materi_entity.dart';
 import '../bloc/materi_bloc.dart';
@@ -138,11 +139,13 @@ class _MateriViewState extends State<_MateriView> {
                             physics: const AlwaysScrollableScrollPhysics(),
                             children: [
                               SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.55,
-                                child: _EmptyView(
-                                  message: _pesanKosong(state),
+                                // Tinggi aman: memperhitungkan keyboard &
+                                // area sistem, tidak sekadar tinggi layar.
+                                height: Responsive.tinggiSheet(
+                                  context,
+                                  rasio: 0.55,
                                 ),
+                                child: _EmptyView(message: _pesanKosong(state)),
                               ),
                             ],
                           )
@@ -197,23 +200,34 @@ class _MateriList extends StatelessWidget {
       }
     }
 
-    return ListView.builder(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.only(top: 4, bottom: 24),
-      itemCount: baris.length,
-      itemBuilder: (context, index) {
-        final b = baris[index];
-        if (b.stripPopuler) return _PopulerStrip(state: state);
-        final m = b.materi;
-        if (m != null) {
-          return MateriCard(
-            materi: m,
-            tampilkanStatus: state.bolehLihatStatistik,
-            onTap: () => onTap(m),
-          );
-        }
-        return MateriGroupHeader(label: b.judulGrup ?? '', total: b.totalGrup);
-      },
+    // Di tablet lebar daftar dibatasi supaya kartu tidak melebar berlebihan.
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: Responsive.lebarKontenMaks(context),
+        ),
+        child: ListView.builder(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.only(top: 4, bottom: 24),
+          itemCount: baris.length,
+          itemBuilder: (context, index) {
+            final b = baris[index];
+            if (b.stripPopuler) return _PopulerStrip(state: state);
+            final m = b.materi;
+            if (m != null) {
+              return MateriCard(
+                materi: m,
+                tampilkanStatus: state.bolehLihatStatistik,
+                onTap: () => onTap(m),
+              );
+            }
+            return MateriGroupHeader(
+              label: b.judulGrup ?? '',
+              total: b.totalGrup,
+            );
+          },
+        ),
+      ),
     );
   }
 }
@@ -249,12 +263,18 @@ class _PopulerStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pad = Responsive.pagePadding(context);
+    // Skala teks sistem ikut menaikkan tinggi strip supaya isi tidak terpotong.
+    final skala = MediaQuery.textScalerOf(context).scale(1);
+    final tinggiStrip = 78.0 * (skala > 1 ? skala : 1.0);
+    final lebarKartu = Responsive.isCompact(context) ? 165.0 : 190.0;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.fromLTRB(16, 12, 16, 6),
-          child: Row(
+        Padding(
+          padding: EdgeInsets.fromLTRB(pad.left, 12, pad.right, 6),
+          child: const Row(
             children: [
               Icon(
                 Icons.local_fire_department_outlined,
@@ -262,28 +282,32 @@ class _PopulerStrip extends StatelessWidget {
                 color: AppColors.warning,
               ),
               SizedBox(width: 6),
-              Text(
-                'Materi Paling Sering Dibuka',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+              Expanded(
+                child: Text(
+                  'Materi Paling Sering Dibuka',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
               ),
             ],
           ),
         ),
         SizedBox(
-          height: 78,
+          height: tinggiStrip,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.symmetric(horizontal: pad.left),
             itemCount: state.populer.length,
             separatorBuilder: (_, _) => const SizedBox(width: 10),
             itemBuilder: (context, index) {
               final p = state.populer[index];
               return Container(
-                width: 190,
+                width: lebarKartu,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: AppColors.cardBg,
@@ -374,12 +398,14 @@ class _MapelFilterBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final opsi = <String?>[null, ...state.opsiMapel];
+    final skala = MediaQuery.textScalerOf(context).scale(1);
 
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.only(bottom: 10),
       child: SizedBox(
-        height: 34,
+        // Tinggi chip ikut skala font sistem agar labelnya tidak terpotong.
+        height: 34.0 * (skala > 1 ? skala : 1.0),
         child: ListView.separated(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -405,6 +431,8 @@ class _MapelFilterBar extends StatelessWidget {
                 ),
                 child: Text(
                   nilai ?? 'Semua',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -430,8 +458,8 @@ class _ErrorView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
+      child: SingleChildScrollView(
+        padding: Responsive.pagePadding(context) * 2,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -464,24 +492,27 @@ class _EmptyView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(
-            Icons.menu_book_outlined,
-            size: 64,
-            color: AppColors.textHint,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 14,
-              color: AppColors.textSecondary,
+      child: Padding(
+        padding: Responsive.pagePadding(context) * 1.5,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.menu_book_outlined,
+              size: 64,
+              color: AppColors.textHint,
             ),
-          ),
-        ],
+            const SizedBox(height: 12),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 14,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

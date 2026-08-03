@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/forum_entity.dart';
 import '../bloc/forum_bloc.dart';
 import '../bloc/forum_detail_bloc.dart';
@@ -180,6 +181,7 @@ class _Isi extends StatelessWidget {
       (bloc) => bloc.state is ForumLoaded ? bloc.state as ForumLoaded : null,
     );
     final milikSaya = post.milikUser(listState?.userId);
+    final pad = Responsive.pagePadding(context);
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -187,200 +189,214 @@ class _Isi extends StatelessWidget {
           const ForumDetailRefreshRequested(),
         );
       },
-      child: ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-        children: [
-          // ── Badge ────────────────────────────────────────────────────────
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              ForumBadge(label: tipe.label, color: tipe.color, icon: tipe.icon),
-              ForumBadge(
-                label: forumStatusLabel(post.status),
-                color: forumStatusColor(post.status),
-                icon: post.isDitutup
-                    ? Icons.lock_outline
-                    : (post.isDisematkan
-                          ? Icons.push_pin_outlined
-                          : Icons.lock_open_outlined),
-              ),
-              if (post.mapelNama != null || post.kelasNama != null)
-                ForumBadge(
-                  label: post.konteksLabel,
-                  color: AppColors.textSecondary,
-                  icon: Icons.label_outline,
-                ),
-            ],
+      child: Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: Responsive.lebarKontenMaks(context),
           ),
-          const SizedBox(height: 14),
-
-          // ── Judul ────────────────────────────────────────────────────────
-          Text(
-            post.judul,
-            style: const TextStyle(
-              fontSize: 19,
-              height: 1.3,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 14),
-
-          // ── Penulis + waktu ──────────────────────────────────────────────
-          Row(
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.fromLTRB(pad.left, pad.top, pad.right, 32),
             children: [
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: tipe.color.withAlpha(35),
-                child: Text(
-                  post.penulisInisial,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
+              // ── Badge ────────────────────────────────────────────────────────
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  ForumBadge(
+                    label: tipe.label,
                     color: tipe.color,
+                    icon: tipe.icon,
                   ),
+                  ForumBadge(
+                    label: forumStatusLabel(post.status),
+                    color: forumStatusColor(post.status),
+                    icon: post.isDitutup
+                        ? Icons.lock_outline
+                        : (post.isDisematkan
+                              ? Icons.push_pin_outlined
+                              : Icons.lock_open_outlined),
+                  ),
+                  if (post.mapelNama != null || post.kelasNama != null)
+                    ForumBadge(
+                      label: post.konteksLabel,
+                      color: AppColors.textSecondary,
+                      icon: Icons.label_outline,
+                    ),
+                ],
+              ),
+              const SizedBox(height: 14),
+
+              // ── Judul ────────────────────────────────────────────────────────
+              Text(
+                post.judul,
+                style: TextStyle(
+                  fontSize: Responsive.fontSize(context, 19),
+                  height: 1.3,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
                 ),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+              const SizedBox(height: 14),
+
+              // ── Penulis + waktu ──────────────────────────────────────────────
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 18,
+                    backgroundColor: tipe.color.withAlpha(35),
+                    child: Text(
+                      post.penulisInisial,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: tipe.color,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Flexible(
-                          child: Text(
-                            post.penulisLabel,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textPrimary,
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                post.penulisLabel,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
                             ),
+                            if (milikSaya) ...[
+                              const SizedBox(width: 6),
+                              const ForumBadge(
+                                label: 'Anda',
+                                color: AppColors.primary,
+                              ),
+                            ],
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${waktuRelatif(post.createdAtDate)} · '
+                          '${waktuLengkap(post.createdAtDate)}',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
                           ),
                         ),
-                        if (milikSaya) ...[
-                          const SizedBox(width: 6),
-                          const ForumBadge(
-                            label: 'Anda',
-                            color: AppColors.primary,
+                        if (post.pernahDiubah)
+                          Text(
+                            'Diubah ${waktuRelatif(post.updatedAtDate)}',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontStyle: FontStyle.italic,
+                              color: AppColors.textHint,
+                            ),
                           ),
-                        ],
                       ],
                     ),
-                    const SizedBox(height: 2),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Divider(height: 1, color: AppColors.divider),
+              const SizedBox(height: 16),
+
+              // ── Isi lengkap ──────────────────────────────────────────────────
+              SelectableText(
+                post.konten.isEmpty ? '(Tidak ada isi)' : post.konten,
+                style: const TextStyle(
+                  fontSize: 14,
+                  height: 1.6,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // ── Statistik ────────────────────────────────────────────────────
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.cardBg,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.divider),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.visibility_outlined,
+                      size: 16,
+                      color: AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: 6),
                     Text(
-                      '${waktuRelatif(post.createdAtDate)} · '
-                      '${waktuLengkap(post.createdAtDate)}',
+                      '${post.viewCount} dilihat',
                       style: const TextStyle(
-                        fontSize: 11,
+                        fontSize: 12,
                         color: AppColors.textSecondary,
                       ),
                     ),
-                    if (post.pernahDiubah)
+                    if (post.replyCount > 0) ...[
+                      const SizedBox(width: 18),
+                      const Icon(
+                        Icons.mode_comment_outlined,
+                        size: 16,
+                        color: AppColors.textSecondary,
+                      ),
+                      const SizedBox(width: 6),
                       Text(
-                        'Diubah ${waktuRelatif(post.updatedAtDate)}',
+                        '${post.replyCount} balasan',
                         style: const TextStyle(
-                          fontSize: 11,
-                          fontStyle: FontStyle.italic,
-                          color: AppColors.textHint,
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
                         ),
                       ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Penjelasan jujur ke pengguna: fitur balasan memang belum ada
+              // di backend, bukan sekadar belum dipasang di aplikasi.
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.info.withAlpha(20),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.info_outline, size: 16, color: AppColors.info),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Balasan pada topik belum tersedia. Untuk menanggapi, '
+                        'buat topik baru yang merujuk topik ini.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          height: 1.4,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          const Divider(height: 1, color: AppColors.divider),
-          const SizedBox(height: 16),
-
-          // ── Isi lengkap ──────────────────────────────────────────────────
-          SelectableText(
-            post.konten.isEmpty ? '(Tidak ada isi)' : post.konten,
-            style: const TextStyle(
-              fontSize: 14,
-              height: 1.6,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // ── Statistik ────────────────────────────────────────────────────
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            decoration: BoxDecoration(
-              color: AppColors.cardBg,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.divider),
-            ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.visibility_outlined,
-                  size: 16,
-                  color: AppColors.textSecondary,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  '${post.viewCount} dilihat',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                if (post.replyCount > 0) ...[
-                  const SizedBox(width: 18),
-                  const Icon(
-                    Icons.mode_comment_outlined,
-                    size: 16,
-                    color: AppColors.textSecondary,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${post.replyCount} balasan',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Penjelasan jujur ke pengguna: fitur balasan memang belum ada
-          // di backend, bukan sekadar belum dipasang di aplikasi.
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.info.withAlpha(20),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(Icons.info_outline, size: 16, color: AppColors.info),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Balasan pada topik belum tersedia. Untuk menanggapi, '
-                    'buat topik baru yang merujuk topik ini.',
-                    style: TextStyle(
-                      fontSize: 12,
-                      height: 1.4,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

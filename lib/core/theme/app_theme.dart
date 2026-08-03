@@ -98,6 +98,20 @@ class AppTheme {
       unselectedItemColor: AppColors.textHint,
       type: BottomNavigationBarType.fixed,
       elevation: 8,
+      showSelectedLabels: true,
+      showUnselectedLabels: true,
+      selectedLabelStyle: TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.w600,
+        height: 1.1,
+      ),
+      unselectedLabelStyle: TextStyle(
+        fontSize: 10.5,
+        fontWeight: FontWeight.w500,
+        height: 1.1,
+      ),
+      selectedIconTheme: IconThemeData(size: 22),
+      unselectedIconTheme: IconThemeData(size: 22),
     ),
   );
 

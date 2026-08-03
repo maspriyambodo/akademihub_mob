@@ -92,20 +92,37 @@ class NilaiEntity extends Equatable {
     return 'Penilaian';
   }
 
-  /// Label semester untuk filter/chip, mis. "Ganjil 2024/2025".
+  /// Label semester penuh, mis. "Semester Genap Tahun Ajaran 2023/2024".
   String? get semesterLabel {
-    final parts = <String>[
-      if (semester != null && semester!.trim().isNotEmpty) semester!.trim(),
-      if (tahunAjaran != null && tahunAjaran!.trim().isNotEmpty)
-        tahunAjaran!.trim(),
-    ];
-    if (parts.isEmpty) {
-      if (semesterKode != null && semesterKode!.trim().isNotEmpty) {
-        return 'Semester ${semesterKode!.trim()}';
-      }
-      return null;
+    final semRaw = (semester != null && semester!.trim().isNotEmpty)
+        ? semester!.trim()
+        : (semesterKode != null && semesterKode!.trim().isNotEmpty
+              ? semesterKode!.trim()
+              : null);
+    final ta = (tahunAjaran != null && tahunAjaran!.trim().isNotEmpty)
+        ? tahunAjaran!.trim()
+        : null;
+
+    if (semRaw == null && ta == null) return null;
+
+    final sem = semRaw == null
+        ? null
+        : (semRaw.toLowerCase().startsWith('semester')
+              ? semRaw
+              : 'Semester $semRaw');
+
+    if (sem != null && ta != null) {
+      return '$sem Tahun Ajaran $ta';
     }
-    return parts.join(' ');
+    if (sem != null) return sem;
+    return 'Tahun Ajaran $ta';
+  }
+
+  /// Label ringkas untuk baris detail kartu (tanpa prefix berulang).
+  String? get semesterDetailLabel {
+    final full = semesterLabel;
+    if (full == null) return null;
+    return full.replaceFirst('Tahun Ajaran ', 'TA ');
   }
 
   DateTime? get tanggalUjianDate =>

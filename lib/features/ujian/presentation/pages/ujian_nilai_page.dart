@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/ujian_entity.dart';
 import '../../domain/entities/ujian_nilai_entity.dart';
 import '../bloc/ujian_nilai_bloc.dart';
@@ -72,37 +73,49 @@ class _UjianNilaiView extends StatelessWidget {
           if (state is! UjianNilaiLoaded) return const SizedBox.shrink();
 
           final detail = state.detail;
-          return RefreshIndicator(
-            onRefresh: () async => context.read<UjianNilaiBloc>().add(
-              const UjianNilaiRefreshRequested(),
-            ),
-            child: CustomScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              slivers: [
-                if (detail.ujian != null)
-                  SliverToBoxAdapter(child: _UjianInfoCard(ujian: detail.ujian!)),
-                SliverToBoxAdapter(child: _RingkasanNilai(nilai: detail.nilai)),
-                if (detail.nilai.isEmpty)
-                  const SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: _EmptyView(
-                      message: 'Belum ada nilai yang diinput untuk ujian ini',
-                    ),
-                  )
-                else
-                  SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (_, i) => _NilaiRow(
-                        item: detail.nilai[i],
-                        milikSaya:
-                            siswaId != null &&
-                            detail.nilai[i].siswaId == siswaId,
+          return Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: Responsive.lebarKontenMaks(context),
+              ),
+              child: RefreshIndicator(
+                onRefresh: () async => context.read<UjianNilaiBloc>().add(
+                  const UjianNilaiRefreshRequested(),
+                ),
+                child: CustomScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  slivers: [
+                    if (detail.ujian != null)
+                      SliverToBoxAdapter(
+                        child: _UjianInfoCard(ujian: detail.ujian!),
                       ),
-                      childCount: detail.nilai.length,
+                    SliverToBoxAdapter(
+                      child: _RingkasanNilai(nilai: detail.nilai),
                     ),
-                  ),
-                const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
-              ],
+                    if (detail.nilai.isEmpty)
+                      const SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: _EmptyView(
+                          message:
+                              'Belum ada nilai yang diinput untuk ujian ini',
+                        ),
+                      )
+                    else
+                      SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (_, i) => _NilaiRow(
+                            item: detail.nilai[i],
+                            milikSaya:
+                                siswaId != null &&
+                                detail.nilai[i].siswaId == siswaId,
+                          ),
+                          childCount: detail.nilai.length,
+                        ),
+                      ),
+                    const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
+                  ],
+                ),
+              ),
             ),
           );
         },
@@ -176,6 +189,8 @@ class _UjianInfoCard extends StatelessWidget {
                       width: 90,
                       child: Text(
                         label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
@@ -185,6 +200,8 @@ class _UjianInfoCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         value,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w500,
@@ -258,6 +275,8 @@ class _StatItem extends StatelessWidget {
         children: [
           Text(
             value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -267,6 +286,8 @@ class _StatItem extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontSize: 11,
               color: AppColors.textSecondary,
@@ -367,6 +388,8 @@ class _NilaiRow extends StatelessWidget {
             if (item.keterangan != null && item.keterangan!.isNotEmpty)
               item.keterangan!,
           ].join(' · '),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: const TextStyle(
             fontSize: 11.5,
             color: AppColors.textSecondary,

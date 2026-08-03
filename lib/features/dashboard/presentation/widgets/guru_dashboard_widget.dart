@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/dashboard_entity.dart';
 import 'dashboard_stat_card.dart';
 import 'dashboard_quick_actions.dart';
@@ -48,13 +49,10 @@ class GuruDashboardWidget extends StatelessWidget {
         const SizedBox(height: 20),
 
         // Stat cards
-        GridView.count(
+        GridView(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 2,
-          mainAxisSpacing: 10,
-          crossAxisSpacing: 10,
-          childAspectRatio: 1.15,
+          gridDelegate: Responsive.gridDelegate(context, tinggi: 140),
           children: [
             DashboardStatCard(
               title: 'Siswa Perwalian',
@@ -164,6 +162,8 @@ class _BkCaseRow extends StatelessWidget {
               children: [
                 Text(
                   siswa?['nama'] ?? 'Siswa',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: Theme.of(
                     context,
                   ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
