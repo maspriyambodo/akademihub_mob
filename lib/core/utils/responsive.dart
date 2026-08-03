@@ -2,35 +2,43 @@ import 'package:flutter/material.dart';
 
 /// Utilitas layout adaptif untuk seluruh aplikasi.
 ///
-/// Tujuan: satu halaman harus tampil benar pada HP kecil (lebar 320dp),
-/// HP umum (360–430dp), maupun tablet (>=600dp), termasuk ketika pengguna
-/// membesarkan ukuran font sistem.
+/// Keputusan layout HARUS berbasis ruang jendela yang tersedia
+/// (`MediaQuery.sizeOf` / `LayoutBuilder.constraints`), bukan tipe hardware
+/// atau orientation lock.
 ///
-/// Aturan praktis yang dipakai di seluruh fitur:
+/// Aturan praktis:
+/// - JANGAN mengunci orientasi layar.
 /// - JANGAN memberi tinggi tetap pada kartu yang isinya teks.
-/// - Untuk grid, pakai [gridDelegate] (berbasis lebar + tinggi absolut),
-///   bukan `crossAxisCount` + `childAspectRatio` yang menurunkan tinggi dari
-///   lebar — itu penyebab overflow di layar sempit.
+/// - Untuk grid, pakai [gridDelegate] (maxCrossAxisExtent + mainAxisExtent).
 /// - Bungkus teks di dalam `Row` dengan `Expanded`/`Flexible`.
+/// - Batasi lebar konten di layar lebar lewat [lebarKontenMaks] /
+///   `BatasLebarKonten`.
 class Responsive {
   Responsive._();
 
-  // ── Ambang lebar layar ─────────────────────────────────────────────────────
-  /// HP kecil / layar sempit (mis. 320dp, atau jendela split-screen).
+  // ── Ambang lebar jendela (bukan tipe perangkat) ────────────────────────────
+  /// Jendela sempit (HP kecil / split-screen).
   static const double compactWidth = 360;
 
-  /// Tablet & layar lebar.
+  /// Jendela lebar — batasi konten & gunakan rail navigasi.
   static const double expandedWidth = 600;
+
+  /// Ambang konten berkolom (form/list side-by-side bila relevan).
+  static const double largeScreenMinWidth = 600;
 
   static double widthOf(BuildContext context) => MediaQuery.sizeOf(context).width;
 
   static double heightOf(BuildContext context) => MediaQuery.sizeOf(context).height;
 
-  /// Layar sempit — perkecil padding, turunkan ukuran font besar.
+  /// Jendela sempit — perkecil padding, turunkan ukuran font besar.
   static bool isCompact(BuildContext context) => widthOf(context) < compactWidth;
 
-  /// Tablet / layar lebar — tambah kolom grid dan batasi lebar konten.
+  /// Jendela lebar — tambah kolom grid dan batasi lebar konten.
   static bool isExpanded(BuildContext context) => widthOf(context) >= expandedWidth;
+
+  /// True bila [maxWidth] (dari LayoutBuilder) melebihi ambang large screen.
+  static bool isLargeConstraints(BoxConstraints constraints) =>
+      constraints.maxWidth > largeScreenMinWidth;
 
   // ── Padding & jarak ────────────────────────────────────────────────────────
   /// Padding tepi halaman yang menyesuaikan lebar layar.

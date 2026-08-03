@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive.dart';
+import '../../../../core/widgets/batas_lebar_konten.dart';
 import '../bloc/auth_bloc.dart';
 
 class LoginPage extends StatefulWidget {
@@ -76,14 +77,11 @@ class _LoginPageState extends State<LoginPage> {
                   constraints: BoxConstraints(
                     minHeight: constraints.maxHeight - padHalaman.vertical,
                   ),
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxWidth: Responsive.isExpanded(context) ? 420 : 520,
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
+                  child: BatasLebarKonten(
+                    maxWidth: Responsive.isExpanded(context) ? 420 : 520,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
                           // Logo
                           Container(
                             width: sisiLogo,
@@ -209,12 +207,14 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
-      ),
-    );
+      );
   }
 }
+
+
+

@@ -241,6 +241,7 @@ class _TmbViewState extends State<_TmbView> {
             );
           }
           if (state is TmbLoaded) {
+            final pad = Responsive.pagePadding(context);
             return Center(
               child: ConstrainedBox(
                 constraints: BoxConstraints(
@@ -258,7 +259,12 @@ class _TmbViewState extends State<_TmbView> {
                         )
                       : ListView.builder(
                           physics: const AlwaysScrollableScrollPhysics(),
-                          padding: const EdgeInsets.only(top: 6, bottom: 24),
+                          padding: EdgeInsets.fromLTRB(
+                            pad.left,
+                            6,
+                            pad.right,
+                            24,
+                          ),
                           itemCount:
                               state.items.length +
                               (state.catatan != null ? 1 : 0),

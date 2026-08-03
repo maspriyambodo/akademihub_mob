@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/utils/responsive.dart';
+import '../../../../core/widgets/batas_lebar_konten.dart';
 import '../bloc/tenant_bloc.dart';
 import '../../domain/entities/tenant_entity.dart';
 
@@ -72,14 +73,11 @@ class _TenantSelectorPageState extends State<TenantSelectorPage> {
                     constraints: BoxConstraints(
                       minHeight: constraints.maxHeight - padHalaman.vertical,
                     ),
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          maxWidth: Responsive.isExpanded(context) ? 420 : 520,
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
+                    child: BatasLebarKonten(
+                      maxWidth: Responsive.isExpanded(context) ? 420 : 520,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
                             // Logo
                             Container(
                               width: sisiLogo,
@@ -199,14 +197,13 @@ class _TenantSelectorPageState extends State<TenantSelectorPage> {
                         ),
                       ),
                     ),
-                  ),
-                );
-              },
-            ),
-          );
-        },
-      ),
-    );
+                  );
+                },
+              ),
+            );
+          },
+        ),
+      );
   }
 }
 

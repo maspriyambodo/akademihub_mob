@@ -70,6 +70,7 @@ class _PesertaView extends StatelessWidget {
             );
           }
           if (state is TmbPesertaLoaded) {
+            final pad = Responsive.pagePadding(context);
             return Center(
               child: ConstrainedBox(
                 constraints: BoxConstraints(
@@ -84,6 +85,7 @@ class _PesertaView extends StatelessWidget {
                   child: state.pesertaList.isEmpty
                       ? ListView(
                           physics: const AlwaysScrollableScrollPhysics(),
+                          padding: pad,
                           children: [
                             SizedBox(
                               height: Responsive.tinggiSheet(
@@ -96,7 +98,12 @@ class _PesertaView extends StatelessWidget {
                         )
                       : ListView.builder(
                           physics: const AlwaysScrollableScrollPhysics(),
-                          padding: const EdgeInsets.only(bottom: 24),
+                          padding: EdgeInsets.fromLTRB(
+                            pad.left,
+                            pad.top,
+                            pad.right,
+                            24,
+                          ),
                           itemCount: state.pesertaList.length + 1,
                           itemBuilder: (context, index) {
                             if (index == 0) {

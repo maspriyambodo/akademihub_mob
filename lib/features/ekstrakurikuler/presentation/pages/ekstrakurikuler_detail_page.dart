@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive.dart';
+import '../../../../core/widgets/batas_lebar_konten.dart';
 import '../../domain/entities/ekstrakurikuler_entity.dart';
 import '../../domain/entities/ekstrakurikuler_statistik_entity.dart';
 import '../bloc/ekstrakurikuler_bloc.dart';

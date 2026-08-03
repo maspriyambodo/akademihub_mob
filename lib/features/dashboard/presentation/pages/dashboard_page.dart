@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/utils/responsive.dart';
+import '../../../../core/widgets/batas_lebar_konten.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../widgets/siswa_dashboard_widget.dart';
@@ -85,22 +86,25 @@ class _DashboardPageState extends State<DashboardPage> {
 
           if (state is DashboardLoaded) {
             final data = state.data;
+            final pad = Responsive.pagePadding(context);
             return RefreshIndicator(
               onRefresh: () async {
                 context.read<DashboardBloc>().add(DashboardRefreshRequested());
               },
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  if (data.role == 'siswa')
-                    SiswaDashboardWidget(data: data)
-                  else if (data.role == 'guru')
-                    GuruDashboardWidget(data: data)
-                  else if (data.role == 'wali')
-                    WaliDashboardWidget(data: data)
-                  else
-                    AdminDashboardWidget(data: data),
-                ],
+              child: BatasLebarKonten(
+                child: ListView(
+                  padding: pad,
+                  children: [
+                    if (data.role == 'siswa')
+                      SiswaDashboardWidget(data: data)
+                    else if (data.role == 'guru')
+                      GuruDashboardWidget(data: data)
+                    else if (data.role == 'wali')
+                      WaliDashboardWidget(data: data)
+                    else
+                      AdminDashboardWidget(data: data),
+                  ],
+                ),
               ),
             );
           }
@@ -117,60 +121,61 @@ class _LoadingSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        // Header skeleton
-        Container(
-          height: 28,
-          width: 200,
-          decoration: BoxDecoration(
-            color: Colors.grey[300],
-            borderRadius: BorderRadius.circular(6),
+    final pad = Responsive.pagePadding(context);
+    return BatasLebarKonten(
+      child: ListView(
+        padding: pad,
+        children: [
+          Container(
+            height: 28,
+            width: 200,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(6),
+            ),
           ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          height: 16,
-          width: 140,
-          decoration: BoxDecoration(
-            color: Colors.grey[200],
-            borderRadius: BorderRadius.circular(4),
+          const SizedBox(height: 8),
+          Container(
+            height: 16,
+            width: 140,
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.circular(4),
+            ),
           ),
-        ),
-        const SizedBox(height: 24),
-        // Stat cards skeleton
-        GridView(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: Responsive.gridDelegate(context, tinggi: 140),
-          children: List.generate(
-            4,
-            (_) => Container(
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(12),
+          const SizedBox(height: 24),
+          GridView(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: Responsive.gridDelegate(context, tinggi: 140),
+            children: List.generate(
+              4,
+              (_) => Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ),
-        ),
-        const SizedBox(height: 16),
-        Container(
-          height: 120,
-          decoration: BoxDecoration(
-            color: Colors.grey[200],
-            borderRadius: BorderRadius.circular(12),
+          const SizedBox(height: 16),
+          Container(
+            height: 120,
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
-        ),
-        const SizedBox(height: 16),
-        Container(
-          height: 200,
-          decoration: BoxDecoration(
-            color: Colors.grey[200],
-            borderRadius: BorderRadius.circular(12),
+          const SizedBox(height: 16),
+          Container(
+            height: 200,
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

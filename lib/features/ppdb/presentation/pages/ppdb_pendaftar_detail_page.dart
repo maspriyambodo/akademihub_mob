@@ -297,7 +297,9 @@ class _PpdbDetailViewState extends State<_PpdbDetailView> {
                     ),
                     child: ListView(
                       physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
+                      padding: Responsive.pagePadding(context).add(
+                        const EdgeInsets.only(bottom: 12),
+                      ),
                       children: [
                         _HeaderCard(pendaftar: pendaftar),
                         if (_adaAksiPendaftar(pendaftar)) ...[

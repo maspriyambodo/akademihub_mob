@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive.dart';
+import '../../../../core/widgets/batas_lebar_konten.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../domain/entities/peminjaman_buku_entity.dart';
 import '../bloc/perpustakaan_bloc.dart';
@@ -377,7 +378,7 @@ class _KatalogTab extends StatelessWidget {
                 const PerpustakaanRefreshRequested(PerpustakaanScope.katalog),
               );
             },
-            child: _BatasLebarKonten(
+            child: BatasLebarKonten(
               child: state.buku.isEmpty
                   ? ListView(
                       physics: const AlwaysScrollableScrollPhysics(),
@@ -482,7 +483,7 @@ class _PeminjamanTab extends StatelessWidget {
                 ),
               );
             },
-            child: _BatasLebarKonten(
+            child: BatasLebarKonten(
               child: state.peminjaman.isEmpty
                   ? ListView(
                       physics: const AlwaysScrollableScrollPhysics(),
@@ -521,22 +522,4 @@ class _PeminjamanTab extends StatelessWidget {
   }
 }
 
-/// Membatasi lebar daftar di tablet agar kartu tidak melebar tak terbaca.
-class _BatasLebarKonten extends StatelessWidget {
-  final Widget child;
 
-  const _BatasLebarKonten({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    if (!Responsive.isExpanded(context)) return child;
-    return Center(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: Responsive.lebarKontenMaks(context),
-        ),
-        child: child,
-      ),
-    );
-  }
-}

@@ -442,6 +442,7 @@ class _UjianTab extends StatelessWidget {
       );
     }
 
+    final pad = Responsive.pagePadding(context);
     return Center(
       child: ConstrainedBox(
         constraints: BoxConstraints(
@@ -452,6 +453,7 @@ class _UjianTab extends StatelessWidget {
           child: state.ujianItems.isEmpty
               ? ListView(
                   physics: const AlwaysScrollableScrollPhysics(),
+                  padding: pad,
                   children: [
                     SizedBox(
                       height: Responsive.tinggiSheet(context, rasio: 0.5),
@@ -464,7 +466,7 @@ class _UjianTab extends StatelessWidget {
                 )
               : ListView.builder(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.only(top: 8, bottom: 24),
+                  padding: EdgeInsets.fromLTRB(pad.left, 8, pad.right, 24),
                   itemCount: state.ujianItems.length,
                   itemBuilder: (context, index) {
                     final ujian = state.ujianItems[index];
@@ -674,6 +676,7 @@ class _RankingTab extends StatelessWidget {
             if (pertama.tahunAjaran != null) pertama.tahunAjaran!,
           ].join(' · ');
 
+    final pad = Responsive.pagePadding(context);
     return Center(
       child: ConstrainedBox(
         constraints: BoxConstraints(
@@ -684,8 +687,8 @@ class _RankingTab extends StatelessWidget {
             if (state.canGenerate || state.canExport)
               Container(
                 color: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
+                padding: EdgeInsets.symmetric(
+                  horizontal: pad.left,
                   vertical: 8,
                 ),
                 child: Row(
@@ -738,6 +741,7 @@ class _RankingTab extends StatelessWidget {
                 child: state.rankingItems.isEmpty
                     ? ListView(
                         physics: const AlwaysScrollableScrollPhysics(),
+                        padding: pad,
                         children: [
                           SizedBox(
                             height: Responsive.tinggiSheet(
@@ -757,7 +761,12 @@ class _RankingTab extends StatelessWidget {
                       )
                     : ListView.builder(
                         physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.only(top: 8, bottom: 24),
+                        padding: EdgeInsets.fromLTRB(
+                          pad.left,
+                          8,
+                          pad.right,
+                          24,
+                        ),
                         itemCount:
                             state.rankingItems.length +
                             (periodeInfo == null || periodeInfo.isEmpty
@@ -768,7 +777,7 @@ class _RankingTab extends StatelessWidget {
                               periodeInfo != null && periodeInfo.isNotEmpty;
                           if (punyaHeader && index == 0) {
                             return Padding(
-                              padding: const EdgeInsets.fromLTRB(20, 0, 20, 6),
+                              padding: const EdgeInsets.only(bottom: 6),
                               child: Text(
                                 periodeInfo,
                                 maxLines: 1,

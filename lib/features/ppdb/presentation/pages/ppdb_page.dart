@@ -236,9 +236,10 @@ class _SearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pad = Responsive.pagePadding(context);
     return Container(
       color: AppColors.cardBg,
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+      padding: EdgeInsets.fromLTRB(pad.left, 10, pad.right, 6),
       child: TextField(
         controller: controller,
         onChanged: onChanged,

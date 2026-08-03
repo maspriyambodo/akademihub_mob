@@ -5,27 +5,6 @@ import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/ekstrakurikuler_entity.dart';
 import '../../domain/entities/pendaftaran_ekskul_entity.dart';
 
-/// Membatasi lebar konten daftar di tablet agar teks tidak melebar
-/// tak terbaca. Dipakai di level halaman, bukan per kartu.
-class BatasLebarKonten extends StatelessWidget {
-  final Widget child;
-
-  const BatasLebarKonten({super.key, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    if (!Responsive.isExpanded(context)) return child;
-    return Center(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: Responsive.lebarKontenMaks(context),
-        ),
-        child: child,
-      ),
-    );
-  }
-}
-
 // ── Format tanggal (manual, tanpa initializeDateFormatting) ──────────────────
 
 const List<String> _namaBulan = <String>[

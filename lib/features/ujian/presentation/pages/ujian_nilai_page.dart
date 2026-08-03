@@ -73,6 +73,7 @@ class _UjianNilaiView extends StatelessWidget {
           if (state is! UjianNilaiLoaded) return const SizedBox.shrink();
 
           final detail = state.detail;
+          final pad = Responsive.pagePadding(context);
           return Center(
             child: ConstrainedBox(
               constraints: BoxConstraints(
@@ -85,34 +86,37 @@ class _UjianNilaiView extends StatelessWidget {
                 child: CustomScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   slivers: [
-                    if (detail.ujian != null)
-                      SliverToBoxAdapter(
-                        child: _UjianInfoCard(ujian: detail.ujian!),
+                    SliverPadding(
+                      padding: EdgeInsets.fromLTRB(
+                        pad.left,
+                        pad.top,
+                        pad.right,
+                        24,
                       ),
-                    SliverToBoxAdapter(
-                      child: _RingkasanNilai(nilai: detail.nilai),
+                      sliver: SliverList(
+                        delegate: SliverChildListDelegate([
+                          if (detail.ujian != null)
+                            _UjianInfoCard(ujian: detail.ujian!),
+                          _RingkasanNilai(nilai: detail.nilai),
+                          if (detail.nilai.isEmpty)
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 48),
+                              child: _EmptyView(
+                                message:
+                                    'Belum ada nilai yang diinput untuk ujian ini',
+                              ),
+                            )
+                          else
+                            ...detail.nilai.map(
+                              (item) => _NilaiRow(
+                                item: item,
+                                milikSaya:
+                                    siswaId != null && item.siswaId == siswaId,
+                              ),
+                            ),
+                        ]),
+                      ),
                     ),
-                    if (detail.nilai.isEmpty)
-                      const SliverFillRemaining(
-                        hasScrollBody: false,
-                        child: _EmptyView(
-                          message:
-                              'Belum ada nilai yang diinput untuk ujian ini',
-                        ),
-                      )
-                    else
-                      SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (_, i) => _NilaiRow(
-                            item: detail.nilai[i],
-                            milikSaya:
-                                siswaId != null &&
-                                detail.nilai[i].siswaId == siswaId,
-                          ),
-                          childCount: detail.nilai.length,
-                        ),
-                      ),
-                    const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
                   ],
                 ),
               ),

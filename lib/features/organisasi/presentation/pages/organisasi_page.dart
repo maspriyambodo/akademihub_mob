@@ -126,11 +126,12 @@ class _LoadedView extends StatelessWidget {
     final tampil = state.tampil;
     final daftarPeriode = state.daftarPeriode;
 
+    final pad = Responsive.pagePadding(context);
     return Column(
       children: [
         Container(
           color: AppColors.cardBg,
-          padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+          padding: EdgeInsets.fromLTRB(pad.left, 10, pad.right, 10),
           child: Column(
             children: [
               TextField(

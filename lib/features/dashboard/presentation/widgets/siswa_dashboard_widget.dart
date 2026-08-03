@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/dashboard_entity.dart';
 import 'dashboard_quick_actions.dart';
 
@@ -64,36 +65,54 @@ class SiswaDashboardWidget extends StatelessWidget {
           ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 12),
-        Row(
-          children: [
-            _AttendanceBadge(
-              label: 'Hadir',
-              value: hadirCount,
-              icon: Icons.check_circle,
-              color: AppColors.success,
-            ),
-            const SizedBox(width: 8),
-            _AttendanceBadge(
-              label: 'Sakit',
-              value: sakitCount,
-              icon: Icons.local_hospital,
-              color: AppColors.warning,
-            ),
-            const SizedBox(width: 8),
-            _AttendanceBadge(
-              label: 'Izin',
-              value: izinCount,
-              icon: Icons.info,
-              color: AppColors.info,
-            ),
-            const SizedBox(width: 8),
-            _AttendanceBadge(
-              label: 'Alpha',
-              value: alphaCount,
-              icon: Icons.cancel,
-              color: AppColors.error,
-            ),
-          ],
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final badges = [
+              _AttendanceBadge(
+                label: 'Hadir',
+                value: hadirCount,
+                icon: Icons.check_circle,
+                color: AppColors.success,
+              ),
+              _AttendanceBadge(
+                label: 'Sakit',
+                value: sakitCount,
+                icon: Icons.local_hospital,
+                color: AppColors.warning,
+              ),
+              _AttendanceBadge(
+                label: 'Izin',
+                value: izinCount,
+                icon: Icons.info,
+                color: AppColors.info,
+              ),
+              _AttendanceBadge(
+                label: 'Alpha',
+                value: alphaCount,
+                icon: Icons.cancel,
+                color: AppColors.error,
+              ),
+            ];
+            // Layar sempit: 2x2 agar label tidak terpotong.
+            if (constraints.maxWidth < Responsive.compactWidth ||
+                Responsive.isCompact(context)) {
+              return Column(
+                children: [
+                  Row(children: [badges[0], const SizedBox(width: 8), badges[1]]),
+                  const SizedBox(height: 8),
+                  Row(children: [badges[2], const SizedBox(width: 8), badges[3]]),
+                ],
+              );
+            }
+            return Row(
+              children: [
+                for (var i = 0; i < badges.length; i++) ...[
+                  if (i > 0) const SizedBox(width: 8),
+                  badges[i],
+                ],
+              ],
+            );
+          },
         ),
         const SizedBox(height: 16),
 

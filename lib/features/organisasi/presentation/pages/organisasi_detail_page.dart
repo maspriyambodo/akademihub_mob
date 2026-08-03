@@ -82,7 +82,12 @@ class _LoadedView extends StatelessWidget {
       children: [
         Container(
           color: AppColors.cardBg,
-          padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+          padding: EdgeInsets.fromLTRB(
+            Responsive.pagePadding(context).left,
+            10,
+            Responsive.pagePadding(context).right,
+            10,
+          ),
           child: Column(
             children: [
               TextField(
@@ -145,11 +150,16 @@ class _LoadedView extends StatelessWidget {
                 ),
                 child: ListView(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.only(top: 8, bottom: 20),
+                  padding: EdgeInsets.fromLTRB(
+                    Responsive.pagePadding(context).left,
+                    8,
+                    Responsive.pagePadding(context).right,
+                    20,
+                  ),
                   children: [
                     _ProfilCard(state: state),
                     const Padding(
-                      padding: EdgeInsets.fromLTRB(16, 12, 16, 4),
+                      padding: EdgeInsets.fromLTRB(0, 12, 0, 4),
                       child: Text(
                         'Struktur Kepengurusan',
                         style: TextStyle(
