@@ -74,12 +74,6 @@ const _adminActions = [
     color: AppColors.secondary,
   ),
   _QuickAction(
-    label: 'Perpustakaan',
-    icon: Icons.local_library,
-    route: AppRoutes.perpustakaan,
-    color: AppColors.accent,
-  ),
-  _QuickAction(
     label: 'Ekstrakurikuler',
     icon: Icons.sports_soccer,
     route: AppRoutes.ekstrakurikuler,
@@ -119,16 +113,10 @@ const _adminActions = [
     color: AppColors.info,
   ),
   _QuickAction(
-    label: 'Organisasi',
-    icon: Icons.groups_2,
-    route: AppRoutes.organisasi,
-    color: AppColors.primaryDark,
-  ),
-  _QuickAction(
-    label: 'Asisten AI',
-    icon: Icons.smart_toy_outlined,
-    route: AppRoutes.chatbot,
-    color: AppColors.accent,
+    label: 'EWS',
+    icon: Icons.warning_amber,
+    route: AppRoutes.ews,
+    color: AppColors.error,
   ),
   _QuickAction(
     label: 'Profil',
@@ -188,12 +176,6 @@ const _guruActions = [
     color: AppColors.secondary,
   ),
   _QuickAction(
-    label: 'Perpustakaan',
-    icon: Icons.local_library,
-    route: AppRoutes.perpustakaan,
-    color: AppColors.accent,
-  ),
-  _QuickAction(
     label: 'Ekstrakurikuler',
     icon: Icons.sports_soccer,
     route: AppRoutes.ekstrakurikuler,
@@ -212,12 +194,6 @@ const _guruActions = [
     icon: Icons.support_agent,
     route: AppRoutes.bk,
     color: AppColors.guruColor,
-  ),
-  _QuickAction(
-    label: 'Asisten AI',
-    icon: Icons.smart_toy_outlined,
-    route: AppRoutes.chatbot,
-    color: AppColors.accent,
   ),
   _QuickAction(
     label: 'Profil',
@@ -283,12 +259,6 @@ const _siswaActions = [
     color: AppColors.secondary,
   ),
   _QuickAction(
-    label: 'Perpustakaan',
-    icon: Icons.menu_book,
-    route: AppRoutes.perpustakaan,
-    color: AppColors.accent,
-  ),
-  _QuickAction(
     label: 'Ekstrakurikuler',
     icon: Icons.sports_soccer,
     route: AppRoutes.ekstrakurikuler,
@@ -301,22 +271,16 @@ const _siswaActions = [
     color: AppColors.warning,
   ),
   _QuickAction(
-    label: 'Tes Minat Bakat',
-    icon: Icons.psychology_outlined,
-    route: AppRoutes.tmb,
-    color: AppColors.secondary,
+    label: 'BK',
+    icon: Icons.support_agent,
+    route: AppRoutes.bk,
+    color: AppColors.guruColor,
   ),
   _QuickAction(
-    label: 'Organisasi',
-    icon: Icons.groups_2,
-    route: AppRoutes.organisasi,
-    color: AppColors.primaryDark,
-  ),
-  _QuickAction(
-    label: 'Asisten AI',
-    icon: Icons.smart_toy_outlined,
-    route: AppRoutes.chatbot,
-    color: AppColors.accent,
+    label: 'EWS',
+    icon: Icons.warning_amber,
+    route: AppRoutes.ews,
+    color: AppColors.error,
   ),
   _QuickAction(
     label: 'Profil',
@@ -382,28 +346,16 @@ const _waliActions = [
     color: AppColors.secondary,
   ),
   _QuickAction(
-    label: 'Perpustakaan Anak',
-    icon: Icons.menu_book,
-    route: AppRoutes.perpustakaan,
-    color: AppColors.accent,
-  ),
-  _QuickAction(
     label: 'Ekstrakurikuler',
     icon: Icons.sports_soccer,
     route: AppRoutes.ekstrakurikuler,
     color: AppColors.primaryLight,
   ),
   _QuickAction(
-    label: 'Organisasi',
-    icon: Icons.groups_2,
-    route: AppRoutes.organisasi,
-    color: AppColors.primaryDark,
-  ),
-  _QuickAction(
-    label: 'Asisten AI',
-    icon: Icons.smart_toy_outlined,
-    route: AppRoutes.chatbot,
-    color: AppColors.accent,
+    label: 'EWS',
+    icon: Icons.warning_amber,
+    route: AppRoutes.ews,
+    color: AppColors.error,
   ),
   _QuickAction(
     label: 'Profil',

@@ -18,7 +18,6 @@ dependencies:
 
   # Networking
   dio: ^5.8.0+1
-  retrofit: ^4.4.2
 
   # Local Storage
   flutter_secure_storage: ^9.2.4
@@ -67,7 +66,6 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   build_runner: ^2.4.15
   json_serializable: ^6.9.5
-  retrofit_generator: ^9.2.2
   injectable_generator: ^2.7.0
 
 # For information on the generic Dart part of this file, see the

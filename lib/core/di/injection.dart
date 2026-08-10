@@ -98,15 +98,6 @@ import '../../features/forum/domain/usecases/update_forum_usecase.dart';
 import '../../features/forum/domain/usecases/delete_forum_usecase.dart';
 import '../../features/forum/presentation/bloc/forum_bloc.dart';
 import '../../features/forum/presentation/bloc/forum_detail_bloc.dart';
-import '../../features/perpustakaan/data/datasources/perpustakaan_remote_datasource.dart';
-import '../../features/perpustakaan/data/repositories/perpustakaan_repository_impl.dart';
-import '../../features/perpustakaan/domain/repositories/perpustakaan_repository.dart';
-import '../../features/perpustakaan/domain/usecases/get_buku_usecase.dart';
-import '../../features/perpustakaan/domain/usecases/get_peminjaman_usecase.dart';
-import '../../features/perpustakaan/domain/usecases/create_peminjaman_usecase.dart';
-import '../../features/perpustakaan/domain/usecases/proses_pengembalian_usecase.dart';
-import '../../features/perpustakaan/presentation/bloc/perpustakaan_bloc.dart';
-import '../../features/perpustakaan/presentation/bloc/buku_detail_bloc.dart';
 import '../../features/ekstrakurikuler/data/datasources/ekstrakurikuler_remote_datasource.dart';
 import '../../features/ekstrakurikuler/data/repositories/ekstrakurikuler_repository_impl.dart';
 import '../../features/ekstrakurikuler/domain/repositories/ekstrakurikuler_repository.dart';
@@ -169,13 +160,6 @@ import '../../features/tmb/presentation/bloc/tmb_bloc.dart';
 import '../../features/tmb/presentation/bloc/tmb_hasil_bloc.dart';
 import '../../features/tmb/presentation/bloc/tmb_pengerjaan_bloc.dart';
 import '../../features/tmb/presentation/bloc/tmb_peserta_bloc.dart';
-import '../../features/organisasi/data/datasources/organisasi_remote_datasource.dart';
-import '../../features/organisasi/data/repositories/organisasi_repository_impl.dart';
-import '../../features/organisasi/domain/repositories/organisasi_repository.dart';
-import '../../features/organisasi/domain/usecases/get_organisasi_detail_usecase.dart';
-import '../../features/organisasi/domain/usecases/get_organisasi_list_usecase.dart';
-import '../../features/organisasi/presentation/bloc/organisasi_bloc.dart';
-import '../../features/organisasi/presentation/bloc/organisasi_detail_bloc.dart';
 import '../../features/ppdb/data/datasources/ppdb_remote_datasource.dart';
 import '../../features/ppdb/data/repositories/ppdb_repository_impl.dart';
 import '../../features/ppdb/domain/repositories/ppdb_repository.dart';
@@ -191,12 +175,21 @@ import '../../features/ppdb/domain/usecases/tolak_ppdb_dokumen_usecase.dart';
 import '../../features/ppdb/domain/usecases/ubah_status_ppdb_pendaftar_usecase.dart';
 import '../../features/ppdb/presentation/bloc/ppdb_bloc.dart';
 import '../../features/ppdb/presentation/bloc/ppdb_detail_bloc.dart';
-import '../../features/chatbot/data/datasources/chatbot_remote_datasource.dart';
-import '../../features/chatbot/data/repositories/chatbot_repository_impl.dart';
-import '../../features/chatbot/domain/repositories/chatbot_repository.dart';
-import '../../features/chatbot/domain/usecases/hapus_sesi_usecase.dart';
-import '../../features/chatbot/domain/usecases/kirim_pesan_usecase.dart';
-import '../../features/chatbot/presentation/bloc/chatbot_bloc.dart';
+import '../../features/ews/data/datasources/ews_remote_datasource.dart';
+import '../../features/ews/data/repositories/ews_repository_impl.dart';
+import '../../features/ews/domain/repositories/ews_repository.dart';
+import '../../features/ews/domain/usecases/get_ews_alerts_usecase.dart';
+import '../../features/ews/domain/usecases/get_ews_alert_detail_usecase.dart';
+import '../../features/ews/domain/usecases/resolve_ews_alert_usecase.dart';
+import '../../features/ews/domain/usecases/trigger_ews_check_usecase.dart';
+import '../../features/ews/presentation/bloc/ews_bloc.dart';
+import '../../features/siswa_insight/data/datasources/siswa_insight_remote_datasource.dart';
+import '../../features/siswa_insight/data/repositories/siswa_insight_repository_impl.dart';
+import '../../features/siswa_insight/domain/repositories/siswa_insight_repository.dart';
+import '../../features/siswa_insight/domain/usecases/get_siswa_insight_usecase.dart';
+import '../../features/siswa_insight/domain/usecases/get_siswa_risk_profile_usecase.dart';
+import '../../features/siswa_insight/domain/usecases/invalidate_siswa_insight_cache_usecase.dart';
+import '../../features/siswa_insight/presentation/bloc/siswa_insight_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -488,37 +481,6 @@ Future<void> configureDependencies() async {
   );
   sl.registerFactory(() => ForumDetailBloc(getForumDetail: sl()));
 
-  // ── Perpustakaan feature ──────────────────────────────────────────────────
-  sl.registerLazySingleton<PerpustakaanRemoteDataSource>(
-    () => PerpustakaanRemoteDataSourceImpl(sl<ApiClient>().dio),
-  );
-  sl.registerLazySingleton<PerpustakaanRepository>(
-    () => PerpustakaanRepositoryImpl(sl()),
-  );
-  sl.registerLazySingleton(() => GetBukuListUseCase(sl()));
-  sl.registerLazySingleton(() => GetBukuAvailableUseCase(sl()));
-  sl.registerLazySingleton(() => GetBukuDetailUseCase(sl()));
-  sl.registerLazySingleton(() => GetRiwayatBukuUseCase(sl()));
-  sl.registerLazySingleton(() => GetPeminjamanListUseCase(sl()));
-  sl.registerLazySingleton(() => GetPeminjamanBySiswaUseCase(sl()));
-  sl.registerLazySingleton(() => GetPeminjamanOverdueUseCase(sl()));
-  sl.registerLazySingleton(() => CreatePeminjamanUseCase(sl()));
-  sl.registerLazySingleton(() => ProsesPengembalianUseCase(sl()));
-  sl.registerFactory(
-    () => PerpustakaanBloc(
-      getBukuList: sl(),
-      getBukuAvailable: sl(),
-      getPeminjamanList: sl(),
-      getPeminjamanBySiswa: sl(),
-      getPeminjamanOverdue: sl(),
-      createPeminjaman: sl(),
-      prosesPengembalian: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => BukuDetailBloc(getBukuDetail: sl(), getRiwayatBuku: sl()),
-  );
-
   // ── Ekstrakurikuler feature ───────────────────────────────────────────────
   sl.registerLazySingleton<EkstrakurikulerRemoteDataSource>(
     () => EkstrakurikulerRemoteDataSourceImpl(sl<ApiClient>().dio),
@@ -670,18 +632,6 @@ Future<void> configureDependencies() async {
     () => TmbHasilBloc(getHasilByPeserta: sl(), getPesertaBySiswa: sl()),
   );
 
-  // ── Organisasi feature ────────────────────────────────────────────────────
-  sl.registerLazySingleton<OrganisasiRemoteDataSource>(
-    () => OrganisasiRemoteDataSourceImpl(sl<ApiClient>().dio),
-  );
-  sl.registerLazySingleton<OrganisasiRepository>(
-    () => OrganisasiRepositoryImpl(sl()),
-  );
-  sl.registerLazySingleton(() => GetOrganisasiListUseCase(sl()));
-  sl.registerLazySingleton(() => GetOrganisasiDetailUseCase(sl()));
-  sl.registerFactory(() => OrganisasiBloc(getOrganisasiList: sl()));
-  sl.registerFactory(() => OrganisasiDetailBloc(getOrganisasiDetail: sl()));
-
   // ── PPDB feature ──────────────────────────────────────────────────────────
   sl.registerLazySingleton<PpdbRemoteDataSource>(
     () => PpdbRemoteDataSourceImpl(sl<ApiClient>().dio),
@@ -712,12 +662,37 @@ Future<void> configureDependencies() async {
     ),
   );
 
-  // ── Chatbot feature ───────────────────────────────────────────────────────
-  sl.registerLazySingleton<ChatbotRemoteDataSource>(
-    () => ChatbotRemoteDataSourceImpl(sl<ApiClient>().dio),
+  // ── EWS (Early Warning System) feature ────────────────────────────────────
+  sl.registerLazySingleton<EwsRemoteDataSource>(
+    () => EwsRemoteDataSourceImpl(sl<ApiClient>().dio),
   );
-  sl.registerLazySingleton<ChatbotRepository>(() => ChatbotRepositoryImpl(sl()));
-  sl.registerLazySingleton(() => KirimPesanChatbotUseCase(sl()));
-  sl.registerLazySingleton(() => HapusSesiChatbotUseCase(sl()));
-  sl.registerFactory(() => ChatbotBloc(kirimPesan: sl(), hapusSesi: sl()));
+  sl.registerLazySingleton<EwsRepository>(() => EwsRepositoryImpl(sl()));
+  sl.registerLazySingleton(() => GetEwsAlertsUseCase(sl()));
+  sl.registerLazySingleton(() => GetEwsAlertDetailUseCase(sl()));
+  sl.registerLazySingleton(() => ResolveEwsAlertUseCase(sl()));
+  sl.registerLazySingleton(() => TriggerEwsCheckUseCase(sl()));
+  sl.registerFactory(
+    () => EwsBloc(
+      getAlerts: sl(),
+      resolveAlert: sl(),
+      triggerCheck: sl(),
+    ),
+  );
+
+  // ── Siswa Insight feature ──────────────────────────────────────────────────
+  sl.registerLazySingleton<SiswaInsightRemoteDataSource>(
+    () => SiswaInsightRemoteDataSourceImpl(sl<ApiClient>().dio),
+  );
+  sl.registerLazySingleton<SiswaInsightRepository>(
+    () => SiswaInsightRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton(() => GetSiswaInsightUseCase(sl()));
+  sl.registerLazySingleton(() => GetSiswaRiskProfileUseCase(sl()));
+  sl.registerLazySingleton(() => InvalidateSiswaInsightCacheUseCase(sl()));
+  sl.registerFactory(
+    () => SiswaInsightBloc(
+      getInsight: sl(),
+      invalidateCache: sl(),
+    ),
+  );
 }

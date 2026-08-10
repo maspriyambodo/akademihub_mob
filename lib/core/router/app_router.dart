@@ -17,15 +17,14 @@ import '../../features/keuangan/presentation/pages/keuangan_page.dart';
 import '../../features/profil/presentation/pages/profil_page.dart';
 import '../../features/materi/presentation/pages/materi_page.dart';
 import '../../features/forum/presentation/pages/forum_page.dart';
-import '../../features/perpustakaan/presentation/pages/perpustakaan_page.dart';
 import '../../features/ekstrakurikuler/presentation/pages/ekstrakurikuler_page.dart';
 import '../../features/kalender/presentation/pages/kalender_page.dart';
 import '../../features/bk/presentation/pages/bk_page.dart';
 import '../../features/ujian/presentation/pages/ujian_page.dart';
 import '../../features/tmb/presentation/pages/tmb_page.dart';
-import '../../features/organisasi/presentation/pages/organisasi_page.dart';
 import '../../features/ppdb/presentation/pages/ppdb_page.dart';
-import '../../features/chatbot/presentation/pages/chatbot_page.dart';
+import '../../features/ews/presentation/pages/ews_page.dart';
+import '../../features/siswa_insight/presentation/pages/siswa_insight_page.dart';
 
 class AppRoutes {
   static const String splash = '/';
@@ -41,15 +40,14 @@ class AppRoutes {
   static const String profil = '/profil';
   static const String materi = '/materi';
   static const String forum = '/forum';
-  static const String perpustakaan = '/perpustakaan';
   static const String ekstrakurikuler = '/ekstrakurikuler';
   static const String kalender = '/kalender';
   static const String bk = '/bk';
   static const String ujian = '/ujian';
   static const String tmb = '/tmb';
-  static const String organisasi = '/organisasi';
   static const String ppdb = '/ppdb';
-  static const String chatbot = '/chatbot';
+  static const String ews = '/ews';
+  static const String siswaInsight = '/siswa/:id/insight';
 }
 
 final router = GoRouter(
@@ -110,10 +108,6 @@ final router = GoRouter(
         GoRoute(path: AppRoutes.materi, builder: (_, _) => const MateriPage()),
         GoRoute(path: AppRoutes.forum, builder: (_, _) => const ForumPage()),
         GoRoute(
-          path: AppRoutes.perpustakaan,
-          builder: (_, _) => const PerpustakaanPage(),
-        ),
-        GoRoute(
           path: AppRoutes.ekstrakurikuler,
           builder: (_, _) => const EkstrakurikulerPage(),
         ),
@@ -124,19 +118,38 @@ final router = GoRouter(
         GoRoute(path: AppRoutes.bk, builder: (_, _) => const BkPage()),
         GoRoute(path: AppRoutes.ujian, builder: (_, _) => const UjianPage()),
         GoRoute(path: AppRoutes.tmb, builder: (_, _) => const TmbPage()),
-        GoRoute(
-          path: AppRoutes.organisasi,
-          builder: (_, _) => const OrganisasiPage(),
-        ),
         GoRoute(path: AppRoutes.ppdb, builder: (_, _) => const PpdbPage()),
-        GoRoute(
-          path: AppRoutes.chatbot,
-          builder: (_, _) => const ChatbotPage(),
-        ),
+        GoRoute(path: AppRoutes.ews, builder: (_, _) => const EwsPage()),
       ],
+    ),
+    GoRoute(
+      path: AppRoutes.siswaInsight,
+      builder: (context, state) {
+        final id = int.tryParse(
+          state.pathParameters['id'] ?? '',
+        );
+        if (id == null) {
+          return const _SiswaInsightMissingId();
+        }
+        return SiswaInsightPage(siswaId: id);
+      },
     ),
   ],
 );
+
+class _SiswaInsightMissingId extends StatelessWidget {
+  const _SiswaInsightMissingId();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Insight 360°'), centerTitle: true),
+      body: const Center(
+        child: Text('ID siswa tidak valid'),
+      ),
+    );
+  }
+}
 
 /// Splash: restore tenant dari storage → langsung cek auth
 class _SplashPage extends StatefulWidget {

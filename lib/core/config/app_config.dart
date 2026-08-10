@@ -8,7 +8,7 @@ class AppConfig {
 
   // ── API Base URL ───────────────────────────────────────────────────────────
   // Android emulator: 10.0.2.2 = host machine localhost
-  static const String _apiBaseUrlDev = 'http://10.0.2.2:8002/api/$apiVersion';
+  static const String _apiBaseUrlDev = 'http://127.0.0.1:8002/api/$apiVersion';
   static const String _apiBaseUrlProd =
       'https://api.akademihub.id/api/$apiVersion';
 

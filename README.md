@@ -300,11 +300,10 @@ Theme & warna: `lib/core/theme/app_theme.dart`.
 | `bk` | bimbingan konseling |
 | `kalender` | agenda sekolah |
 | `forum` | diskusi |
-| `organisasi` | organisasi siswa |
 | `ekstrakurikuler` | ekskul |
-| `perpustakaan` | buku & pinjam |
+| `ews` | early warning system |
+| `siswa_insight` | insight 360° per siswa |
 | `notifications` | notifikasi in-app |
-| `chatbot` | asisten chat |
 | `profil` | profil & perangkat |
 
 ---

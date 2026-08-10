@@ -1,7 +1,10 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// Run: flutter pub run build_runner build --delete-conflicting-outputs
 
 part of 'tenant_model.dart';
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
 
 TenantModel _$TenantModelFromJson(Map<String, dynamic> json) => TenantModel(
   identifier: json['identifier'] as String,
@@ -9,7 +12,7 @@ TenantModel _$TenantModelFromJson(Map<String, dynamic> json) => TenantModel(
   subdomain: json['subdomain'] as String,
   apiBaseUrl: json['api_base_url'] as String,
   wsHost: json['ws_host'] as String,
-  wsPort: json['ws_port'] as int? ?? 8080,
+  wsPort: (json['ws_port'] as num?)?.toInt() ?? 8080,
   wsScheme: json['ws_scheme'] as String? ?? 'wss',
   wsAppKey: json['ws_app_key'] as String,
   logoUrl: json['logo_url'] as String?,

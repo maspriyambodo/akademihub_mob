@@ -1,7 +1,10 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// Run: flutter pub run build_runner build --delete-conflicting-outputs
 
 part of 'user_model.dart';
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
 
 UserModel _$UserModelFromJson(Map<String, dynamic> json) => UserModel(
   id: (json['id'] as num).toInt(),
@@ -9,13 +12,11 @@ UserModel _$UserModelFromJson(Map<String, dynamic> json) => UserModel(
   email: json['email'] as String,
   role: json['role'] as String?,
   isActive: json['is_active'] as bool? ?? true,
-  // Flatten permissions from roles[].permissions[].code
-  // Backend may return permissions as {} (empty object) instead of [] — guard for both
-  permissions: (json['roles'] as List<dynamic>? ?? []).expand((r) {
-    final perms = (r as Map<String, dynamic>)['permissions'];
-    if (perms is! List<dynamic>) return <String>[];
-    return perms.map((p) => (p as Map<String, dynamic>)['code'] as String);
-  }).toList(),
+  permissions:
+      (json['permissions'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const [],
   profile: json['profile'] as Map<String, dynamic>?,
 );
 

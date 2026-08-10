@@ -48,4 +48,4 @@ features/[nama]/
 
 ## Fitur yang terdaftar di DI
 
-absensi, auth, bk, chatbot, dashboard, ekstrakurikuler, forum, jadwal, kalender, keuangan, materi, nilai, notifications, organisasi, perpustakaan, ppdb, profil, rapor, **tenant**, tmb, tugas, ujian.
+absensi, auth, bk, dashboard, ews, ekstrakurikuler, forum, jadwal, kalender, keuangan, materi, nilai, notifications, ppdb, profil, rapor, **siswa_insight**, **tenant**, tmb, tugas, ujian.
