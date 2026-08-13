@@ -44,9 +44,9 @@ class _InsightViewState extends State<_InsightView> {
               return IconButton(
                 tooltip: 'Refresh data',
                 icon: const Icon(Icons.refresh),
-                onPressed: () => context
-                    .read<SiswaInsightBloc>()
-                    .add(const InsightRefreshRequested()),
+                onPressed: () => context.read<SiswaInsightBloc>().add(
+                  const InsightRefreshRequested(),
+                ),
               );
             },
           ),
@@ -80,9 +80,9 @@ class _InsightViewState extends State<_InsightView> {
               onRetry: id == null
                   ? null
                   : () {
-                      context
-                          .read<SiswaInsightBloc>()
-                          .add(InsightLoadRequested(id));
+                      context.read<SiswaInsightBloc>().add(
+                        InsightLoadRequested(id),
+                      );
                     },
             );
           }
@@ -123,13 +123,16 @@ class _LoadedView extends StatelessWidget {
               children: List.generate(_tabs.length, (i) {
                 final selected = state.activeTab == i;
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 6,
+                  ),
                   child: ChoiceChip(
                     label: Text(_tabs[i]),
                     selected: selected,
-                    onSelected: (_) => context
-                        .read<SiswaInsightBloc>()
-                        .add(InsightTabChanged(i)),
+                    onSelected: (_) => context.read<SiswaInsightBloc>().add(
+                      InsightTabChanged(i),
+                    ),
                   ),
                 );
               }),
@@ -207,7 +210,8 @@ class _OverviewTab extends StatelessWidget {
               child: _SummaryCard(
                 title: 'Kehadiran',
                 value: _pct(insight.kehadiranSummary?['pct_hadir']),
-                subtitle: (insight.kehadiranSummary?['status'] as String? ?? '-'),
+                subtitle:
+                    (insight.kehadiranSummary?['status'] as String? ?? '-'),
                 color: AppColors.success,
                 icon: Icons.event_available,
               ),
@@ -313,16 +317,10 @@ class _SummaryCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 6),
-            Text(
-              value,
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
+            Text(value, style: Theme.of(context).textTheme.titleLarge),
             if (subtitle != null) ...[
               const SizedBox(height: 2),
-              Text(
-                subtitle!,
-                style: Theme.of(context).textTheme.labelSmall,
-              ),
+              Text(subtitle!, style: Theme.of(context).textTheme.labelSmall),
             ],
           ],
         ),
@@ -435,11 +433,11 @@ class _RiskProfileTab extends StatelessWidget {
 
     final score = (risk['risk_score'] as num?)?.toInt() ?? 0;
     final category = risk['risk_category'] as String? ?? 'low';
-    final recommendations = (risk['recommendations'] as List?)
-            ?.map((e) => e.toString())
-            .toList() ??
+    final recommendations =
+        (risk['recommendations'] as List?)?.map((e) => e.toString()).toList() ??
         const [];
-    final dimensions = (risk['dimensions'] as Map?)?.cast<String, dynamic>() ?? {};
+    final dimensions =
+        (risk['dimensions'] as Map?)?.cast<String, dynamic>() ?? {};
 
     return ListView(
       padding: EdgeInsets.fromLTRB(pad.left, 12, pad.right, pad.bottom + 24),
@@ -474,10 +472,7 @@ class _RiskProfileTab extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        Text(
-          'Dimensi Risiko',
-          style: Theme.of(context).textTheme.titleSmall,
-        ),
+        Text('Dimensi Risiko', style: Theme.of(context).textTheme.titleSmall),
         const SizedBox(height: 8),
         ...dimensions.entries.map((e) {
           final label = _dimensionLabels[e.key] ?? e.key;
@@ -485,7 +480,8 @@ class _RiskProfileTab extends StatelessWidget {
               ? (e.value as Map).cast<String, dynamic>()
               : <String, dynamic>{};
           final dimScore = (dim['score'] as num?)?.toInt() ?? 0;
-          final issues = (dim['issues'] as List?)?.map((x) => x.toString()).toList() ?? [];
+          final issues =
+              (dim['issues'] as List?)?.map((x) => x.toString()).toList() ?? [];
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: Card(
@@ -543,10 +539,7 @@ class _RiskProfileTab extends StatelessWidget {
         }),
         if (recommendations.isNotEmpty) ...[
           const SizedBox(height: 12),
-          Text(
-            'Rekomendasi',
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
+          Text('Rekomendasi', style: Theme.of(context).textTheme.titleSmall),
           const SizedBox(height: 8),
           Card(
             child: Padding(
@@ -606,7 +599,8 @@ class _AcademicTab extends StatelessWidget {
 
     final rata = (academic['rata_rata_keseluruhan'] as num?)?.toDouble() ?? 0;
     final ranking = (academic['ranking_kelas'] as num?)?.toInt();
-    final perMapel = (academic['per_mapel'] as Map?)?.cast<String, dynamic>() ?? {};
+    final perMapel =
+        (academic['per_mapel'] as Map?)?.cast<String, dynamic>() ?? {};
     final anomali = (academic['anomali'] as List?)?.cast<dynamic>() ?? [];
 
     return ListView(
@@ -693,11 +687,16 @@ class _AcademicTab extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           ...anomali.map((a) {
-            final v = a is Map ? a.cast<String, dynamic>() : <String, dynamic>{};
+            final v = a is Map
+                ? a.cast<String, dynamic>()
+                : <String, dynamic>{};
             return Card(
               color: AppColors.warning.withAlpha(30),
               child: ListTile(
-                leading: const Icon(Icons.error_outline, color: AppColors.warning),
+                leading: const Icon(
+                  Icons.error_outline,
+                  color: AppColors.warning,
+                ),
                 title: Text(v['mapel']?.toString() ?? '-'),
                 subtitle: Text(v['deskripsi']?.toString() ?? '-'),
               ),
@@ -728,7 +727,11 @@ class _AcademicTab extends StatelessWidget {
       ),
       child: Text(
         tren,
-        style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600),
+        style: TextStyle(
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
@@ -795,10 +798,30 @@ class _AttendanceTab extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        _BreakdownRow(label: 'Hadir', value: hadir, total: total, color: AppColors.success),
-        _BreakdownRow(label: 'Izin', value: izin, total: total, color: AppColors.info),
-        _BreakdownRow(label: 'Sakit', value: sakit, total: total, color: AppColors.warning),
-        _BreakdownRow(label: 'Alpha', value: alpha, total: total, color: AppColors.error),
+        _BreakdownRow(
+          label: 'Hadir',
+          value: hadir,
+          total: total,
+          color: AppColors.success,
+        ),
+        _BreakdownRow(
+          label: 'Izin',
+          value: izin,
+          total: total,
+          color: AppColors.info,
+        ),
+        _BreakdownRow(
+          label: 'Sakit',
+          value: sakit,
+          total: total,
+          color: AppColors.warning,
+        ),
+        _BreakdownRow(
+          label: 'Alpha',
+          value: alpha,
+          total: total,
+          color: AppColors.error,
+        ),
       ],
     );
   }
@@ -935,7 +958,9 @@ class _FinanceTab extends StatelessWidget {
                       Text(
                         '$tunggakan',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: tunggakan > 0 ? AppColors.error : AppColors.success,
+                          color: tunggakan > 0
+                              ? AppColors.error
+                              : AppColors.success,
                         ),
                       ),
                     ],

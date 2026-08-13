@@ -15,6 +15,7 @@ class UserModel {
   final bool isActive;
 
   /// Daftar permission codes, digabung dari roles[].permissions[].code
+  @JsonKey(fromJson: _permissionsFromJson)
   final List<String> permissions;
 
   /// Data profil sesuai role (guru/siswa/wali) — struktur bervariasi
@@ -35,10 +36,41 @@ class UserModel {
 
   Map<String, dynamic> toJson() => _$UserModelToJson(this);
 
-  bool get isSiswa => role == 'siswa';
-  bool get isGuru => role == 'guru';
-  bool get isWali => role == 'wali';
-  bool get isAdmin => role == 'admin';
+  bool get isSiswa => role?.toUpperCase() == 'SISWA';
+  bool get isGuru => role?.toUpperCase() == 'GURU';
+  bool get isWali => {'WALI', 'WALI_SISWA'}.contains(role?.toUpperCase());
+  bool get isAdmin => {
+    'ADMIN',
+    'ADMIN_SEKOLAH',
+    'SUPER_ADMIN',
+    'SUPERADMIN',
+  }.contains(role?.toUpperCase());
+
+  String get normalizedRole {
+    switch (role?.toUpperCase()) {
+      case 'SISWA':
+        return 'siswa';
+      case 'GURU':
+        return 'guru';
+      case 'WALI':
+      case 'WALI_SISWA':
+        return 'wali';
+      case 'ADMIN':
+      case 'ADMIN_SEKOLAH':
+      case 'SUPER_ADMIN':
+      case 'SUPERADMIN':
+        return 'admin';
+      default:
+        return 'unknown';
+    }
+  }
 
   String get primaryRole => role ?? 'unknown';
 }
+
+List<String> _permissionsFromJson(List<dynamic>? permissions) =>
+    (permissions ?? const []).map((permission) {
+      if (permission is String) return permission;
+      if (permission case {'code': final String code}) return code;
+      throw const FormatException('Invalid permission response');
+    }).toList();

@@ -47,7 +47,8 @@ class UjianModel {
       mapelId: (mapel?['id'] as num?)?.toInt(),
       mapelNama: mapel?['nama'] as String?,
       mapelKode: mapel?['kode'] as String?,
-      kelasId: (kelas?['id'] as num?)?.toInt() ??
+      kelasId:
+          (kelas?['id'] as num?)?.toInt() ??
           (json['mst_kelas_id'] as num?)?.toInt(),
       kelasNama: kelas?['nama_kelas'] as String?,
       tanggal: json['tanggal'] as String?,

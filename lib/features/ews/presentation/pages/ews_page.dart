@@ -97,12 +97,12 @@ class _EwsViewState extends State<_EwsView> {
               },
               onFilter: (kategori, level, onlyUnresolved) =>
                   context.read<EwsBloc>().add(
-                EwsFilterChanged(
-                  kategori: kategori,
-                  level: level,
-                  onlyUnresolved: onlyUnresolved,
-                ),
-              ),
+                    EwsFilterChanged(
+                      kategori: kategori,
+                      level: level,
+                      onlyUnresolved: onlyUnresolved,
+                    ),
+                  ),
               onResolve: (id) =>
                   context.read<EwsBloc>().add(EwsResolveRequested(id)),
             );
@@ -122,7 +122,7 @@ class _LoadedView extends StatelessWidget {
   final bool canManage;
   final Future<void> Function() onRefresh;
   final void Function(String? kategori, int? level, bool? onlyUnresolved)
-      onFilter;
+  onFilter;
   final void Function(int id) onResolve;
 
   const _LoadedView({
@@ -259,14 +259,8 @@ class _SummaryCard extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  label,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                Text(
-                  value,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
+                Text(label, style: Theme.of(context).textTheme.bodyMedium),
+                Text(value, style: Theme.of(context).textTheme.titleLarge),
               ],
             ),
           ],
@@ -281,7 +275,7 @@ class _FilterBar extends StatelessWidget {
   final int? level;
   final bool onlyUnresolved;
   final void Function(String? kategori, int? level, bool? onlyUnresolved)
-      onChanged;
+  onChanged;
 
   const _FilterBar({
     required this.kategori,
@@ -311,9 +305,7 @@ class _FilterBar extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             _FilterChip(
-              label: level == null
-                  ? 'Level: Semua'
-                  : 'Level: $level',
+              label: level == null ? 'Level: Semua' : 'Level: $level',
               selected: level != null,
               onTap: () => _showLevelPicker(context),
             ),

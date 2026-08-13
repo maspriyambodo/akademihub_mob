@@ -31,8 +31,7 @@ class TmbPesertaLoaded extends TmbPesertaState {
   final List<TmbPesertaEntity> pesertaList;
   const TmbPesertaLoaded(this.pesertaList);
 
-  int get jumlahSelesai =>
-      pesertaList.where((p) => p.isSelesai).length;
+  int get jumlahSelesai => pesertaList.where((p) => p.isSelesai).length;
 
   @override
   List<Object?> get props => [pesertaList];

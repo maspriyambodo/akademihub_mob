@@ -544,7 +544,9 @@ class _OpsiTile extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           decoration: BoxDecoration(
-            color: terpilih ? AppColors.primary.withAlpha(18) : AppColors.cardBg,
+            color: terpilih
+                ? AppColors.primary.withAlpha(18)
+                : AppColors.cardBg,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
               color: terpilih ? AppColors.primary : AppColors.divider,

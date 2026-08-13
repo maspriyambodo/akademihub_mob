@@ -39,7 +39,7 @@ class EwsAlertModel {
       pesan: json['pesan'] as String? ?? '',
       dataPendukung: _parseData(json['data_pendukung']),
       isResolved: _parseBool(json['is_resolved']),
-      resolvedBy: json['resolved_by'] as String?,
+      resolvedBy: json['resolved_by']?.toString(),
       resolvedAt: _parseDate(json['resolved_at']),
       createdAt: _parseDate(json['created_at']),
       updatedAt: _parseDate(json['updated_at']),

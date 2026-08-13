@@ -28,8 +28,7 @@ class TugasItemEntity extends Equatable {
     return StatusPengumpulan.belum;
   }
 
-  bool get sudahDikumpulkan =>
-      statusPengumpulan != StatusPengumpulan.belum;
+  bool get sudahDikumpulkan => statusPengumpulan != StatusPengumpulan.belum;
 
   /// Terlambat: sudah lewat deadline dan belum dikumpulkan, atau
   /// backend menandai pengumpulan sebagai terlambat (status = 2).
@@ -39,11 +38,10 @@ class TugasItemEntity extends Equatable {
     return tugas.isLewatDeadline;
   }
 
-  TugasItemEntity copyWith({TugasSiswaEntity? pengumpulan}) =>
-      TugasItemEntity(
-        tugas: tugas,
-        pengumpulan: pengumpulan ?? this.pengumpulan,
-      );
+  TugasItemEntity copyWith({TugasSiswaEntity? pengumpulan}) => TugasItemEntity(
+    tugas: tugas,
+    pengumpulan: pengumpulan ?? this.pengumpulan,
+  );
 
   @override
   List<Object?> get props => [tugas.id, pengumpulan?.id, pengumpulan?.nilai];

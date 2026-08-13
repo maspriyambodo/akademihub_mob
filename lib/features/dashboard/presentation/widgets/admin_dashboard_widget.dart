@@ -7,8 +7,13 @@ import 'dashboard_quick_actions.dart';
 
 class AdminDashboardWidget extends StatelessWidget {
   final DashboardEntity data;
+  final List<String> permissions;
 
-  const AdminDashboardWidget({super.key, required this.data});
+  const AdminDashboardWidget({
+    super.key,
+    required this.data,
+    required this.permissions,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -116,7 +121,7 @@ class AdminDashboardWidget extends StatelessWidget {
         ],
 
         // Quick Actions
-        const DashboardQuickActions(role: 'admin'),
+        DashboardQuickActions(role: 'admin', permissions: permissions),
         const SizedBox(height: 16),
       ],
     );

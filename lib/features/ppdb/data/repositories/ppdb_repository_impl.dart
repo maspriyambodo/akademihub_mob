@@ -7,6 +7,7 @@ import '../../domain/entities/ppdb_dokumen_entity.dart';
 import '../../domain/entities/ppdb_gelombang_entity.dart';
 import '../../domain/entities/ppdb_hasil_seleksi_entity.dart';
 import '../../domain/entities/ppdb_pendaftar_entity.dart';
+import '../../domain/entities/ppdb_public_entity.dart';
 import '../../domain/entities/ppdb_statistik_entity.dart';
 import '../../domain/repositories/ppdb_repository.dart';
 import '../datasources/ppdb_remote_datasource.dart';
@@ -15,6 +16,56 @@ class PpdbRepositoryImpl implements PpdbRepository {
   final PpdbRemoteDataSource _remote;
 
   const PpdbRepositoryImpl(this._remote);
+
+  @override
+  Future<Result<List<PpdbSekolahEntity>>> getSekolahPublik() async {
+    try {
+      final models = await _remote.getSekolahPublik();
+      return success(models.map((model) => model.toEntity()).toList());
+    } on DioException catch (e) {
+      return fail(_map(e));
+    }
+  }
+
+  @override
+  Future<Result<List<PpdbGelombangEntity>>> getGelombangPublik(
+    int sekolahId,
+  ) async {
+    try {
+      final models = await _remote.getGelombangPublik(sekolahId);
+      return success(models.map((model) => model.toEntity()).toList());
+    } on DioException catch (e) {
+      return fail(_map(e));
+    }
+  }
+
+  @override
+  Future<Result<PpdbStatusPublikEntity>> cekStatusPublik(
+    String noPendaftaran,
+  ) async {
+    try {
+      return success((await _remote.cekStatusPublik(noPendaftaran)).toEntity());
+    } on DioException catch (e) {
+      return fail(_map(e));
+    } on ServerException catch (e) {
+      return fail(ServerFailure(e.message));
+    }
+  }
+
+  @override
+  Future<Result<PpdbPendaftaranPublikEntity>> daftarPublik(
+    Map<String, dynamic> data,
+  ) async {
+    try {
+      return success(
+        (await _remote.daftarPublik(FormData.fromMap(data))).toEntity(),
+      );
+    } on DioException catch (e) {
+      return fail(_map(e));
+    } on ServerException catch (e) {
+      return fail(ServerFailure(e.message));
+    }
+  }
 
   @override
   Future<Result<List<PpdbGelombangEntity>>> getGelombangList() async {

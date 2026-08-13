@@ -44,7 +44,10 @@ class TugasBloc extends Bloc<TugasEvent, TugasState> {
     on<TugasSubmitRequested>(_onSubmit);
   }
 
-  Future<void> _onLoad(TugasLoadRequested event, Emitter<TugasState> emit) async {
+  Future<void> _onLoad(
+    TugasLoadRequested event,
+    Emitter<TugasState> emit,
+  ) async {
     _role = event.role;
     _siswaId = event.siswaId;
     _kelasId = event.kelasId;

@@ -68,8 +68,7 @@ class BkKasusModel {
       jenisKode: jenis?['kode']?.toString(),
       jenisNama: jenis?['nama'] as String?,
       judul: json['judul_kasus'] as String?,
-      tanggal:
-          json['tanggal'] as String? ?? json['tanggal_mulai']?.toString(),
+      tanggal: json['tanggal'] as String? ?? json['tanggal_mulai']?.toString(),
       keterangan:
           json['keterangan'] as String? ?? json['deskripsi_masalah'] as String?,
       status: json['status']?.toString(),

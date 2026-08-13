@@ -90,5 +90,12 @@ class TmbPesertaEntity extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, tesId, siswaId, status, progressPersen, hasil];
+  List<Object?> get props => [
+    id,
+    tesId,
+    siswaId,
+    status,
+    progressPersen,
+    hasil,
+  ];
 }

@@ -152,10 +152,7 @@ class ForumBloc extends Bloc<ForumEvent, ForumState> {
 
     final page = result.requireData;
     final idTerlihat = _items.map((e) => e.id).toSet();
-    _items = [
-      ..._items,
-      ...page.items.where((e) => idTerlihat.add(e.id)),
-    ];
+    _items = [..._items, ...page.items.where((e) => idTerlihat.add(e.id))];
     _nextCursor = page.nextCursor;
     _hasMore = page.hasMore;
     _total = page.total ?? _total;

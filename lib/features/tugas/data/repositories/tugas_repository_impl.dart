@@ -46,9 +46,7 @@ class TugasRepositoryImpl implements TugasRepository {
   }
 
   @override
-  Future<Result<List<TugasEntity>>> getTugasByGuruMapel(
-    int guruMapelId,
-  ) async {
+  Future<Result<List<TugasEntity>>> getTugasByGuruMapel(int guruMapelId) async {
     try {
       final models = await _remote.getTugasByGuruMapel(guruMapelId);
       return success(models.map((m) => m.toEntity()).toList());

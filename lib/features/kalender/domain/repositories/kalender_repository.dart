@@ -12,8 +12,7 @@ import '../entities/kalender_tipe_entity.dart';
 /// tidak boleh disentuh dari fitur, jadi varian ini didefinisikan lokal.
 class KalenderAccessFailure extends Failure {
   const KalenderAccessFailure([
-    super.message =
-        'Anda tidak memiliki izin untuk melihat kalender akademik.',
+    super.message = 'Anda tidak memiliki izin untuk melihat kalender akademik.',
   ]);
 }
 

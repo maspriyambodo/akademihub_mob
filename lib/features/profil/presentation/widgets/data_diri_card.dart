@@ -148,7 +148,9 @@ class DataDiriCard extends StatelessWidget {
             items.add(e.trim());
           } else if (e is Map) {
             final nama = e['nama_mapel'] ?? e['nama'];
-            if (nama is String && nama.trim().isNotEmpty) items.add(nama.trim());
+            if (nama is String && nama.trim().isNotEmpty) {
+              items.add(nama.trim());
+            }
           }
         }
         if (items.isNotEmpty) return items.join(', ');

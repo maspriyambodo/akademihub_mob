@@ -14,8 +14,6 @@ class MainShell extends StatefulWidget {
 }
 
 class _MainShellState extends State<MainShell> {
-  int _currentIndex = 0;
-
   final _tabs = const [
     _TabItem(
       icon: Icons.dashboard_outlined,
@@ -44,71 +42,80 @@ class _MainShellState extends State<MainShell> {
     ),
   ];
 
-  void _goTo(int index) {
-    setState(() => _currentIndex = index);
-    context.go(_tabs[index].route);
-  }
-
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthBloc, AuthState>(
+    return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthUnauthenticated) {
           context.go(AppRoutes.login);
         }
       },
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          // Layout berdasarkan ruang jendela, bukan tipe perangkat.
-          final lebar = constraints.maxWidth;
-          final useRail = lebar > Responsive.expandedWidth;
+      builder: (context, state) {
+        final permissions = state is AuthAuthenticated
+            ? state.user.permissions
+            : const <String>[];
+        final tabs = _tabs.where((tab) {
+          final required = AppRoutes.permissionsFor(tab.route);
+          return required.isEmpty || required.any(permissions.contains);
+        }).toList();
+        final location = GoRouterState.of(context).uri.path;
+        final currentIndex = tabs.indexWhere((tab) => tab.route == location);
+        final selectedIndex = currentIndex < 0 ? 0 : currentIndex;
+        void goTo(int index) => context.go(tabs[index].route);
 
-          if (useRail) {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            // Layout berdasarkan ruang jendela, bukan tipe perangkat.
+            final lebar = constraints.maxWidth;
+            final useRail = lebar > Responsive.expandedWidth;
+
+            if (useRail) {
+              return Scaffold(
+                body: Row(
+                  children: [
+                    NavigationRail(
+                      selectedIndex: selectedIndex,
+                      onDestinationSelected: goTo,
+                      labelType: NavigationRailLabelType.all,
+                      destinations: tabs
+                          .map(
+                            (t) => NavigationRailDestination(
+                              icon: Icon(t.icon),
+                              label: Text(t.label),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                    const VerticalDivider(width: 1, thickness: 1),
+                    Expanded(child: widget.child),
+                  ],
+                ),
+              );
+            }
+
             return Scaffold(
-              body: Row(
-                children: [
-                  NavigationRail(
-                    selectedIndex: _currentIndex,
-                    onDestinationSelected: _goTo,
-                    labelType: NavigationRailLabelType.all,
-                    destinations: _tabs
-                        .map(
-                          (t) => NavigationRailDestination(
-                            icon: Icon(t.icon),
-                            label: Text(t.label),
-                          ),
-                        )
-                        .toList(),
-                  ),
-                  const VerticalDivider(width: 1, thickness: 1),
-                  Expanded(child: widget.child),
-                ],
+              body: widget.child,
+              bottomNavigationBar: BottomNavigationBar(
+                currentIndex: selectedIndex,
+                type: BottomNavigationBarType.fixed,
+                showSelectedLabels: true,
+                showUnselectedLabels: true,
+                selectedFontSize: 11,
+                unselectedFontSize: 10.5,
+                onTap: goTo,
+                items: tabs
+                    .map(
+                      (t) => BottomNavigationBarItem(
+                        icon: Icon(t.icon),
+                        label: t.label,
+                      ),
+                    )
+                    .toList(),
               ),
             );
-          }
-
-          return Scaffold(
-            body: widget.child,
-            bottomNavigationBar: BottomNavigationBar(
-              currentIndex: _currentIndex,
-              type: BottomNavigationBarType.fixed,
-              showSelectedLabels: true,
-              showUnselectedLabels: true,
-              selectedFontSize: 11,
-              unselectedFontSize: 10.5,
-              onTap: _goTo,
-              items: _tabs
-                  .map(
-                    (t) => BottomNavigationBarItem(
-                      icon: Icon(t.icon),
-                      label: t.label,
-                    ),
-                  )
-                  .toList(),
-            ),
-          );
-        },
-      ),
+          },
+        );
+      },
     );
   }
 }

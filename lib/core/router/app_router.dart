@@ -23,6 +23,7 @@ import '../../features/bk/presentation/pages/bk_page.dart';
 import '../../features/ujian/presentation/pages/ujian_page.dart';
 import '../../features/tmb/presentation/pages/tmb_page.dart';
 import '../../features/ppdb/presentation/pages/ppdb_page.dart';
+import '../../features/ppdb/presentation/pages/ppdb_public_page.dart';
 import '../../features/ews/presentation/pages/ews_page.dart';
 import '../../features/siswa_insight/presentation/pages/siswa_insight_page.dart';
 
@@ -46,8 +47,27 @@ class AppRoutes {
   static const String ujian = '/ujian';
   static const String tmb = '/tmb';
   static const String ppdb = '/ppdb';
+  static const String ppdbPublic = '/ppdb/portal';
   static const String ews = '/ews';
+  static const List<String> ewsAliases = [
+    '/early-warning',
+    '/early-warning-system',
+  ];
   static const String siswaInsight = '/siswa/:id/insight';
+
+  static List<String> permissionsFor(String path) => switch (path) {
+    absensi => const ['absensi-siswa.view', 'absensi-guru.view'],
+    jadwal => const ['jadwal-pelajaran.view'],
+    nilai => const ['nilai.view'],
+    tugas => const ['tugas.view', 'tugas-siswa.view'],
+    kalender => const ['kalender-akademik.view'],
+    bk => const ['bk-kasus.view'],
+    ujian => const ['ujian.view', 'ranking.view'],
+    tmb => const ['tes-minat-bakat.view', 'tes-minat-bakat-peserta.view'],
+    ppdb => const ['ppdb.pendaftaran.view', 'ppdb.gelombang.view'],
+    ews => const ['ews.view'],
+    _ => const [],
+  };
 }
 
 final router = GoRouter(
@@ -56,11 +76,15 @@ final router = GoRouter(
     final authState = context.read<AuthBloc>().state;
     final path = state.uri.path;
 
-    // Tunggu hasil auth check — tetap di splash
-    if (authState is AuthInitial || authState is AuthLoading) {
+    if (path == AppRoutes.ppdbPublic) return null;
+
+    // Initial hanya terjadi saat bootstrap. Loading login harus tetap di login.
+    if (authState is AuthInitial) {
       if (path != AppRoutes.splash) return AppRoutes.splash;
       return null;
     }
+
+    if (authState is AuthLoading) return null;
 
     // Belum login → ke halaman login
     if (authState is AuthUnauthenticated || authState is AuthError) {
@@ -73,6 +97,11 @@ final router = GoRouter(
       if (path == AppRoutes.splash || path == AppRoutes.login) {
         return AppRoutes.dashboard;
       }
+      final required = AppRoutes.permissionsFor(path);
+      if (required.isNotEmpty &&
+          !required.any(authState.user.permissions.contains)) {
+        return AppRoutes.dashboard;
+      }
     }
 
     return null;
@@ -81,6 +110,12 @@ final router = GoRouter(
   routes: [
     GoRoute(path: AppRoutes.splash, builder: (_, _) => const _SplashPage()),
     GoRoute(path: AppRoutes.login, builder: (_, _) => const LoginPage()),
+    GoRoute(
+      path: AppRoutes.ppdbPublic,
+      builder: (_, _) => const PpdbPublicPage(),
+    ),
+    for (final alias in AppRoutes.ewsAliases)
+      GoRoute(path: alias, redirect: (_, _) => AppRoutes.ews),
     ShellRoute(
       builder: (context, state, child) => MainShell(child: child),
       routes: [
@@ -125,9 +160,7 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.siswaInsight,
       builder: (context, state) {
-        final id = int.tryParse(
-          state.pathParameters['id'] ?? '',
-        );
+        final id = int.tryParse(state.pathParameters['id'] ?? '');
         if (id == null) {
           return const _SiswaInsightMissingId();
         }
@@ -144,9 +177,7 @@ class _SiswaInsightMissingId extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Insight 360°'), centerTitle: true),
-      body: const Center(
-        child: Text('ID siswa tidak valid'),
-      ),
+      body: const Center(child: Text('ID siswa tidak valid')),
     );
   }
 }

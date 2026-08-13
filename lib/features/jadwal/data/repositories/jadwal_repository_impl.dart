@@ -42,10 +42,7 @@ class JadwalRepositoryImpl implements JadwalRepository {
     String? hari,
   }) async {
     try {
-      final models = await _remote.getJadwalList(
-        kelasId: kelasId,
-        hari: hari,
-      );
+      final models = await _remote.getJadwalList(kelasId: kelasId, hari: hari);
       return success(models.map((m) => m.toEntity()).toList());
     } on DioException catch (e) {
       return fail(_map(mapDioException(e)));

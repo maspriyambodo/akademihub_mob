@@ -125,9 +125,7 @@ class TmbBloc extends Bloc<TmbEvent, TmbState> {
   Future<void> _fetchModeSiswa(Emitter<TmbState> emit) async {
     final siswaId = _siswaId;
     if (siswaId == null) {
-      emit(
-        const TmbError('ID siswa tidak ditemukan pada profil Anda'),
-      );
+      emit(const TmbError('ID siswa tidak ditemukan pada profil Anda'));
       return;
     }
 

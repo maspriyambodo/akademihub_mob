@@ -50,10 +50,7 @@ class PpdbBloc extends Bloc<PpdbEvent, PpdbState> {
     on<PpdbGelombangFilterChanged>(_onGelombangFilterChanged);
   }
 
-  Future<void> _onLoad(
-    PpdbLoadRequested event,
-    Emitter<PpdbState> emit,
-  ) async {
+  Future<void> _onLoad(PpdbLoadRequested event, Emitter<PpdbState> emit) async {
     _role = event.role;
     _bolehLihatPendaftar = event.bolehLihatPendaftar;
     _bolehLihatGelombang = event.bolehLihatGelombang;

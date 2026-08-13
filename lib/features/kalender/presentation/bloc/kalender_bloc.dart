@@ -201,8 +201,7 @@ class KalenderBloc extends Bloc<KalenderEvent, KalenderState> {
     final semua = _semuaAgenda();
     final sekarang = DateTime.now();
     final hariIni = DateTime(sekarang.year, sekarang.month, sekarang.day);
-    final bulanIniDipilih =
-        _bulan == sekarang.month && _tahun == sekarang.year;
+    final bulanIniDipilih = _bulan == sekarang.month && _tahun == sekarang.year;
 
     final agendaHariIni =
         semua.where((i) => i.sedangBerlangsung(hariIni)).toList()
@@ -271,10 +270,7 @@ class KalenderBloc extends Bloc<KalenderEvent, KalenderState> {
     final kunciUrut = peta.keys.toList()..sort();
     return [
       for (final k in kunciUrut)
-        KalenderGrupTanggal(
-          tanggal: k,
-          items: peta[k]!..sort(_bandingkan),
-        ),
+        KalenderGrupTanggal(tanggal: k, items: peta[k]!..sort(_bandingkan)),
     ];
   }
 

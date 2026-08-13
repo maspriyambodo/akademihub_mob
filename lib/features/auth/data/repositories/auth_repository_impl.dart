@@ -20,16 +20,18 @@ class AuthRepositoryImpl implements AuthRepository {
       final data = await _remoteDataSource.login(email, password);
       final token = data['access_token'] as String;
       final refreshToken = data['refresh_token'] as String?;
+      final user = UserModel.fromJson(data['user'] as Map<String, dynamic>);
       await _tokenStorage.saveTokens(
         accessToken: token,
         refreshToken: refreshToken,
       );
-      final user = UserModel.fromJson(data['user'] as Map<String, dynamic>);
       return success(_userModelToEntity(user));
     } on DioException catch (e) {
       return fail(_mapException(mapDioException(e)));
     } on AppException catch (e) {
       return fail(_mapException(e));
+    } on Object {
+      return fail(const ServerFailure('Format respons login tidak valid'));
     }
   }
 
@@ -52,6 +54,8 @@ class AuthRepositoryImpl implements AuthRepository {
       return success(_userModelToEntity(user));
     } on DioException catch (e) {
       return fail(_mapException(mapDioException(e)));
+    } on Object {
+      return fail(const ServerFailure('Format respons pengguna tidak valid'));
     }
   }
 
@@ -59,7 +63,7 @@ class AuthRepositoryImpl implements AuthRepository {
     id: model.id,
     name: model.name,
     email: model.email,
-    role: model.role,
+    role: model.normalizedRole,
     isActive: model.isActive,
     permissions: model.permissions,
     profile: model.profile,

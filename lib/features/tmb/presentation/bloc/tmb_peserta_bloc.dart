@@ -18,8 +18,7 @@ class TmbPesertaBloc extends Bloc<TmbPesertaEvent, TmbPesertaState> {
 
   int? _tesId;
 
-  TmbPesertaBloc({required this.getPesertaByTes})
-    : super(TmbPesertaInitial()) {
+  TmbPesertaBloc({required this.getPesertaByTes}) : super(TmbPesertaInitial()) {
     on<TmbPesertaLoadRequested>(_onLoad);
     on<TmbPesertaRefreshRequested>(_onRefresh);
   }

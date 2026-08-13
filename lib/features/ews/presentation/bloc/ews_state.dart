@@ -32,12 +32,23 @@ class EwsLoaded extends EwsState {
   });
 
   @override
-  List<Object?> get props => [items, kategori, level, onlyUnresolved, actionMessage];
+  List<Object?> get props => [
+    items,
+    kategori,
+    level,
+    onlyUnresolved,
+    actionMessage,
+  ];
 }
 
 class EwsError extends EwsState {
   final String message;
-  const EwsError(this.message, {super.kategori, super.level, super.onlyUnresolved});
+  const EwsError(
+    this.message, {
+    super.kategori,
+    super.level,
+    super.onlyUnresolved,
+  });
 
   @override
   List<Object?> get props => [message, kategori, level, onlyUnresolved];

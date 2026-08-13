@@ -9,8 +9,6 @@ class GetPpdbStatistikUseCase {
   Future<Result<PpdbStatistikEntity>> call({
     required int sekolahId,
     int? gelombangId,
-  }) => _repository.getStatistik(
-    sekolahId: sekolahId,
-    gelombangId: gelombangId,
-  );
+  }) =>
+      _repository.getStatistik(sekolahId: sekolahId, gelombangId: gelombangId);
 }

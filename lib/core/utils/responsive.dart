@@ -26,15 +26,19 @@ class Responsive {
   /// Ambang konten berkolom (form/list side-by-side bila relevan).
   static const double largeScreenMinWidth = 600;
 
-  static double widthOf(BuildContext context) => MediaQuery.sizeOf(context).width;
+  static double widthOf(BuildContext context) =>
+      MediaQuery.sizeOf(context).width;
 
-  static double heightOf(BuildContext context) => MediaQuery.sizeOf(context).height;
+  static double heightOf(BuildContext context) =>
+      MediaQuery.sizeOf(context).height;
 
   /// Jendela sempit — perkecil padding, turunkan ukuran font besar.
-  static bool isCompact(BuildContext context) => widthOf(context) < compactWidth;
+  static bool isCompact(BuildContext context) =>
+      widthOf(context) < compactWidth;
 
   /// Jendela lebar — tambah kolom grid dan batasi lebar konten.
-  static bool isExpanded(BuildContext context) => widthOf(context) >= expandedWidth;
+  static bool isExpanded(BuildContext context) =>
+      widthOf(context) >= expandedWidth;
 
   /// True bila [maxWidth] (dari LayoutBuilder) melebihi ambang large screen.
   static bool isLargeConstraints(BoxConstraints constraints) =>
@@ -104,7 +108,8 @@ class Responsive {
   /// ruang tersedia saat keyboard muncul.
   static double tinggiSheet(BuildContext context, {double rasio = 0.55}) {
     final mq = MediaQuery.of(context);
-    final tersedia = mq.size.height - mq.viewInsets.bottom - mq.padding.vertical;
+    final tersedia =
+        mq.size.height - mq.viewInsets.bottom - mq.padding.vertical;
     return (tersedia * rasio).clamp(180.0, mq.size.height * 0.8);
   }
 }

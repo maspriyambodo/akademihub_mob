@@ -3,6 +3,8 @@ import '../entities/kelas_option_entity.dart';
 import '../entities/ranking_entity.dart';
 import '../entities/ujian_entity.dart';
 import '../entities/ujian_nilai_entity.dart';
+import '../entities/ujian_question_entity.dart';
+import '../entities/ujian_session_entity.dart';
 
 abstract class UjianRepository {
   /// `GET /akademik/ujian/kelas/{kelasId}` — daftar ujian sebuah kelas.
@@ -34,4 +36,18 @@ abstract class UjianRepository {
   /// [waliGuruId] menyaring hanya kelas yang diampu guru tsb sebagai
   /// wali kelas (sesuai batasan `canAccessKelasId` backend untuk role guru).
   Future<Result<List<KelasOptionEntity>>> getKelasOptions({int? waliGuruId});
+
+  Future<Result<List<UjianSessionEntity>>> getSesiUjian({int? siswaId});
+  Future<Result<UjianSessionEntity>> getSesi(int sesiId);
+  Future<Result<List<UjianQuestionEntity>>> getSoal(int sesiId);
+  Future<Result<UjianAnswerEntity>> saveJawaban({
+    required int sesiId,
+    required int soalId,
+    int? opsiId,
+    String? teks,
+    required bool raguRagu,
+  });
+  Future<Result<int>> getJumlahJawaban(int sesiId);
+  Future<Result<UjianSessionEntity>> mulaiSesi(int sesiId);
+  Future<Result<UjianSessionEntity>> selesaikanSesi(int sesiId);
 }

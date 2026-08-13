@@ -20,11 +20,7 @@ class BatasLebarKonten extends StatelessWidget {
   /// Override batas lebar. Default: [Responsive.lebarKontenMaks].
   final double? maxWidth;
 
-  const BatasLebarKonten({
-    super.key,
-    required this.child,
-    this.maxWidth,
-  });
+  const BatasLebarKonten({super.key, required this.child, this.maxWidth});
 
   @override
   Widget build(BuildContext context) {

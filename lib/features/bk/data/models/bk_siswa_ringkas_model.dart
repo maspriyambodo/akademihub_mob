@@ -27,10 +27,6 @@ class BkSiswaRingkasModel {
     );
   }
 
-  BkSiswaRingkasEntity toEntity() => BkSiswaRingkasEntity(
-    id: id,
-    nis: nis,
-    nama: nama,
-    namaKelas: namaKelas,
-  );
+  BkSiswaRingkasEntity toEntity() =>
+      BkSiswaRingkasEntity(id: id, nis: nis, nama: nama, namaKelas: namaKelas);
 }

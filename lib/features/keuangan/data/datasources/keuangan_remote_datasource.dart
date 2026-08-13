@@ -275,9 +275,7 @@ class KeuanganRemoteDataSourceImpl implements KeuanganRemoteDataSource {
     // tersebut belum memiliki tarif pada tahun ajaran terkait.
     final response = await _dio.get(
       '/keuangan/tarif-spp/kelas/$kelasId',
-      queryParameters: <String, dynamic>{
-        'tahun_ajaran_id': ?tahunAjaranId,
-      },
+      queryParameters: <String, dynamic>{'tahun_ajaran_id': ?tahunAjaranId},
     );
     return TarifSppModel.fromJson(
       _extractMap(response.data, 'Tarif SPP untuk kelas ini belum diatur'),

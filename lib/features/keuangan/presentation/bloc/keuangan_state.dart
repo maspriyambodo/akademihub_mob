@@ -132,9 +132,7 @@ class KeuanganLoaded extends KeuanganState {
       catatan: catatan ?? this.catatan,
       aksiStatus: aksiStatus ?? this.aksiStatus,
       aksiUrl: clearAksiUrl ? null : (aksiUrl ?? this.aksiUrl),
-      aksiMessage: clearAksiMessage
-          ? null
-          : (aksiMessage ?? this.aksiMessage),
+      aksiMessage: clearAksiMessage ? null : (aksiMessage ?? this.aksiMessage),
     );
   }
 

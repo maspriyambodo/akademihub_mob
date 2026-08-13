@@ -45,9 +45,7 @@ class EkstrakurikulerRepositoryImpl implements EkstrakurikulerRepository {
   }
 
   @override
-  Future<Result<EkstrakurikulerEntity>> getEkstrakurikulerDetail(
-    int id,
-  ) async {
+  Future<Result<EkstrakurikulerEntity>> getEkstrakurikulerDetail(int id) async {
     try {
       final model = await _remote.getEkstrakurikulerDetail(id);
       return success(model.toEntity());

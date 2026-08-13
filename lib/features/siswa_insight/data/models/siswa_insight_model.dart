@@ -96,7 +96,8 @@ class RiskProfileModel {
       dimensions: dims is Map
           ? dims.map((k, v) => MapEntry(k.toString(), v))
           : <String, dynamic>{},
-      recommendations: (json['recommendations'] as List?)
+      recommendations:
+          (json['recommendations'] as List?)
               ?.map((e) => e.toString())
               .toList() ??
           const [],

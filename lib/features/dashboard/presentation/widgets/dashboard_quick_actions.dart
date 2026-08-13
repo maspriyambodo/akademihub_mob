@@ -140,7 +140,7 @@ const _guruActions = [
     color: AppColors.success,
   ),
   _QuickAction(
-    label: 'Absen Harian',
+    label: 'Riwayat Absensi',
     icon: Icons.how_to_reg,
     route: AppRoutes.absensi,
     color: AppColors.info,
@@ -374,12 +374,39 @@ const _actionsByRole = {
 
 class DashboardQuickActions extends StatelessWidget {
   final String role;
+  final List<String> permissions;
+  final bool hasChild;
 
-  const DashboardQuickActions({super.key, required this.role});
+  const DashboardQuickActions({
+    super.key,
+    required this.role,
+    required this.permissions,
+    this.hasChild = true,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final actions = _actionsByRole[role] ?? _adminActions;
+    final actions = (_actionsByRole[role] ?? _adminActions).where((action) {
+      if (role == 'wali' && !hasChild && action.route != AppRoutes.profil) {
+        return false;
+      }
+      final required = switch (action.route) {
+        AppRoutes.ews => const ['ews.view'],
+        AppRoutes.bk => const ['bk-kasus.view'],
+        AppRoutes.kalender => const ['kalender-akademik.view'],
+        AppRoutes.ppdb => const [
+          'ppdb.pendaftaran.view',
+          'ppdb.gelombang.view',
+        ],
+        AppRoutes.ujian => const ['ujian.view', 'ranking.view'],
+        AppRoutes.tmb => const [
+          'tes-minat-bakat.view',
+          'tes-minat-bakat-peserta.view',
+        ],
+        _ => const <String>[],
+      };
+      return required.isEmpty || required.any(permissions.contains);
+    }).toList();
 
     return Card(
       child: Padding(

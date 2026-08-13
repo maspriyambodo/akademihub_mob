@@ -64,19 +64,17 @@ class TmbRemoteDataSourceImpl implements TmbRemoteDataSource {
       '/akademik/tes-minat-bakat',
       queryParameters: const {'per_page': 'all'},
     );
-    return _extractList(response.data)
-        .whereType<Map<String, dynamic>>()
-        .map(TmbTesModel.fromJson)
-        .toList();
+    return _extractList(
+      response.data,
+    ).whereType<Map<String, dynamic>>().map(TmbTesModel.fromJson).toList();
   }
 
   @override
   Future<List<TmbTesModel>> getTesByKelas(int kelasId) async {
     final response = await _dio.get('/akademik/tes-minat-bakat/kelas/$kelasId');
-    return _extractList(response.data)
-        .whereType<Map<String, dynamic>>()
-        .map(TmbTesModel.fromJson)
-        .toList();
+    return _extractList(
+      response.data,
+    ).whereType<Map<String, dynamic>>().map(TmbTesModel.fromJson).toList();
   }
 
   @override
@@ -121,10 +119,9 @@ class TmbRemoteDataSourceImpl implements TmbRemoteDataSource {
     final response = await _dio.get(
       '/akademik/tes-minat-bakat-peserta/siswa/$siswaId',
     );
-    return _extractList(response.data)
-        .whereType<Map<String, dynamic>>()
-        .map(TmbPesertaModel.fromJson)
-        .toList();
+    return _extractList(
+      response.data,
+    ).whereType<Map<String, dynamic>>().map(TmbPesertaModel.fromJson).toList();
   }
 
   @override
@@ -132,10 +129,9 @@ class TmbRemoteDataSourceImpl implements TmbRemoteDataSource {
     final response = await _dio.get(
       '/akademik/tes-minat-bakat-peserta/tes/$tesId',
     );
-    return _extractList(response.data)
-        .whereType<Map<String, dynamic>>()
-        .map(TmbPesertaModel.fromJson)
-        .toList();
+    return _extractList(
+      response.data,
+    ).whereType<Map<String, dynamic>>().map(TmbPesertaModel.fromJson).toList();
   }
 
   @override
@@ -191,10 +187,9 @@ class TmbRemoteDataSourceImpl implements TmbRemoteDataSource {
       '/akademik/tes-minat-bakat-jawaban',
       queryParameters: {'peserta_id': pesertaId, 'per_page': 'all'},
     );
-    return _extractList(response.data)
-        .whereType<Map<String, dynamic>>()
-        .map(TmbJawabanModel.fromJson)
-        .toList();
+    return _extractList(
+      response.data,
+    ).whereType<Map<String, dynamic>>().map(TmbJawabanModel.fromJson).toList();
   }
 
   @override
@@ -202,9 +197,8 @@ class TmbRemoteDataSourceImpl implements TmbRemoteDataSource {
     final response = await _dio.get(
       '/akademik/tes-minat-bakat-hasil/peserta/$pesertaId',
     );
-    return _extractList(response.data)
-        .whereType<Map<String, dynamic>>()
-        .map(TmbHasilModel.fromJson)
-        .toList();
+    return _extractList(
+      response.data,
+    ).whereType<Map<String, dynamic>>().map(TmbHasilModel.fromJson).toList();
   }
 }

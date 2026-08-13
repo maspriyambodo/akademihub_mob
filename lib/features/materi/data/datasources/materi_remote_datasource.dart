@@ -80,10 +80,7 @@ class MateriRemoteDataSourceImpl implements MateriRemoteDataSource {
   Future<List<MateriModel>> getMateriList({int? status}) async {
     final response = await _dio.get(
       '/akademik/materi',
-      queryParameters: <String, dynamic>{
-        'per_page': 200,
-        'status': ?status,
-      },
+      queryParameters: <String, dynamic>{'per_page': 200, 'status': ?status},
     );
     return _asMaps(response.data).map(MateriModel.fromJson).toList();
   }
@@ -121,7 +118,9 @@ class MateriRemoteDataSourceImpl implements MateriRemoteDataSource {
 
   @override
   Future<List<LogAksesMateriModel>> getLogAksesBySiswa(int siswaId) async {
-    final response = await _dio.get('/akademik/log-akses-materi/siswa/$siswaId');
+    final response = await _dio.get(
+      '/akademik/log-akses-materi/siswa/$siswaId',
+    );
     return _asMaps(response.data).map(LogAksesMateriModel.fromJson).toList();
   }
 

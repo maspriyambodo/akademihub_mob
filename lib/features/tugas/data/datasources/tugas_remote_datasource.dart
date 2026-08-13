@@ -58,15 +58,12 @@ class TugasRemoteDataSourceImpl implements TugasRemoteDataSource {
   Future<List<TugasModel>> getTugasList({int? status, String? search}) async {
     final response = await _dio.get(
       '/akademik/tugas',
-      queryParameters: {
-        'per_page': 100,
-        'status': status,
-        'search': search,
-      }..removeWhere((_, v) => v == null),
+      queryParameters: {'per_page': 100, 'status': status, 'search': search}
+        ..removeWhere((_, v) => v == null),
     );
-    return _extractList(response.data)
-        .map((e) => TugasModel.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return _extractList(
+      response.data,
+    ).map((e) => TugasModel.fromJson(e as Map<String, dynamic>)).toList();
   }
 
   @override
@@ -78,17 +75,17 @@ class TugasRemoteDataSourceImpl implements TugasRemoteDataSource {
   @override
   Future<List<TugasModel>> getTugasByKelas(int kelasId) async {
     final response = await _dio.get('/akademik/tugas/kelas/$kelasId');
-    return _extractList(response.data)
-        .map((e) => TugasModel.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return _extractList(
+      response.data,
+    ).map((e) => TugasModel.fromJson(e as Map<String, dynamic>)).toList();
   }
 
   @override
   Future<List<TugasModel>> getTugasByGuruMapel(int guruMapelId) async {
     final response = await _dio.get('/akademik/tugas/guru-mapel/$guruMapelId');
-    return _extractList(response.data)
-        .map((e) => TugasModel.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return _extractList(
+      response.data,
+    ).map((e) => TugasModel.fromJson(e as Map<String, dynamic>)).toList();
   }
 
   // ── Pengumpulan (tugas-siswa) ──────────────────────────────────────────────
@@ -99,25 +96,25 @@ class TugasRemoteDataSourceImpl implements TugasRemoteDataSource {
       '/akademik/tugas-siswa',
       queryParameters: const {'per_page': 100},
     );
-    return _extractList(response.data)
-        .map((e) => TugasSiswaModel.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return _extractList(
+      response.data,
+    ).map((e) => TugasSiswaModel.fromJson(e as Map<String, dynamic>)).toList();
   }
 
   @override
   Future<List<TugasSiswaModel>> getPengumpulanByTugas(int tugasId) async {
     final response = await _dio.get('/akademik/tugas-siswa/tugas/$tugasId');
-    return _extractList(response.data)
-        .map((e) => TugasSiswaModel.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return _extractList(
+      response.data,
+    ).map((e) => TugasSiswaModel.fromJson(e as Map<String, dynamic>)).toList();
   }
 
   @override
   Future<List<TugasSiswaModel>> getPengumpulanBySiswa(int siswaId) async {
     final response = await _dio.get('/akademik/tugas-siswa/siswa/$siswaId');
-    return _extractList(response.data)
-        .map((e) => TugasSiswaModel.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return _extractList(
+      response.data,
+    ).map((e) => TugasSiswaModel.fromJson(e as Map<String, dynamic>)).toList();
   }
 
   @override

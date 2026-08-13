@@ -43,9 +43,7 @@ class NotificationPageModel {
     // paginator yang tersimpan di dalam `data`.
     Map<String, dynamic>? meta;
     if (response['meta'] is Map) {
-      meta = (response['meta'] as Map).map(
-        (k, v) => MapEntry(k.toString(), v),
-      );
+      meta = (response['meta'] as Map).map((k, v) => MapEntry(k.toString(), v));
     } else if (raw is Map) {
       meta = raw.map((k, v) => MapEntry(k.toString(), v));
     }
@@ -64,8 +62,7 @@ class NotificationPageModel {
       perPage: (meta?['per_page'] as num?)?.toInt() ?? fallbackPerPage,
       total: (meta?['total'] as num?)?.toInt() ?? items.length,
       // Fallback: hitung dari item halaman ini bila meta tidak tersedia.
-      unreadCount:
-          unreadFromMeta ?? items.where((e) => !e.isRead).length,
+      unreadCount: unreadFromMeta ?? items.where((e) => !e.isRead).length,
     );
   }
 

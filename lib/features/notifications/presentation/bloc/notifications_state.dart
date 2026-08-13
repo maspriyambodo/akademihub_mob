@@ -53,7 +53,8 @@ class NotificationsLoaded extends NotificationsState {
   bool get hasMore => currentPage < lastPage;
 
   /// Item yang tampil sesuai tab aktif.
-  List<NotificationEntity> get visibleItems => filter == NotificationFilter.belumDibaca
+  List<NotificationEntity> get visibleItems =>
+      filter == NotificationFilter.belumDibaca
       ? items.where((e) => !e.isRead).toList()
       : items;
 

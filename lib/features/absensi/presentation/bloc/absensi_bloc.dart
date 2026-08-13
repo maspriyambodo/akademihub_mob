@@ -44,13 +44,15 @@ class AbsensiBloc extends Bloc<AbsensiEvent, AbsensiState> {
     AbsensiMonthChanged event,
     Emitter<AbsensiState> emit,
   ) async {
-    // Re-fetch if no cache yet, otherwise filter from cache
-    if (_allSiswaItems.isEmpty && _allGuruItems.isEmpty && _role.isNotEmpty) {
+    // Endpoint umum diminta per bulan. Cache-nya tidak mewakili bulan lain.
+    if (_role != 'guru' && _role != 'siswa') {
+      _allSiswaItems = [];
       emit(AbsensiLoading());
       await _fetchAndEmit(event.bulan, event.tahun, emit);
-    } else {
-      emit(_buildLoaded(event.bulan, event.tahun));
+      return;
     }
+
+    emit(_buildLoaded(event.bulan, event.tahun));
   }
 
   Future<void> _onRefresh(
@@ -95,8 +97,15 @@ class AbsensiBloc extends Bloc<AbsensiEvent, AbsensiState> {
       } else {
         emit(AbsensiError(result.requireFailure.message));
       }
+    } else if (_role == 'wali') {
+      emit(
+        const AbsensiError(
+          'Data anak tidak tersedia pada profil wali. Akses kehadiran dihentikan '
+          'untuk mencegah data siswa lain tampil.',
+        ),
+      );
     } else {
-      // admin / wali / siswa without profileId → use general endpoint with month filter
+      // admin / siswa tanpa profileId memakai endpoint rentang tanggal.
       final from = '$tahun-${bulan.toString().padLeft(2, '0')}-01';
       final lastDay = DateTime(tahun, bulan + 1, 0).day;
       final to =

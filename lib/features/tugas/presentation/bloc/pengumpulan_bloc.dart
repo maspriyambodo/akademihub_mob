@@ -82,30 +82,28 @@ class PengumpulanBloc extends Bloc<PengumpulanEvent, PengumpulanState> {
 
   /// Response endpoint `nilai` tidak memuat relasi siswa, jadi data siswa
   /// dari list lama dipertahankan.
-  TugasSiswaEntity _mergeRelasi(
-    TugasSiswaEntity lama,
-    TugasSiswaEntity baru,
-  ) => TugasSiswaEntity(
-    id: baru.id,
-    tugasId: baru.tugasId ?? lama.tugasId,
-    siswaId: baru.siswaId ?? lama.siswaId,
-    jawaban: baru.jawaban ?? lama.jawaban,
-    fileJawaban: baru.fileJawaban ?? lama.fileJawaban,
-    waktuKumpul: baru.waktuKumpul ?? lama.waktuKumpul,
-    nilai: baru.nilai ?? lama.nilai,
-    catatanGuru: baru.catatanGuru ?? lama.catatanGuru,
-    status: baru.status,
-    statusLabel: baru.statusLabel ?? lama.statusLabel,
-    siswaNama: baru.siswaNama ?? lama.siswaNama,
-    siswaNis: baru.siswaNis ?? lama.siswaNis,
-    tugasJudul: baru.tugasJudul ?? lama.tugasJudul,
-    tugasDeskripsi: baru.tugasDeskripsi ?? lama.tugasDeskripsi,
-    tugasTenggatWaktu: baru.tugasTenggatWaktu ?? lama.tugasTenggatWaktu,
-    tugasKelasId: baru.tugasKelasId ?? lama.tugasKelasId,
-    tugasKelasNama: baru.tugasKelasNama ?? lama.tugasKelasNama,
-    tugasMapelNama: baru.tugasMapelNama ?? lama.tugasMapelNama,
-    tugasGuruNama: baru.tugasGuruNama ?? lama.tugasGuruNama,
-  );
+  TugasSiswaEntity _mergeRelasi(TugasSiswaEntity lama, TugasSiswaEntity baru) =>
+      TugasSiswaEntity(
+        id: baru.id,
+        tugasId: baru.tugasId ?? lama.tugasId,
+        siswaId: baru.siswaId ?? lama.siswaId,
+        jawaban: baru.jawaban ?? lama.jawaban,
+        fileJawaban: baru.fileJawaban ?? lama.fileJawaban,
+        waktuKumpul: baru.waktuKumpul ?? lama.waktuKumpul,
+        nilai: baru.nilai ?? lama.nilai,
+        catatanGuru: baru.catatanGuru ?? lama.catatanGuru,
+        status: baru.status,
+        statusLabel: baru.statusLabel ?? lama.statusLabel,
+        siswaNama: baru.siswaNama ?? lama.siswaNama,
+        siswaNis: baru.siswaNis ?? lama.siswaNis,
+        tugasJudul: baru.tugasJudul ?? lama.tugasJudul,
+        tugasDeskripsi: baru.tugasDeskripsi ?? lama.tugasDeskripsi,
+        tugasTenggatWaktu: baru.tugasTenggatWaktu ?? lama.tugasTenggatWaktu,
+        tugasKelasId: baru.tugasKelasId ?? lama.tugasKelasId,
+        tugasKelasNama: baru.tugasKelasNama ?? lama.tugasKelasNama,
+        tugasMapelNama: baru.tugasMapelNama ?? lama.tugasMapelNama,
+        tugasGuruNama: baru.tugasGuruNama ?? lama.tugasGuruNama,
+      );
 
   PengumpulanLoaded _buildLoaded() {
     final dinilai = _items.where((e) => e.sudahDinilai).length;

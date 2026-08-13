@@ -78,132 +78,132 @@ class _TenantSelectorPageState extends State<TenantSelectorPage> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                            // Logo
-                            Container(
-                              width: sisiLogo,
-                              height: sisiLogo,
-                              decoration: BoxDecoration(
-                                color: AppColors.primary,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Icon(
-                                Icons.school,
-                                color: Colors.white,
-                                size: sisiLogo * 0.55,
-                              ),
+                          // Logo
+                          Container(
+                            width: sisiLogo,
+                            height: sisiLogo,
+                            decoration: BoxDecoration(
+                              color: AppColors.primary,
+                              borderRadius: BorderRadius.circular(20),
                             ),
-                            SizedBox(height: layarPendek ? 14 : 20),
-                            Text(
-                              'AkademiHub',
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.titleLarge
-                                  ?.copyWith(
-                                    fontSize: Responsive.fontSize(context, 26),
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.primary,
-                                  ),
+                            child: Icon(
+                              Icons.school,
+                              color: Colors.white,
+                              size: sisiLogo * 0.55,
                             ),
-                            const SizedBox(height: 6),
-                            Text(
-                              'Masukkan kode atau subdomain sekolah Anda',
-                              style: Theme.of(context).textTheme.bodyMedium,
-                              textAlign: TextAlign.center,
-                            ),
-                            SizedBox(height: layarPendek ? 22 : 36),
+                          ),
+                          SizedBox(height: layarPendek ? 14 : 20),
+                          Text(
+                            'AkademiHub',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(
+                                  fontSize: Responsive.fontSize(context, 26),
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primary,
+                                ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Masukkan kode atau subdomain sekolah Anda',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                            textAlign: TextAlign.center,
+                          ),
+                          SizedBox(height: layarPendek ? 22 : 36),
 
-                            // Input form
-                            Form(
-                              key: _formKey,
-                              child: Column(
-                                children: [
-                                  TextFormField(
-                                    controller: _controller,
-                                    autocorrect: false,
-                                    keyboardType: TextInputType.url,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Kode / Subdomain Sekolah',
-                                      hintText: 'contoh: smkn1bdg',
-                                      prefixIcon: Icon(Icons.domain),
-                                      suffixText: '.akademihub.id',
+                          // Input form
+                          Form(
+                            key: _formKey,
+                            child: Column(
+                              children: [
+                                TextFormField(
+                                  controller: _controller,
+                                  autocorrect: false,
+                                  keyboardType: TextInputType.url,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Kode / Subdomain Sekolah',
+                                    hintText: 'contoh: smkn1bdg',
+                                    prefixIcon: Icon(Icons.domain),
+                                    suffixText: '.akademihub.id',
+                                  ),
+                                  validator: (val) {
+                                    if (val == null || val.trim().isEmpty) {
+                                      return 'Kode sekolah wajib diisi';
+                                    }
+                                    if (!RegExp(
+                                      r'^[a-zA-Z0-9\-]+$',
+                                    ).hasMatch(val.trim())) {
+                                      return 'Hanya huruf, angka, dan tanda hubung';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                const SizedBox(height: 20),
+
+                                if (state is TenantResolved) ...[
+                                  _TenantPreviewCard(tenant: state.tenant),
+                                  const SizedBox(height: 16),
+                                  ElevatedButton.icon(
+                                    onPressed: () => context
+                                        .read<TenantBloc>()
+                                        .add(TenantSelected(state.tenant)),
+                                    icon: const Icon(
+                                      Icons.check_circle_outline,
                                     ),
-                                    validator: (val) {
-                                      if (val == null || val.trim().isEmpty) {
-                                        return 'Kode sekolah wajib diisi';
-                                      }
-                                      if (!RegExp(
-                                        r'^[a-zA-Z0-9\-]+$',
-                                      ).hasMatch(val.trim())) {
-                                        return 'Hanya huruf, angka, dan tanda hubung';
-                                      }
-                                      return null;
+                                    label: const Text('Masuk ke Sekolah Ini'),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  TextButton(
+                                    onPressed: () {
+                                      _controller.clear();
+                                      context.read<TenantBloc>().add(
+                                        TenantLoadSaved(),
+                                      );
                                     },
+                                    child: const Text('Cari sekolah lain'),
                                   ),
-                                  const SizedBox(height: 20),
-
-                                  if (state is TenantResolved) ...[
-                                    _TenantPreviewCard(tenant: state.tenant),
-                                    const SizedBox(height: 16),
-                                    ElevatedButton.icon(
-                                      onPressed: () => context
-                                          .read<TenantBloc>()
-                                          .add(TenantSelected(state.tenant)),
-                                      icon: const Icon(
-                                        Icons.check_circle_outline,
-                                      ),
-                                      label: const Text('Masuk ke Sekolah Ini'),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    TextButton(
-                                      onPressed: () {
-                                        _controller.clear();
-                                        context.read<TenantBloc>().add(
-                                          TenantLoadSaved(),
-                                        );
-                                      },
-                                      child: const Text('Cari sekolah lain'),
-                                    ),
-                                  ] else ...[
-                                    ElevatedButton(
-                                      onPressed: state is TenantLoading
-                                          ? null
-                                          : _resolve,
-                                      child: state is TenantLoading
-                                          ? const SizedBox(
-                                              height: 20,
-                                              width: 20,
-                                              child: CircularProgressIndicator(
-                                                color: Colors.white,
-                                                strokeWidth: 2,
-                                              ),
-                                            )
-                                          : const Text(
-                                              'Cari Sekolah',
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w600,
-                                              ),
+                                ] else ...[
+                                  ElevatedButton(
+                                    onPressed: state is TenantLoading
+                                        ? null
+                                        : _resolve,
+                                    child: state is TenantLoading
+                                        ? const SizedBox(
+                                            height: 20,
+                                            width: 20,
+                                            child: CircularProgressIndicator(
+                                              color: Colors.white,
+                                              strokeWidth: 2,
                                             ),
-                                    ),
-                                  ],
+                                          )
+                                        : const Text(
+                                            'Cari Sekolah',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                  ),
                                 ],
-                              ),
+                              ],
                             ),
+                          ),
 
-                            SizedBox(height: layarPendek ? 20 : 32),
-                            const _HelpFooter(),
-                          ],
-                        ),
+                          SizedBox(height: layarPendek ? 20 : 32),
+                          const _HelpFooter(),
+                        ],
                       ),
                     ),
-                  );
-                },
-              ),
-            );
-          },
-        ),
-      );
+                  ),
+                );
+              },
+            ),
+          );
+        },
+      ),
+    );
   }
 }
 

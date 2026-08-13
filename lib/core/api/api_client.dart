@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../config/app_config.dart';
+import '../config/tenant_config.dart';
 
 class ApiClient {
   late final Dio dio;
@@ -13,10 +14,7 @@ class ApiClient {
         baseUrl: AppConfig.apiBaseUrl,
         connectTimeout: AppConfig.connectTimeout,
         receiveTimeout: AppConfig.receiveTimeout,
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
+        headers: {'Accept': 'application/json'},
       ),
     );
 
@@ -24,11 +22,17 @@ class ApiClient {
       _AuthInterceptor(_storage, dio),
       if (kDebugMode)
         LogInterceptor(
-          requestBody: true,
-          responseBody: true,
+          requestBody: false,
+          responseBody: false,
+          requestHeader: false,
+          responseHeader: false,
           logPrint: (obj) => debugPrint(obj.toString()),
         ),
     ]);
+  }
+
+  void applyTenant(TenantConfig? tenant) {
+    dio.options.baseUrl = AppConfig.normalizeApiBaseUrl(tenant?.apiBaseUrl);
   }
 }
 
@@ -65,8 +69,9 @@ class _AuthInterceptor extends QueuedInterceptorsWrapper {
       }
 
       try {
-        final refreshToken =
-            await _storage.read(key: AppConfig.refreshTokenKey);
+        final refreshToken = await _storage.read(
+          key: AppConfig.refreshTokenKey,
+        );
         if (refreshToken == null) return handler.next(err);
 
         // Backend expects refresh_token in request body
@@ -75,14 +80,14 @@ class _AuthInterceptor extends QueuedInterceptorsWrapper {
           data: {'refresh_token': refreshToken},
         );
 
-        final newToken =
-            response.data['data']['access_token'] as String;
-        final newRefresh =
-            response.data['data']['refresh_token'] as String?;
+        final newToken = response.data['data']['access_token'] as String;
+        final newRefresh = response.data['data']['refresh_token'] as String?;
         await _storage.write(key: AppConfig.tokenKey, value: newToken);
         if (newRefresh != null) {
           await _storage.write(
-              key: AppConfig.refreshTokenKey, value: newRefresh);
+            key: AppConfig.refreshTokenKey,
+            value: newRefresh,
+          );
         }
 
         final opts = err.requestOptions;
@@ -90,7 +95,10 @@ class _AuthInterceptor extends QueuedInterceptorsWrapper {
         final retryResponse = await _dio.fetch(opts);
         return handler.resolve(retryResponse);
       } catch (_) {
-        await _storage.deleteAll();
+        await Future.wait([
+          _storage.delete(key: AppConfig.tokenKey),
+          _storage.delete(key: AppConfig.refreshTokenKey),
+        ]);
         return handler.next(err);
       }
     }

@@ -7,8 +7,13 @@ import 'dashboard_quick_actions.dart';
 
 class GuruDashboardWidget extends StatelessWidget {
   final DashboardEntity data;
+  final List<String> permissions;
 
-  const GuruDashboardWidget({super.key, required this.data});
+  const GuruDashboardWidget({
+    super.key,
+    required this.data,
+    required this.permissions,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -124,7 +129,7 @@ class GuruDashboardWidget extends StatelessWidget {
         const SizedBox(height: 16),
 
         // Quick Actions
-        const DashboardQuickActions(role: 'guru'),
+        DashboardQuickActions(role: 'guru', permissions: permissions),
         const SizedBox(height: 16),
       ],
     );

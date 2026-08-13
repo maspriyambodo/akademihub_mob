@@ -67,10 +67,7 @@ class BkRemoteDataSourceImpl implements BkRemoteDataSource {
     return const [];
   }
 
-  List<T> _mapList<T>(
-    dynamic body,
-    T Function(Map<String, dynamic>) fromJson,
-  ) {
+  List<T> _mapList<T>(dynamic body, T Function(Map<String, dynamic>) fromJson) {
     final result = <T>[];
     for (final item in _extractList(body)) {
       if (item is Map<String, dynamic>) {

@@ -6,8 +6,13 @@ import 'dashboard_quick_actions.dart';
 
 class SiswaDashboardWidget extends StatelessWidget {
   final DashboardEntity data;
+  final List<String> permissions;
 
-  const SiswaDashboardWidget({super.key, required this.data});
+  const SiswaDashboardWidget({
+    super.key,
+    required this.data,
+    required this.permissions,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -98,9 +103,13 @@ class SiswaDashboardWidget extends StatelessWidget {
                 Responsive.isCompact(context)) {
               return Column(
                 children: [
-                  Row(children: [badges[0], const SizedBox(width: 8), badges[1]]),
+                  Row(
+                    children: [badges[0], const SizedBox(width: 8), badges[1]],
+                  ),
                   const SizedBox(height: 8),
-                  Row(children: [badges[2], const SizedBox(width: 8), badges[3]]),
+                  Row(
+                    children: [badges[2], const SizedBox(width: 8), badges[3]],
+                  ),
                 ],
               );
             }
@@ -230,7 +239,7 @@ class SiswaDashboardWidget extends StatelessWidget {
         const SizedBox(height: 16),
 
         // Quick Actions
-        const DashboardQuickActions(role: 'siswa'),
+        DashboardQuickActions(role: 'siswa', permissions: permissions),
         const SizedBox(height: 16),
       ],
     );

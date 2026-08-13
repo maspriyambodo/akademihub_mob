@@ -5,8 +5,13 @@ import 'dashboard_quick_actions.dart';
 
 class WaliDashboardWidget extends StatelessWidget {
   final DashboardEntity data;
+  final List<String> permissions;
 
-  const WaliDashboardWidget({super.key, required this.data});
+  const WaliDashboardWidget({
+    super.key,
+    required this.data,
+    required this.permissions,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +56,11 @@ class WaliDashboardWidget extends StatelessWidget {
         const SizedBox(height: 16),
 
         // Quick Actions
-        const DashboardQuickActions(role: 'wali'),
+        DashboardQuickActions(
+          role: 'wali',
+          permissions: permissions,
+          hasChild: children.isNotEmpty,
+        ),
         const SizedBox(height: 16),
       ],
     );

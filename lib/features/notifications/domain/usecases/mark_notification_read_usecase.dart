@@ -6,6 +6,5 @@ class MarkNotificationReadUseCase {
   final NotificationsRepository _repository;
   const MarkNotificationReadUseCase(this._repository);
 
-  Future<Result<NotificationEntity>> call(int id) =>
-      _repository.markAsRead(id);
+  Future<Result<NotificationEntity>> call(int id) => _repository.markAsRead(id);
 }

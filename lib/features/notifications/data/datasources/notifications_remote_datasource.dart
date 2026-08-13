@@ -10,7 +10,8 @@ abstract class NotificationsRemoteDataSource {
   Future<int> markAllAsRead();
 }
 
-class NotificationsRemoteDataSourceImpl implements NotificationsRemoteDataSource {
+class NotificationsRemoteDataSourceImpl
+    implements NotificationsRemoteDataSource {
   final Dio _dio;
 
   const NotificationsRemoteDataSourceImpl(this._dio);

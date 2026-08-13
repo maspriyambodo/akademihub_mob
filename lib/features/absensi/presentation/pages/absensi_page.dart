@@ -91,10 +91,34 @@ class _AbsensiViewState extends State<_AbsensiView> {
 
   @override
   Widget build(BuildContext context) {
+    final user = (context.watch<AuthBloc>().state as AuthAuthenticated?)?.user;
+    final isSiswa = user?.role == 'siswa';
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Absensi'), centerTitle: true),
+      appBar: AppBar(
+        title: Text(isSiswa ? 'Riwayat Absensi Saya' : 'Absensi'),
+        centerTitle: true,
+      ),
       body: Column(
         children: [
+          if (isSiswa)
+            Container(
+              width: double.infinity,
+              color: AppColors.info.withAlpha(20),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: const Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.info_outline, color: AppColors.info, size: 20),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Absensi dicatat oleh guru atau admin sekolah. Tarik layar ke bawah untuk memperbarui riwayat.',
+                    ),
+                  ),
+                ],
+              ),
+            ),
           // ── Month selector ─────────────────────────────────────────────
           _MonthSelector(
             bulan: _bulan,

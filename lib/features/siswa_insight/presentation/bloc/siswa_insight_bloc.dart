@@ -12,10 +12,8 @@ class SiswaInsightBloc extends Bloc<SiswaInsightEvent, SiswaInsightState> {
   final GetSiswaInsightUseCase getInsight;
   final InvalidateSiswaInsightCacheUseCase invalidateCache;
 
-  SiswaInsightBloc({
-    required this.getInsight,
-    required this.invalidateCache,
-  }) : super(const SiswaInsightInitial()) {
+  SiswaInsightBloc({required this.getInsight, required this.invalidateCache})
+    : super(const SiswaInsightInitial()) {
     on<InsightLoadRequested>(_onLoad);
     on<InsightRefreshRequested>(_onRefresh);
     on<InsightTabChanged>(_onTabChanged);
@@ -30,7 +28,9 @@ class SiswaInsightBloc extends Bloc<SiswaInsightEvent, SiswaInsightState> {
     final result = await getInsight(event.siswaId);
     if (isClosed) return;
     if (result.isSuccess) {
-      emit(SiswaInsightLoaded(siswaId: event.siswaId, insight: result.requireData));
+      emit(
+        SiswaInsightLoaded(siswaId: event.siswaId, insight: result.requireData),
+      );
     } else {
       emit(SiswaInsightError(result.requireFailure.message));
     }
@@ -45,25 +45,13 @@ class SiswaInsightBloc extends Bloc<SiswaInsightEvent, SiswaInsightState> {
     final result = await getInsight(current.siswaId, refresh: true);
     if (isClosed) return;
     if (result.isSuccess) {
-      emit(
-        current.copyWith(
-          insight: result.requireData,
-          actionMessage: null,
-        ),
-      );
+      emit(current.copyWith(insight: result.requireData, actionMessage: null));
     } else {
-      emit(
-        current.copyWith(
-          actionMessage: result.requireFailure.message,
-        ),
-      );
+      emit(current.copyWith(actionMessage: result.requireFailure.message));
     }
   }
 
-  void _onTabChanged(
-    InsightTabChanged event,
-    Emitter<SiswaInsightState> emit,
-  ) {
+  void _onTabChanged(InsightTabChanged event, Emitter<SiswaInsightState> emit) {
     final current = state;
     if (current is SiswaInsightLoaded) {
       emit(current.copyWith(activeTab: event.tab));

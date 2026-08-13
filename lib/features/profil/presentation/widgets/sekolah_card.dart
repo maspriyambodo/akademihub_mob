@@ -32,9 +32,7 @@ class SekolahCard extends StatelessWidget {
       children: [
         if (data == null)
           ProfilCardMessage(
-            ikon: error != null
-                ? Icons.cloud_off_outlined
-                : Icons.info_outline,
+            ikon: error != null ? Icons.cloud_off_outlined : Icons.info_outline,
             pesan: error ?? 'Informasi sekolah belum tersedia',
             warna: error != null ? AppColors.error : null,
             onRetry: error != null ? onRetry : null,

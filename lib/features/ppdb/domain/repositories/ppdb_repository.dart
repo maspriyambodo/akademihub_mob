@@ -5,6 +5,7 @@ import '../entities/ppdb_gelombang_entity.dart';
 import '../entities/ppdb_hasil_seleksi_entity.dart';
 import '../entities/ppdb_nilai_rapor_entity.dart';
 import '../entities/ppdb_pendaftar_entity.dart';
+import '../entities/ppdb_public_entity.dart';
 import '../entities/ppdb_statistik_entity.dart';
 
 /// Failure khusus 403: user tidak punya permission `ppdb.*`.
@@ -30,6 +31,13 @@ class PpdbNilaiRaporBundle {
 }
 
 abstract class PpdbRepository {
+  Future<Result<List<PpdbSekolahEntity>>> getSekolahPublik();
+  Future<Result<List<PpdbGelombangEntity>>> getGelombangPublik(int sekolahId);
+  Future<Result<PpdbStatusPublikEntity>> cekStatusPublik(String noPendaftaran);
+  Future<Result<PpdbPendaftaranPublikEntity>> daftarPublik(
+    Map<String, dynamic> data,
+  );
+
   Future<Result<List<PpdbGelombangEntity>>> getGelombangList();
 
   /// Daftar pendaftar. Filter `search`, `statusPendaftaran`, dan `gelombangId`
@@ -53,9 +61,7 @@ abstract class PpdbRepository {
 
   Future<Result<PpdbNilaiRaporBundle>> getNilaiRapor(int pendaftarId);
 
-  Future<Result<List<PpdbHasilSeleksiEntity>>> getHasilSeleksi(
-    int gelombangId,
-  );
+  Future<Result<List<PpdbHasilSeleksiEntity>>> getHasilSeleksi(int gelombangId);
 
   /// POST `/ppdb/dokumen/{id}/verify` — `catatan` opsional.
   Future<Result<PpdbDokumenEntity>> verifikasiDokumen(

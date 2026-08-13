@@ -12,11 +12,9 @@ UserModel _$UserModelFromJson(Map<String, dynamic> json) => UserModel(
   email: json['email'] as String,
   role: json['role'] as String?,
   isActive: json['is_active'] as bool? ?? true,
-  permissions:
-      (json['permissions'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList() ??
-      const [],
+  permissions: json['permissions'] == null
+      ? const []
+      : _permissionsFromJson(json['permissions'] as List?),
   profile: json['profile'] as Map<String, dynamic>?,
 );
 

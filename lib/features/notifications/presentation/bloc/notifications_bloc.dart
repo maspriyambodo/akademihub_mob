@@ -146,10 +146,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
 
     // ── Optimistic update ────────────────────────────────────────────────
     final optimistic = [...current.items];
-    optimistic[index] = target.copyWith(
-      isRead: true,
-      readAt: DateTime.now(),
-    );
+    optimistic[index] = target.copyWith(isRead: true, readAt: DateTime.now());
 
     emit(
       current.copyWith(

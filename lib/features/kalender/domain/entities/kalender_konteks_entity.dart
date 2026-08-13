@@ -115,16 +115,13 @@ class KalenderKonteksEntity extends Equatable {
       hariOperasional.isEmpty;
 
   /// Daftar weekday (1..7) yang aktif sebagai hari sekolah.
-  List<int> get weekdayAktif => hariOperasional
-      .where((h) => h.isActive && h.weekday != 0)
-      .map((h) => h.weekday)
-      .toList()
-    ..sort();
+  List<int> get weekdayAktif =>
+      hariOperasional
+          .where((h) => h.isActive && h.weekday != 0)
+          .map((h) => h.weekday)
+          .toList()
+        ..sort();
 
   @override
-  List<Object?> get props => [
-    tahunAjaranAktif,
-    semesterAktif,
-    hariOperasional,
-  ];
+  List<Object?> get props => [tahunAjaranAktif, semesterAktif, hariOperasional];
 }

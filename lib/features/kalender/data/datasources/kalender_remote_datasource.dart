@@ -134,7 +134,11 @@ class KalenderRemoteDataSourceImpl implements KalenderRemoteDataSource {
   Future<List<HariOperasionalModel>> getHariOperasional() async {
     final response = await _dio.get(
       '/admin/hari-operasional',
-      queryParameters: _query(limit: 20, sortColumn: 'id', sortDirection: 'asc'),
+      queryParameters: _query(
+        limit: 20,
+        sortColumn: 'id',
+        sortDirection: 'asc',
+      ),
     );
     return _parseList(response.data, HariOperasionalModel.fromJson);
   }

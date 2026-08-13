@@ -113,8 +113,7 @@ class _PesertaView extends StatelessWidget {
                             return _PesertaCard(
                               peserta: peserta,
                               onTap:
-                                  peserta.isSelesai ||
-                                      peserta.hasil.isNotEmpty
+                                  peserta.isSelesai || peserta.hasil.isNotEmpty
                                   ? () => _bukaHasil(context, peserta)
                                   : null,
                             );

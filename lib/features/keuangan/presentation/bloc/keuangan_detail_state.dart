@@ -45,9 +45,7 @@ class KeuanganDetailLoaded extends KeuanganDetailState {
       denda: denda ?? this.denda,
       aksiStatus: aksiStatus ?? this.aksiStatus,
       aksiUrl: clearAksiUrl ? null : (aksiUrl ?? this.aksiUrl),
-      aksiMessage: clearAksiMessage
-          ? null
-          : (aksiMessage ?? this.aksiMessage),
+      aksiMessage: clearAksiMessage ? null : (aksiMessage ?? this.aksiMessage),
     );
   }
 

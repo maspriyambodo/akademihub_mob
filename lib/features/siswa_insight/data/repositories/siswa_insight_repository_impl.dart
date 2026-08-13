@@ -49,10 +49,7 @@ class SiswaInsightRepositoryImpl implements SiswaInsightRepository {
     bool refresh = false,
   }) async {
     try {
-      final data = await _remote.getAcademicProgress(
-        siswaId,
-        refresh: refresh,
-      );
+      final data = await _remote.getAcademicProgress(siswaId, refresh: refresh);
       return success(data);
     } on DioException catch (e) {
       return fail(_map(mapDioException(e)));

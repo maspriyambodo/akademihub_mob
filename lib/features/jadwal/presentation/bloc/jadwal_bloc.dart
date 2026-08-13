@@ -59,10 +59,7 @@ class JadwalBloc extends Bloc<JadwalEvent, JadwalState> {
       final result = await getJadwalKelasHari(_kelasId!, _selectedHari);
       if (result.isSuccess) {
         final segar = result.requireData;
-        _all = [
-          ..._all.where((e) => e.hari != _selectedHari),
-          ...segar,
-        ];
+        _all = [..._all.where((e) => e.hari != _selectedHari), ...segar];
         emit(_buildLoaded());
       } else {
         emit(JadwalError(result.requireFailure.message));

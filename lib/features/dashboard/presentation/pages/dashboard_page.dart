@@ -28,15 +28,22 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     final user = (context.watch<AuthBloc>().state as AuthAuthenticated?)?.user;
+    final roleLabel = switch (user?.role) {
+      'siswa' => 'Portal Siswa',
+      'guru' => 'Portal Guru',
+      'wali' => 'Portal Wali',
+      _ => 'Portal Admin',
+    };
 
     return Scaffold(
       appBar: AppBar(
+        centerTitle: false,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'AkademiHub',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            Text(
+              roleLabel,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             if (user != null)
               Text(
@@ -96,13 +103,25 @@ class _DashboardPageState extends State<DashboardPage> {
                   padding: pad,
                   children: [
                     if (data.role == 'siswa')
-                      SiswaDashboardWidget(data: data)
+                      SiswaDashboardWidget(
+                        data: data,
+                        permissions: user?.permissions ?? const [],
+                      )
                     else if (data.role == 'guru')
-                      GuruDashboardWidget(data: data)
+                      GuruDashboardWidget(
+                        data: data,
+                        permissions: user?.permissions ?? const [],
+                      )
                     else if (data.role == 'wali')
-                      WaliDashboardWidget(data: data)
+                      WaliDashboardWidget(
+                        data: data,
+                        permissions: user?.permissions ?? const [],
+                      )
                     else
-                      AdminDashboardWidget(data: data),
+                      AdminDashboardWidget(
+                        data: data,
+                        permissions: user?.permissions ?? const [],
+                      ),
                   ],
                 ),
               ),

@@ -8,6 +8,8 @@ import '../models/kelas_option_model.dart';
 import '../models/ranking_model.dart';
 import '../models/ujian_model.dart';
 import '../models/ujian_nilai_model.dart';
+import '../models/ujian_question_model.dart';
+import '../models/ujian_session_model.dart';
 
 abstract class UjianRemoteDataSource {
   Future<List<UjianModel>> getUjianByKelas(int kelasId);
@@ -28,6 +30,19 @@ abstract class UjianRemoteDataSource {
   });
 
   Future<List<KelasOptionModel>> getKelasOptions({int? waliGuruId});
+  Future<List<UjianSessionModel>> getSesiUjian({int? siswaId});
+  Future<UjianSessionModel> getSesi(int sesiId);
+  Future<List<UjianQuestionModel>> getSoal(int sesiId);
+  Future<Map<String, dynamic>> saveJawaban({
+    required int sesiId,
+    required int soalId,
+    int? opsiId,
+    String? teks,
+    required bool raguRagu,
+  });
+  Future<int> getJumlahJawaban(int sesiId);
+  Future<UjianSessionModel> mulaiSesi(int sesiId);
+  Future<UjianSessionModel> selesaikanSesi(int sesiId);
 }
 
 class UjianRemoteDataSourceImpl implements UjianRemoteDataSource {
@@ -53,13 +68,94 @@ class UjianRemoteDataSourceImpl implements UjianRemoteDataSource {
     return const [];
   }
 
+  Map<String, dynamic> _extractObject(dynamic body) {
+    if (body is Map && body['data'] is Map) {
+      return Map<String, dynamic>.from(body['data'] as Map);
+    }
+    return const <String, dynamic>{};
+  }
+
+  @override
+  Future<List<UjianSessionModel>> getSesiUjian({int? siswaId}) async {
+    final response = await _dio.get(
+      '/akademik/ujian-user',
+      queryParameters: <String, dynamic>{
+        'per_page': 100,
+        'mst_siswa_id': ?siswaId,
+      },
+    );
+    return _extractList(response.data)
+        .whereType<Map<String, dynamic>>()
+        .map(UjianSessionModel.fromJson)
+        .toList();
+  }
+
+  @override
+  Future<UjianSessionModel> getSesi(int sesiId) async {
+    final response = await _dio.get('/akademik/ujian-user/$sesiId');
+    return UjianSessionModel.fromJson(_extractObject(response.data));
+  }
+
+  @override
+  Future<List<UjianQuestionModel>> getSoal(int sesiId) async {
+    final response = await _dio.get('/akademik/ujian-user/$sesiId/soal');
+    return _extractList(response.data)
+        .whereType<Map<String, dynamic>>()
+        .map(UjianQuestionModel.fromJson)
+        .toList();
+  }
+
+  @override
+  Future<Map<String, dynamic>> saveJawaban({
+    required int sesiId,
+    required int soalId,
+    int? opsiId,
+    String? teks,
+    required bool raguRagu,
+  }) async {
+    final response = await _dio.post(
+      '/akademik/ujian-jawaban',
+      data: {
+        'trx_ujian_user_id': sesiId,
+        'mst_soal_id': soalId,
+        'mst_soal_opsi_id': opsiId,
+        'jawaban_teks': teks,
+        'ragu_ragu': raguRagu,
+      },
+    );
+    return _extractObject(response.data);
+  }
+
+  @override
+  Future<int> getJumlahJawaban(int sesiId) async {
+    final response = await _dio.get(
+      '/akademik/ujian-jawaban',
+      queryParameters: <String, dynamic>{
+        'trx_ujian_user_id': sesiId,
+        'per_page': 100,
+      },
+    );
+    return _extractList(response.data).length;
+  }
+
+  @override
+  Future<UjianSessionModel> mulaiSesi(int sesiId) async {
+    final response = await _dio.post('/akademik/ujian-user/$sesiId/mulai');
+    return UjianSessionModel.fromJson(_extractObject(response.data));
+  }
+
+  @override
+  Future<UjianSessionModel> selesaikanSesi(int sesiId) async {
+    final response = await _dio.post('/akademik/ujian-user/$sesiId/selesaikan');
+    return UjianSessionModel.fromJson(_extractObject(response.data));
+  }
+
   @override
   Future<List<UjianModel>> getUjianByKelas(int kelasId) async {
     final response = await _dio.get('/akademik/ujian/kelas/$kelasId');
-    return _extractList(response.data)
-        .whereType<Map<String, dynamic>>()
-        .map(UjianModel.fromJson)
-        .toList();
+    return _extractList(
+      response.data,
+    ).whereType<Map<String, dynamic>>().map(UjianModel.fromJson).toList();
   }
 
   @override
@@ -78,10 +174,9 @@ class UjianRemoteDataSourceImpl implements UjianRemoteDataSource {
   @override
   Future<List<RankingModel>> getRankingByKelas(int kelasId) async {
     final response = await _dio.get('/akademik/ranking/kelas/$kelasId');
-    return _extractList(response.data)
-        .whereType<Map<String, dynamic>>()
-        .map(RankingModel.fromJson)
-        .toList();
+    return _extractList(
+      response.data,
+    ).whereType<Map<String, dynamic>>().map(RankingModel.fromJson).toList();
   }
 
   @override
@@ -98,10 +193,9 @@ class UjianRemoteDataSourceImpl implements UjianRemoteDataSource {
         'tahun_ajaran': tahunAjaranId,
       },
     );
-    return _extractList(response.data)
-        .whereType<Map<String, dynamic>>()
-        .map(RankingModel.fromJson)
-        .toList();
+    return _extractList(
+      response.data,
+    ).whereType<Map<String, dynamic>>().map(RankingModel.fromJson).toList();
   }
 
   @override
@@ -144,9 +238,8 @@ class UjianRemoteDataSourceImpl implements UjianRemoteDataSource {
         'wali_guru_id': ?waliGuruId,
       },
     );
-    return _extractList(response.data)
-        .whereType<Map<String, dynamic>>()
-        .map(KelasOptionModel.fromJson)
-        .toList();
+    return _extractList(
+      response.data,
+    ).whereType<Map<String, dynamic>>().map(KelasOptionModel.fromJson).toList();
   }
 }

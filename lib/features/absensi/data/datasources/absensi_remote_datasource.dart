@@ -18,8 +18,11 @@ class AbsensiRemoteDataSourceImpl implements AbsensiRemoteDataSource {
 
   @override
   Future<List<AbsensiSiswaModel>> getAbsensiSiswaList(int siswaId) async {
-    final response = await _dio.get('/absensi-siswa/siswa/$siswaId');
-    final list = response.data['data'] as List<dynamic>;
+    final response = await _dio.get(
+      '/akademik/absensi-siswa',
+      queryParameters: {'mst_siswa_id': siswaId, 'per_page': 1000},
+    );
+    final list = _extractList(response.data);
     return list
         .map((e) => AbsensiSiswaModel.fromJson(e as Map<String, dynamic>))
         .toList();
@@ -27,8 +30,11 @@ class AbsensiRemoteDataSourceImpl implements AbsensiRemoteDataSource {
 
   @override
   Future<List<AbsensiGuruModel>> getAbsensiGuruList(int guruId) async {
-    final response = await _dio.get('/absensi-guru/guru/$guruId');
-    final list = response.data['data'] as List<dynamic>;
+    final response = await _dio.get(
+      '/akademik/absensi-guru',
+      queryParameters: {'mst_guru_id': guruId, 'per_page': 1000},
+    );
+    final list = _extractList(response.data);
     return list
         .map((e) => AbsensiGuruModel.fromJson(e as Map<String, dynamic>))
         .toList();
@@ -39,24 +45,22 @@ class AbsensiRemoteDataSourceImpl implements AbsensiRemoteDataSource {
     String? tanggalFrom,
     String? tanggalTo,
   }) async {
-    final response = await _dio.get(
-      '/absensi-siswa',
-      queryParameters: {
-        'tanggal_from': tanggalFrom,
-        'tanggal_to': tanggalTo,
-        'per_page': 100,
-      }..removeWhere((_, v) => v == null),
+    final response = await _dio.post(
+      '/akademik/absensi-siswa/date-range',
+      data: {'tanggal_mulai': tanggalFrom, 'tanggal_akhir': tanggalTo}
+        ..removeWhere((_, v) => v == null),
     );
-    // paginatedResponse wraps data directly in 'data' key (not nested)
-    final raw = response.data['data'];
-    final List<dynamic> list;
-    if (raw is List) {
-      list = raw;
-    } else {
-      list = (raw as Map<String, dynamic>?)?['data'] as List<dynamic>? ?? [];
-    }
+    final list = _extractList(response.data);
     return list
         .map((e) => AbsensiSiswaModel.fromJson(e as Map<String, dynamic>))
         .toList();
+  }
+
+  List<dynamic> _extractList(dynamic body) {
+    if (body is! Map) return const [];
+    final data = body['data'];
+    if (data is List) return data;
+    if (data is Map && data['data'] is List) return data['data'] as List;
+    return const [];
   }
 }

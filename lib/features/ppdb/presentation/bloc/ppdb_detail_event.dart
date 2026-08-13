@@ -23,7 +23,11 @@ class PpdbDetailLoadRequested extends PpdbDetailEvent {
   });
 
   @override
-  List<Object?> get props => [pendaftarId, bolehLihatDokumen, bolehLihatSeleksi];
+  List<Object?> get props => [
+    pendaftarId,
+    bolehLihatDokumen,
+    bolehLihatSeleksi,
+  ];
 }
 
 class PpdbDetailRefreshRequested extends PpdbDetailEvent {

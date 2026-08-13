@@ -6,6 +6,7 @@ import '../models/ppdb_gelombang_model.dart';
 import '../models/ppdb_hasil_seleksi_model.dart';
 import '../models/ppdb_nilai_rapor_model.dart';
 import '../models/ppdb_pendaftar_model.dart';
+import '../models/ppdb_public_model.dart';
 import '../models/ppdb_statistik_model.dart';
 
 class PpdbNilaiRaporResponse {
@@ -19,6 +20,10 @@ class PpdbNilaiRaporResponse {
 }
 
 abstract class PpdbRemoteDataSource {
+  Future<List<PpdbSekolahModel>> getSekolahPublik();
+  Future<List<PpdbGelombangModel>> getGelombangPublik(int sekolahId);
+  Future<PpdbStatusPublikModel> cekStatusPublik(String noPendaftaran);
+  Future<PpdbPendaftaranPublikModel> daftarPublik(FormData formData);
   Future<List<PpdbGelombangModel>> getGelombangList();
   Future<List<PpdbPendaftarModel>> getPendaftarList({
     String? search,
@@ -48,6 +53,37 @@ class PpdbRemoteDataSourceImpl implements PpdbRemoteDataSource {
   final Dio _dio;
 
   const PpdbRemoteDataSourceImpl(this._dio);
+
+  @override
+  Future<List<PpdbSekolahModel>> getSekolahPublik() async {
+    final response = await _dio.get('/ppdb/public/sekolah');
+    return _extractList(
+      response.data,
+    ).whereType<Map<String, dynamic>>().map(PpdbSekolahModel.fromJson).toList();
+  }
+
+  @override
+  Future<List<PpdbGelombangModel>> getGelombangPublik(int sekolahId) async {
+    final response = await _dio.get('/ppdb/public/gelombang/$sekolahId/active');
+    return _extractList(response.data)
+        .whereType<Map<String, dynamic>>()
+        .map(PpdbGelombangModel.fromJson)
+        .toList();
+  }
+
+  @override
+  Future<PpdbStatusPublikModel> cekStatusPublik(String noPendaftaran) async {
+    final response = await _dio.get(
+      '/ppdb/public/status/${Uri.encodeComponent(noPendaftaran.trim())}',
+    );
+    return PpdbStatusPublikModel.fromJson(_extractMap(response.data));
+  }
+
+  @override
+  Future<PpdbPendaftaranPublikModel> daftarPublik(FormData formData) async {
+    final response = await _dio.post('/ppdb/public/daftar', data: formData);
+    return PpdbPendaftaranPublikModel.fromJson(_extractMap(response.data));
+  }
 
   /// Endpoint index PPDB memakai `AgGridControllerTrait`:
   /// - tanpa `startRow`/`endRow` → paginatedResponse: `{ "data": [...] }`
@@ -104,8 +140,7 @@ class PpdbRemoteDataSourceImpl implements PpdbRemoteDataSource {
       '/ppdb/pendaftaran',
       queryParameters: <String, dynamic>{
         'per_page': 200,
-        if (search != null && search.trim().isNotEmpty)
-          'search': search.trim(),
+        if (search != null && search.trim().isNotEmpty) 'search': search.trim(),
         if (statusPendaftaran != null && statusPendaftaran.isNotEmpty)
           'status_pendaftaran': statusPendaftaran,
         'ppdb_gelombang_id': ?gelombangId,
@@ -138,15 +173,16 @@ class PpdbRemoteDataSourceImpl implements PpdbRemoteDataSource {
   @override
   Future<List<PpdbDokumenModel>> getDokumenByPendaftar(int pendaftarId) async {
     final response = await _dio.get('/ppdb/dokumen/pendaftaran/$pendaftarId');
-    return _extractList(response.data)
-        .whereType<Map<String, dynamic>>()
-        .map(PpdbDokumenModel.fromJson)
-        .toList();
+    return _extractList(
+      response.data,
+    ).whereType<Map<String, dynamic>>().map(PpdbDokumenModel.fromJson).toList();
   }
 
   @override
   Future<PpdbNilaiRaporResponse> getNilaiRapor(int pendaftarId) async {
-    final response = await _dio.get('/ppdb/nilai-rapor/pendaftaran/$pendaftarId');
+    final response = await _dio.get(
+      '/ppdb/nilai-rapor/pendaftaran/$pendaftarId',
+    );
     final data = _extractMap(response.data);
 
     final daftarRaw = data['nilai_rapor'];
@@ -167,7 +203,9 @@ class PpdbRemoteDataSourceImpl implements PpdbRemoteDataSource {
 
   @override
   Future<List<PpdbHasilSeleksiModel>> getHasilSeleksi(int gelombangId) async {
-    final response = await _dio.get('/ppdb/seleksi/gelombang/$gelombangId/hasil');
+    final response = await _dio.get(
+      '/ppdb/seleksi/gelombang/$gelombangId/hasil',
+    );
     return _extractList(response.data)
         .whereType<Map<String, dynamic>>()
         .map(PpdbHasilSeleksiModel.fromJson)

@@ -17,8 +17,6 @@ class GetJadwalKelasHariUseCase {
   final JadwalRepository _repository;
   const GetJadwalKelasHariUseCase(this._repository);
 
-  Future<Result<List<JadwalPelajaranEntity>>> call(
-    int kelasId,
-    String hari,
-  ) => _repository.getJadwalByKelasHari(kelasId, hari);
+  Future<Result<List<JadwalPelajaranEntity>>> call(int kelasId, String hari) =>
+      _repository.getJadwalByKelasHari(kelasId, hari);
 }

@@ -46,7 +46,8 @@ class RaporDetailEntity extends Equatable {
   bool get punyaKehadiran =>
       sakit != null || izin != null || tanpaKeterangan != null;
 
-  bool get punyaCatatan => catatanWali != null && catatanWali!.trim().isNotEmpty;
+  bool get punyaCatatan =>
+      catatanWali != null && catatanWali!.trim().isNotEmpty;
 
   /// Rata-rata dihitung dari rincian mapel (endpoint detail tidak mengirimnya).
   double? get rataRataHitung {

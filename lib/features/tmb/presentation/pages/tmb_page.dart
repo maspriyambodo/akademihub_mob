@@ -22,10 +22,7 @@ class TmbPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => sl<TmbBloc>(),
-      child: const _TmbView(),
-    );
+    return BlocProvider(create: (_) => sl<TmbBloc>(), child: const _TmbView());
   }
 }
 
@@ -66,7 +63,9 @@ class _TmbViewState extends State<_TmbView> {
           canViewPertanyaanEndpoint: user.hasPermission(
             'tes-minat-bakat-pertanyaan.view',
           ),
-          canViewHasilEndpoint: user.hasPermission('tes-minat-bakat-hasil.view'),
+          canViewHasilEndpoint: user.hasPermission(
+            'tes-minat-bakat-hasil.view',
+          ),
         ),
       );
     });
@@ -272,8 +271,10 @@ class _TmbViewState extends State<_TmbView> {
                             if (state.catatan != null && index == 0) {
                               return TmbCatatanBanner(message: state.catatan!);
                             }
-                            final item = state
-                                .items[state.catatan != null ? index - 1 : index];
+                            final item =
+                                state.items[state.catatan != null
+                                    ? index - 1
+                                    : index];
                             return _TesCard(
                               item: item,
                               state: state,
@@ -402,7 +403,8 @@ class _TesCard extends StatelessWidget {
                   ),
                 ],
               ),
-              if (tes.deskripsi != null && tes.deskripsi!.trim().isNotEmpty) ...[
+              if (tes.deskripsi != null &&
+                  tes.deskripsi!.trim().isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Text(
                   tes.deskripsi!,

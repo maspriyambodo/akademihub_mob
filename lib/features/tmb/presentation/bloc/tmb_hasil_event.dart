@@ -25,7 +25,11 @@ class TmbHasilStarted extends TmbHasilEvent {
   });
 
   @override
-  List<Object?> get props => [peserta.id, viaHasilEndpoint, siswaIdUntukRefresh];
+  List<Object?> get props => [
+    peserta.id,
+    viaHasilEndpoint,
+    siswaIdUntukRefresh,
+  ];
 }
 
 class TmbHasilRefreshRequested extends TmbHasilEvent {

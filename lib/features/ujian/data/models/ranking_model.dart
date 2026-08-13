@@ -51,7 +51,8 @@ class RankingModel {
       id: (json['id'] as num).toInt(),
       raporId: (json['trx_rapor_id'] as num?)?.toInt(),
       kelasId: (json['mst_kelas_id'] as num?)?.toInt(),
-      siswaId: (json['mst_siswa_id'] as num?)?.toInt() ??
+      siswaId:
+          (json['mst_siswa_id'] as num?)?.toInt() ??
           (siswa?['id'] as num?)?.toInt(),
       siswaNama: siswa?['nama'] as String?,
       nis: json['nis']?.toString() ?? siswa?['nis']?.toString(),

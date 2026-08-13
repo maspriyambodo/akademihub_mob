@@ -284,15 +284,14 @@ class EkstrakurikulerBloc
     // `search`, sehingga penyaringan konsisten untuk kedua sumber data.
     final semuaTersaring =
         _semua.where((e) {
-            if (keyword.isEmpty) return true;
-            return e.nama.toLowerCase().contains(keyword) ||
-                (e.kode ?? '').toLowerCase().contains(keyword) ||
-                (e.pembinaNama ?? '').toLowerCase().contains(keyword) ||
-                (e.hari ?? '').toLowerCase().contains(keyword);
-          }).toList()
-          ..sort(
-            (a, b) => a.nama.toLowerCase().compareTo(b.nama.toLowerCase()),
-          );
+          if (keyword.isEmpty) return true;
+          return e.nama.toLowerCase().contains(keyword) ||
+              (e.kode ?? '').toLowerCase().contains(keyword) ||
+              (e.pembinaNama ?? '').toLowerCase().contains(keyword) ||
+              (e.hari ?? '').toLowerCase().contains(keyword);
+        }).toList()..sort(
+          (a, b) => a.nama.toLowerCase().compareTo(b.nama.toLowerCase()),
+        );
 
     final riwayatUrut = List<PendaftaranEkskulEntity>.from(_riwayat)
       ..sort((a, b) {

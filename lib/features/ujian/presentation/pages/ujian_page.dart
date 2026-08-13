@@ -8,8 +8,11 @@ import '../../../../core/utils/responsive.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../domain/entities/ranking_entity.dart';
 import '../../domain/entities/ujian_entity.dart';
+import '../../domain/entities/ujian_session_entity.dart';
+import '../../domain/repositories/ujian_repository.dart';
 import '../bloc/ujian_bloc.dart';
 import 'ujian_nilai_page.dart';
+import 'ujian_session_page.dart';
 
 /// Halaman utama modul Ujian: tab **Ujian** (daftar ujian per kelas) dan
 /// tab **Ranking** (papan peringkat kelas).
@@ -429,6 +432,10 @@ class _UjianTab extends StatelessWidget {
       );
     }
 
+    if (state.role == 'siswa') {
+      return _SiswaSessionTab(siswaId: state.siswaId, ujian: state.ujianItems);
+    }
+
     if (state.kelasId == null) {
       return const _PilihKelasPrompt();
     }
@@ -486,6 +493,118 @@ class _UjianTab extends StatelessWidget {
                 ),
         ),
       ),
+    );
+  }
+}
+
+class _SiswaSessionTab extends StatefulWidget {
+  final int? siswaId;
+  final List<UjianEntity> ujian;
+
+  const _SiswaSessionTab({required this.siswaId, required this.ujian});
+
+  @override
+  State<_SiswaSessionTab> createState() => _SiswaSessionTabState();
+}
+
+class _SiswaSessionTabState extends State<_SiswaSessionTab> {
+  late Future<List<UjianSessionEntity>> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = _load();
+  }
+
+  Future<List<UjianSessionEntity>> _load() async {
+    final result = await sl<UjianRepository>().getSesiUjian(
+      siswaId: widget.siswaId,
+    );
+    if (result.isFailure) throw Exception(result.requireFailure.message);
+    return result.requireData;
+  }
+
+  Future<void> _refresh() async {
+    final future = _load();
+    setState(() => _future = future);
+    await future;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<UjianSessionEntity>>(
+      future: _future,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return _ErrorView(
+            message: snapshot.error.toString().replaceFirst('Exception: ', ''),
+            onRetry: _refresh,
+          );
+        }
+
+        final sessions = snapshot.data ?? const [];
+        return RefreshIndicator(
+          onRefresh: _refresh,
+          child: sessions.isEmpty
+              ? ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: const [
+                    SizedBox(
+                      height: 360,
+                      child: _EmptyView(
+                        icon: Icons.assignment_outlined,
+                        message: 'Belum ada sesi ujian yang ditugaskan',
+                      ),
+                    ),
+                  ],
+                )
+              : ListView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  itemCount: sessions.length,
+                  itemBuilder: (context, index) {
+                    final session = sessions[index];
+                    final ujian = widget.ujian
+                        .where((item) => item.id == session.ujianId)
+                        .firstOrNull;
+                    return Card(
+                      child: ListTile(
+                        leading: Icon(
+                          session.status == UjianSessionStatus.selesai
+                              ? Icons.check_circle
+                              : Icons.assignment_outlined,
+                          color: session.status == UjianSessionStatus.selesai
+                              ? AppColors.success
+                              : AppColors.primary,
+                        ),
+                        title: Text(session.namaUjian),
+                        subtitle: Text(
+                          [
+                            if (ujian?.mapelNama != null) ujian!.mapelNama!,
+                            session.statusLabel,
+                            if (session.status == UjianSessionStatus.selesai)
+                              'Nilai ${session.nilaiAkhir.toStringAsFixed(2)}',
+                          ].join(' · '),
+                        ),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () async {
+                          await Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) =>
+                                  UjianSessionPage(session: session),
+                            ),
+                          );
+                          if (context.mounted) await _refresh();
+                        },
+                      ),
+                    );
+                  },
+                ),
+        );
+      },
     );
   }
 }
@@ -716,9 +835,7 @@ class _RankingTab extends StatelessWidget {
                     if (state.canExport)
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: state.aksiSedangDiproses
-                              ? null
-                              : onExport,
+                          onPressed: state.aksiSedangDiproses ? null : onExport,
                           icon: const Icon(Icons.download_outlined, size: 18),
                           label: const Text(
                             'Export xlsx',
@@ -744,10 +861,7 @@ class _RankingTab extends StatelessWidget {
                         padding: pad,
                         children: [
                           SizedBox(
-                            height: Responsive.tinggiSheet(
-                              context,
-                              rasio: 0.5,
-                            ),
+                            height: Responsive.tinggiSheet(context, rasio: 0.5),
                             child: _EmptyView(
                               icon: Icons.emoji_events_outlined,
                               message: state.canGenerate
@@ -941,9 +1055,7 @@ class _RankingRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                item.rataRata == null
-                    ? '-'
-                    : item.rataRata!.toStringAsFixed(2),
+                item.rataRata == null ? '-' : item.rataRata!.toStringAsFixed(2),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
@@ -1073,9 +1185,7 @@ class _ErrorView extends StatelessWidget {
               onPressed: onRetry,
               icon: const Icon(Icons.refresh),
               label: const Text('Coba Lagi'),
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(160, 44),
-              ),
+              style: ElevatedButton.styleFrom(minimumSize: const Size(160, 44)),
             ),
           ],
         ),

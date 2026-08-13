@@ -57,7 +57,7 @@ class DashboardModel {
     }
 
     return DashboardModel(
-      role: json['role'] as String? ?? '',
+      role: _normalizeRole(json['role'] as String?),
       profile: asMap(json['profile']),
       attendanceSummary: asList(json['attendance_summary']),
       unpaidSpp: asList(json['unpaid_spp']),
@@ -90,4 +90,18 @@ class DashboardModel {
     counseling: counseling,
     ppdb: ppdb,
   );
+}
+
+String _normalizeRole(String? role) {
+  switch (role?.toUpperCase()) {
+    case 'SISWA':
+      return 'siswa';
+    case 'GURU':
+      return 'guru';
+    case 'WALI':
+    case 'WALI_SISWA':
+      return 'wali';
+    default:
+      return 'admin';
+  }
 }

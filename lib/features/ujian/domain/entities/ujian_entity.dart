@@ -57,9 +57,8 @@ class UjianEntity extends Equatable {
       tanggal == null ? null : DateTime.tryParse(tanggal!);
 
   /// Id mst_semester sebagai int (untuk prefill form generate ranking).
-  int? get semesterId => semesterKode == null
-      ? null
-      : int.tryParse(semesterKode!);
+  int? get semesterId =>
+      semesterKode == null ? null : int.tryParse(semesterKode!);
 
   @override
   List<Object?> get props => [id];

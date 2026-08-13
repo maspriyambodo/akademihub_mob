@@ -366,10 +366,7 @@ class _NilaiRow extends StatelessWidget {
             if (milikSaya) ...[
               const SizedBox(width: 6),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 6,
-                  vertical: 1,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                 decoration: BoxDecoration(
                   color: AppColors.primary,
                   borderRadius: BorderRadius.circular(8),
@@ -431,9 +428,7 @@ class _ErrorView extends StatelessWidget {
               onPressed: onRetry,
               icon: const Icon(Icons.refresh),
               label: const Text('Coba Lagi'),
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(160, 44),
-              ),
+              style: ElevatedButton.styleFrom(minimumSize: const Size(160, 44)),
             ),
           ],
         ),

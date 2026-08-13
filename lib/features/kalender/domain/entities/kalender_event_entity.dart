@@ -67,8 +67,7 @@ class KalenderEventEntity extends Equatable {
       tanggalSelesai == null ? null : DateTime.tryParse(tanggalSelesai!);
 
   /// Tanggal akhir efektif — jatuh balik ke tanggal mulai bila tidak ada.
-  DateTime? get tanggalAkhirEfektif =>
-      tanggalSelesaiDate ?? tanggalMulaiDate;
+  DateTime? get tanggalAkhirEfektif => tanggalSelesaiDate ?? tanggalMulaiDate;
 
   bool get isRentang {
     final mulai = tanggalMulaiDate;

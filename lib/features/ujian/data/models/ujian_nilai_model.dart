@@ -31,7 +31,8 @@ class UjianNilaiModel {
     final siswa = json['siswa'] is Map ? json['siswa'] as Map : null;
     return UjianNilaiModel(
       id: (json['id'] as num).toInt(),
-      siswaId: (siswa?['id'] as num?)?.toInt() ??
+      siswaId:
+          (siswa?['id'] as num?)?.toInt() ??
           (json['mst_siswa_id'] as num?)?.toInt(),
       siswaNama: siswa?['nama'] as String?,
       siswaNis: siswa?['nis']?.toString(),

@@ -143,11 +143,7 @@ class TmbPengerjaanBloc extends Bloc<TmbPengerjaanEvent, TmbPengerjaanState> {
     TmbPengerjaanOpsiDipilih event,
     Emitter<TmbPengerjaanState> emit,
   ) async {
-    await _kirim(
-      emit,
-      pertanyaanId: event.pertanyaanId,
-      opsiId: event.opsiId,
-    );
+    await _kirim(emit, pertanyaanId: event.pertanyaanId, opsiId: event.opsiId);
   }
 
   Future<void> _onTeksDikirim(

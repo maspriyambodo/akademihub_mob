@@ -121,9 +121,7 @@ class _HasilView extends StatelessWidget {
         icon: Icons.lightbulb_outline,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            for (final h in punyaCatatan) _RekomendasiItem(hasil: h),
-          ],
+          children: [for (final h in punyaCatatan) _RekomendasiItem(hasil: h)],
         ),
       ),
     ];
@@ -151,7 +149,10 @@ class _KartuInfo extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (tes != null)
-            TmbInfoRow(icon: Icons.category_outlined, text: 'Tipe: ${tes.labelTipe}'),
+            TmbInfoRow(
+              icon: Icons.category_outlined,
+              text: 'Tipe: ${tes.labelTipe}',
+            ),
           if (peserta.siswaNama != null)
             TmbInfoRow(
               icon: Icons.person_outline,
@@ -189,10 +190,7 @@ class _KartuSkor extends StatelessWidget {
       child: Column(
         children: [
           for (final h in state.hasil)
-            TmbAspekBar(
-              hasil: h,
-              skorTotalTertinggi: state.skorTotalTertinggi,
-            ),
+            TmbAspekBar(hasil: h, skorTotalTertinggi: state.skorTotalTertinggi),
         ],
       ),
     );

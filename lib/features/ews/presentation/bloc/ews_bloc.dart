@@ -42,7 +42,10 @@ class EwsBloc extends Bloc<EwsEvent, EwsState> {
     );
   }
 
-  Future<void> _onRefresh(EwsRefreshRequested event, Emitter<EwsState> emit) async {
+  Future<void> _onRefresh(
+    EwsRefreshRequested event,
+    Emitter<EwsState> emit,
+  ) async {
     final current = state;
     if (current is! EwsLoaded) {
       emit(
@@ -118,7 +121,10 @@ class EwsBloc extends Bloc<EwsEvent, EwsState> {
     return null;
   }
 
-  Future<void> _onResolve(EwsResolveRequested event, Emitter<EwsState> emit) async {
+  Future<void> _onResolve(
+    EwsResolveRequested event,
+    Emitter<EwsState> emit,
+  ) async {
     final current = state;
     if (current is! EwsLoaded) return;
 

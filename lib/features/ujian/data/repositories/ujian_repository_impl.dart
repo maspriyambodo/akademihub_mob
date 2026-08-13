@@ -9,6 +9,8 @@ import '../../domain/entities/kelas_option_entity.dart';
 import '../../domain/entities/ranking_entity.dart';
 import '../../domain/entities/ujian_entity.dart';
 import '../../domain/entities/ujian_nilai_entity.dart';
+import '../../domain/entities/ujian_question_entity.dart';
+import '../../domain/entities/ujian_session_entity.dart';
 import '../../domain/repositories/ujian_repository.dart';
 import '../datasources/ujian_remote_datasource.dart';
 
@@ -16,6 +18,110 @@ class UjianRepositoryImpl implements UjianRepository {
   final UjianRemoteDataSource _remote;
 
   const UjianRepositoryImpl(this._remote);
+
+  @override
+  Future<Result<List<UjianSessionEntity>>> getSesiUjian({int? siswaId}) async {
+    try {
+      final models = await _remote.getSesiUjian(siswaId: siswaId);
+      return success(models.map((model) => model.toEntity()).toList());
+    } on DioException catch (e) {
+      return fail(_map(mapDioException(e)));
+    } on AppException catch (e) {
+      return fail(_map(e));
+    }
+  }
+
+  @override
+  Future<Result<UjianSessionEntity>> getSesi(int sesiId) async {
+    try {
+      return success((await _remote.getSesi(sesiId)).toEntity());
+    } on DioException catch (e) {
+      return fail(_map(mapDioException(e)));
+    } on AppException catch (e) {
+      return fail(_map(e));
+    }
+  }
+
+  @override
+  Future<Result<List<UjianQuestionEntity>>> getSoal(int sesiId) async {
+    try {
+      return success(
+        (await _remote.getSoal(
+          sesiId,
+        )).map((model) => model.toEntity()).toList(),
+      );
+    } on DioException catch (e) {
+      return fail(_map(mapDioException(e)));
+    } on AppException catch (e) {
+      return fail(_map(e));
+    }
+  }
+
+  @override
+  Future<Result<UjianAnswerEntity>> saveJawaban({
+    required int sesiId,
+    required int soalId,
+    int? opsiId,
+    String? teks,
+    required bool raguRagu,
+  }) async {
+    try {
+      final json = await _remote.saveJawaban(
+        sesiId: sesiId,
+        soalId: soalId,
+        opsiId: opsiId,
+        teks: teks,
+        raguRagu: raguRagu,
+      );
+      return success(
+        UjianAnswerEntity(
+          id: (json['id'] as num?)?.toInt() ?? 0,
+          optionId: (json['mst_soal_opsi_id'] as num?)?.toInt(),
+          text: json['jawaban_teks']?.toString(),
+          doubtful:
+              json['ragu_ragu'] == true ||
+              (json['ragu_ragu'] as num?)?.toInt() == 1,
+        ),
+      );
+    } on DioException catch (e) {
+      return fail(_map(mapDioException(e)));
+    } on AppException catch (e) {
+      return fail(_map(e));
+    }
+  }
+
+  @override
+  Future<Result<int>> getJumlahJawaban(int sesiId) async {
+    try {
+      return success(await _remote.getJumlahJawaban(sesiId));
+    } on DioException catch (e) {
+      return fail(_map(mapDioException(e)));
+    } on AppException catch (e) {
+      return fail(_map(e));
+    }
+  }
+
+  @override
+  Future<Result<UjianSessionEntity>> mulaiSesi(int sesiId) async {
+    try {
+      return success((await _remote.mulaiSesi(sesiId)).toEntity());
+    } on DioException catch (e) {
+      return fail(_map(mapDioException(e)));
+    } on AppException catch (e) {
+      return fail(_map(e));
+    }
+  }
+
+  @override
+  Future<Result<UjianSessionEntity>> selesaikanSesi(int sesiId) async {
+    try {
+      return success((await _remote.selesaikanSesi(sesiId)).toEntity());
+    } on DioException catch (e) {
+      return fail(_map(mapDioException(e)));
+    } on AppException catch (e) {
+      return fail(_map(e));
+    }
+  }
 
   @override
   Future<Result<List<UjianEntity>>> getUjianByKelas(int kelasId) async {
@@ -91,7 +197,9 @@ class UjianRepositoryImpl implements UjianRepository {
     } on AppException catch (e) {
       return fail(_map(e));
     } on FileSystemException catch (e) {
-      return fail(ServerFailure('Gagal menyimpan berkas ranking: ${e.message}'));
+      return fail(
+        ServerFailure('Gagal menyimpan berkas ranking: ${e.message}'),
+      );
     }
   }
 

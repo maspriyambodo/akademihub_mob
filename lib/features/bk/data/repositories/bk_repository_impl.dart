@@ -58,9 +58,7 @@ class BkRepositoryImpl implements BkRepository {
   }
 
   @override
-  Future<Result<List<BkTindakanEntity>>> getTindakanByKasus(
-    int kasusId,
-  ) async {
+  Future<Result<List<BkTindakanEntity>>> getTindakanByKasus(int kasusId) async {
     try {
       final models = await _remote.getTindakanByKasus(kasusId);
       return success(models.map((m) => m.toEntity()).toList());

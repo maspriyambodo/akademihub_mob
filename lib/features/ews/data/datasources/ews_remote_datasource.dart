@@ -41,9 +41,10 @@ class EwsRemoteDataSourceImpl implements EwsRemoteDataSource {
       query['is_resolved'] = isResolved ? 1 : 0;
     }
 
-    final response = await _dio.get('/ews', queryParameters: query);
+    final response = await _dio.get('/ews/alerts', queryParameters: query);
     final body = _asMap(response.data);
-    final list = body['data'];
+    final raw = body['data'];
+    final list = raw is Map ? raw['data'] : raw;
     if (list is List) {
       return list
           .whereType<Map>()
@@ -55,22 +56,21 @@ class EwsRemoteDataSourceImpl implements EwsRemoteDataSource {
 
   @override
   Future<EwsAlertModel> getAlertDetail(int id) async {
-    final response = await _dio.get('/ews/$id');
-    final body = _asMap(response.data);
-    final data = body['data'];
-    if (data is Map) {
-      return EwsAlertModel.fromJson(data.cast<String, dynamic>());
+    // Go hanya menyediakan koleksi dan daftar per siswa; tidak ada detail alert.
+    final alerts = await getAlerts();
+    for (final alert in alerts) {
+      if (alert.id == id) return alert;
     }
-    throw const FormatException('Format respons detail EWS tidak valid');
+    throw const FormatException('Alert EWS tidak ditemukan');
   }
 
   @override
   Future<void> resolveAlert(int id) async {
-    await _dio.put('/ews/$id/resolve');
+    await _dio.patch('/ews/alerts/$id/resolve');
   }
 
   @override
   Future<void> triggerCheck(int siswaId) async {
-    await _dio.post('/ews/$siswaId/trigger');
+    await _dio.post('/ews/process-siswa/$siswaId');
   }
 }

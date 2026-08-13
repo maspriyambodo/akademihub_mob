@@ -24,7 +24,10 @@ class SiswaInsightRemoteDataSourceImpl implements SiswaInsightRemoteDataSource {
   }
 
   @override
-  Future<SiswaInsightModel> getInsight(int siswaId, {bool refresh = false}) async {
+  Future<SiswaInsightModel> getInsight(
+    int siswaId, {
+    bool refresh = false,
+  }) async {
     final response = await _dio.get(
       '/siswa/$siswaId/insight',
       queryParameters: refresh ? {'refresh': 1} : null,

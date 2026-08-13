@@ -67,7 +67,10 @@ class NilaiBloc extends Bloc<NilaiEvent, NilaiState> {
     emit(_buildLoaded());
   }
 
-  void _onSemesterChanged(NilaiSemesterChanged event, Emitter<NilaiState> emit) {
+  void _onSemesterChanged(
+    NilaiSemesterChanged event,
+    Emitter<NilaiState> emit,
+  ) {
     _semester = event.semester;
     emit(_buildLoaded());
   }

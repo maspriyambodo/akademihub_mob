@@ -5,10 +5,12 @@ import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/dashboard/presentation/bloc/dashboard_bloc.dart';
+import 'core/notifications/push_notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await configureDependencies();
+  await sl<PushNotificationService>().initialize();
   runApp(const AkademiHubApp());
 }
 

@@ -2,6 +2,7 @@ import 'package:get_it/get_it.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../api/api_client.dart';
+import '../notifications/push_notification_service.dart';
 import '../storage/token_storage.dart';
 import '../storage/tenant_storage.dart';
 import '../../features/tenant/data/datasources/tenant_remote_datasource.dart';
@@ -175,6 +176,7 @@ import '../../features/ppdb/domain/usecases/tolak_ppdb_dokumen_usecase.dart';
 import '../../features/ppdb/domain/usecases/ubah_status_ppdb_pendaftar_usecase.dart';
 import '../../features/ppdb/presentation/bloc/ppdb_bloc.dart';
 import '../../features/ppdb/presentation/bloc/ppdb_detail_bloc.dart';
+import '../../features/ppdb/presentation/bloc/ppdb_public_bloc.dart';
 import '../../features/ews/data/datasources/ews_remote_datasource.dart';
 import '../../features/ews/data/repositories/ews_repository_impl.dart';
 import '../../features/ews/domain/repositories/ews_repository.dart';
@@ -203,17 +205,19 @@ Future<void> configureDependencies() async {
   sl.registerLazySingleton<SharedPreferences>(() => prefs);
 
   // ── Core ──────────────────────────────────────────────────────────────────
-  sl.registerLazySingleton(() => ApiClient(sl()));
+  final tenantStorage = TenantStorage(prefs);
+  final apiClient = ApiClient(secureStorage)
+    ..applyTenant(tenantStorage.getSavedTenant());
+  sl.registerSingleton(apiClient);
   sl.registerLazySingleton(() => TokenStorage(sl()));
-  sl.registerLazySingleton(() => TenantStorage(sl()));
+  sl.registerSingleton(tenantStorage);
+  sl.registerLazySingleton(() => PushNotificationService(sl<ApiClient>().dio));
 
   // ── Tenant feature ────────────────────────────────────────────────────────
   sl.registerLazySingleton<TenantRemoteDataSource>(
     () => TenantRemoteDataSourceImpl(sl<ApiClient>().dio),
   );
-  sl.registerLazySingleton<TenantRepository>(
-    () => TenantRepositoryImpl(sl()),
-  );
+  sl.registerLazySingleton<TenantRepository>(() => TenantRepositoryImpl(sl()));
   sl.registerLazySingleton(() => ResolveTenantUseCase(sl()));
   sl.registerLazySingleton(() => ListTenantsUseCase(sl()));
   sl.registerFactory(
@@ -221,6 +225,7 @@ Future<void> configureDependencies() async {
       resolveTenant: sl(),
       listTenants: sl(),
       tenantStorage: sl(),
+      apiClient: sl(),
     ),
   );
 
@@ -240,6 +245,7 @@ Future<void> configureDependencies() async {
       logoutUseCase: sl(),
       getCurrentUserUseCase: sl(),
       tokenStorage: sl(),
+      pushNotifications: sl(),
     ),
   );
 
@@ -314,7 +320,9 @@ Future<void> configureDependencies() async {
   sl.registerLazySingleton(() => GetRaporBySiswaUseCase(sl()));
   sl.registerLazySingleton(() => GetRaporDetailUseCase(sl()));
   sl.registerLazySingleton(() => ExportRaporUseCase(sl()));
-  sl.registerFactory(() => RaporBloc(getRaporList: sl(), getRaporBySiswa: sl()));
+  sl.registerFactory(
+    () => RaporBloc(getRaporList: sl(), getRaporBySiswa: sl()),
+  );
   sl.registerFactory(
     () => RaporDetailBloc(getRaporDetail: sl(), exportRapor: sl()),
   );
@@ -672,12 +680,9 @@ Future<void> configureDependencies() async {
   sl.registerLazySingleton(() => ResolveEwsAlertUseCase(sl()));
   sl.registerLazySingleton(() => TriggerEwsCheckUseCase(sl()));
   sl.registerFactory(
-    () => EwsBloc(
-      getAlerts: sl(),
-      resolveAlert: sl(),
-      triggerCheck: sl(),
-    ),
+    () => EwsBloc(getAlerts: sl(), resolveAlert: sl(), triggerCheck: sl()),
   );
+  sl.registerFactory(() => PpdbPublicBloc(sl()));
 
   // ── Siswa Insight feature ──────────────────────────────────────────────────
   sl.registerLazySingleton<SiswaInsightRemoteDataSource>(
@@ -690,9 +695,6 @@ Future<void> configureDependencies() async {
   sl.registerLazySingleton(() => GetSiswaRiskProfileUseCase(sl()));
   sl.registerLazySingleton(() => InvalidateSiswaInsightCacheUseCase(sl()));
   sl.registerFactory(
-    () => SiswaInsightBloc(
-      getInsight: sl(),
-      invalidateCache: sl(),
-    ),
+    () => SiswaInsightBloc(getInsight: sl(), invalidateCache: sl()),
   );
 }

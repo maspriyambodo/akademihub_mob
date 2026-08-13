@@ -57,6 +57,10 @@ class PpdbNilaiStatistikEntity extends Equatable {
   static const kosong = PpdbNilaiStatistikEntity();
 
   @override
-  List<Object?> get props =>
-      [jumlahMapel, rataRata, nilaiTertinggi, nilaiTerendah];
+  List<Object?> get props => [
+    jumlahMapel,
+    rataRata,
+    nilaiTertinggi,
+    nilaiTerendah,
+  ];
 }
