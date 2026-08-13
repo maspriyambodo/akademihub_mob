@@ -3,6 +3,7 @@ import '../models/absensi_siswa_model.dart';
 import '../models/absensi_guru_model.dart';
 
 abstract class AbsensiRemoteDataSource {
+  Future<void> checkIn();
   Future<List<AbsensiSiswaModel>> getAbsensiSiswaList(int siswaId);
   Future<List<AbsensiGuruModel>> getAbsensiGuruList(int guruId);
   Future<List<AbsensiSiswaModel>> getAbsensiSiswaGeneral({
@@ -17,10 +18,15 @@ class AbsensiRemoteDataSourceImpl implements AbsensiRemoteDataSource {
   const AbsensiRemoteDataSourceImpl(this._dio);
 
   @override
+  Future<void> checkIn() async {
+    await _dio.post('/akademik/absensi-siswa/check-in');
+  }
+
+  @override
   Future<List<AbsensiSiswaModel>> getAbsensiSiswaList(int siswaId) async {
     final response = await _dio.get(
       '/akademik/absensi-siswa',
-      queryParameters: {'mst_siswa_id': siswaId, 'per_page': 1000},
+      queryParameters: {'mst_siswa_id': siswaId, 'per_page': 100},
     );
     final list = _extractList(response.data);
     return list
@@ -32,7 +38,7 @@ class AbsensiRemoteDataSourceImpl implements AbsensiRemoteDataSource {
   Future<List<AbsensiGuruModel>> getAbsensiGuruList(int guruId) async {
     final response = await _dio.get(
       '/akademik/absensi-guru',
-      queryParameters: {'mst_guru_id': guruId, 'per_page': 1000},
+      queryParameters: {'mst_guru_id': guruId, 'per_page': 100},
     );
     final list = _extractList(response.data);
     return list

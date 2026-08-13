@@ -257,6 +257,7 @@ Future<void> configureDependencies() async {
     () => AbsensiRepositoryImpl(sl()),
   );
   sl.registerLazySingleton(() => GetAbsensiSiswaListUseCase(sl()));
+  sl.registerLazySingleton(() => CheckInAbsensiUseCase(sl()));
   sl.registerLazySingleton(() => GetAbsensiSiswaGeneralUseCase(sl()));
   sl.registerLazySingleton(() => GetAbsensiGuruListUseCase(sl()));
   sl.registerFactory(
@@ -264,6 +265,7 @@ Future<void> configureDependencies() async {
       getSiswaList: sl(),
       getSiswaGeneral: sl(),
       getGuruList: sl(),
+      checkIn: sl(),
     ),
   );
 

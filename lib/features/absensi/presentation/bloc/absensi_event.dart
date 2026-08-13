@@ -36,3 +36,7 @@ class AbsensiMonthChanged extends AbsensiEvent {
 class AbsensiRefreshRequested extends AbsensiEvent {
   const AbsensiRefreshRequested();
 }
+
+class AbsensiCheckInRequested extends AbsensiEvent {
+  const AbsensiCheckInRequested();
+}

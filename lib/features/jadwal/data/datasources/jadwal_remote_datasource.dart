@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../models/jadwal_pelajaran_model.dart';
 
 abstract class JadwalRemoteDataSource {
@@ -41,6 +42,9 @@ class JadwalRemoteDataSourceImpl implements JadwalRemoteDataSource {
       // Controller membaca $request->input('hari') dan wajib diisi.
       queryParameters: {'hari': hari},
     );
+    if (kDebugMode) {
+      debugPrint('Jadwal: ${response.requestOptions.uri}');
+    }
     return _parseList(response.data);
   }
 

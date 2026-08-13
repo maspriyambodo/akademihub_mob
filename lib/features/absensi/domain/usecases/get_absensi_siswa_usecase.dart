@@ -10,6 +10,13 @@ class GetAbsensiSiswaListUseCase {
       _repository.getAbsensiSiswaList(siswaId);
 }
 
+class CheckInAbsensiUseCase {
+  final AbsensiRepository _repository;
+  const CheckInAbsensiUseCase(this._repository);
+
+  Future<Result<void>> call() => _repository.checkIn();
+}
+
 class GetAbsensiSiswaGeneralUseCase {
   final AbsensiRepository _repository;
   const GetAbsensiSiswaGeneralUseCase(this._repository);

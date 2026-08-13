@@ -13,6 +13,7 @@ class AbsensiBloc extends Bloc<AbsensiEvent, AbsensiState> {
   final GetAbsensiSiswaListUseCase getSiswaList;
   final GetAbsensiSiswaGeneralUseCase getSiswaGeneral;
   final GetAbsensiGuruListUseCase getGuruList;
+  final CheckInAbsensiUseCase checkIn;
 
   // Internal cache (all records, not yet month-filtered)
   List<AbsensiSiswaEntity> _allSiswaItems = [];
@@ -24,10 +25,25 @@ class AbsensiBloc extends Bloc<AbsensiEvent, AbsensiState> {
     required this.getSiswaList,
     required this.getSiswaGeneral,
     required this.getGuruList,
+    required this.checkIn,
   }) : super(AbsensiInitial()) {
     on<AbsensiLoadRequested>(_onLoad);
     on<AbsensiMonthChanged>(_onMonthChanged);
     on<AbsensiRefreshRequested>(_onRefresh);
+    on<AbsensiCheckInRequested>(_onCheckIn);
+  }
+
+  Future<void> _onCheckIn(
+    AbsensiCheckInRequested event,
+    Emitter<AbsensiState> emit,
+  ) async {
+    if (_role != 'siswa') return;
+    final result = await checkIn();
+    if (!result.isSuccess) {
+      emit(AbsensiError(result.requireFailure.message));
+      return;
+    }
+    await _fetchAndEmit(DateTime.now().month, DateTime.now().year, emit);
   }
 
   Future<void> _onLoad(

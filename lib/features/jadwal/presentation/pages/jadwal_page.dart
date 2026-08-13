@@ -27,6 +27,31 @@ class _JadwalView extends StatefulWidget {
 }
 
 class _JadwalViewState extends State<_JadwalView> {
+  void _loadForUser(AuthAuthenticated state) {
+    final user = state.user;
+    final role = (user.role ?? 'admin').toLowerCase();
+    final profile = user.profile;
+    final profileId = (profile?['id'] as num?)?.toInt();
+
+    int? kelasId;
+    if (role == 'siswa' || role == 'wali') {
+      final kelas = profile?['kelas'];
+      if (kelas is Map) {
+        kelasId = (kelas['id'] as num?)?.toInt();
+      }
+      kelasId ??= (profile?['mst_kelas_id'] as num?)?.toInt();
+      kelasId ??= (profile?['kelas_id'] as num?)?.toInt();
+    }
+
+    context.read<JadwalBloc>().add(
+      JadwalLoadRequested(
+        role: role,
+        kelasId: kelasId,
+        guruId: role == 'guru' ? profileId : null,
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -34,32 +59,7 @@ class _JadwalViewState extends State<_JadwalView> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final authState = context.read<AuthBloc>().state;
-      if (authState is! AuthAuthenticated) return;
-
-      final user = authState.user;
-      final role = (user.role ?? 'admin').toLowerCase();
-      final profile = user.profile;
-      final profileId = (profile?['id'] as num?)?.toInt();
-
-      // Siswa/wali melihat jadwal kelasnya. Backend mengirim kelas siswa di
-      // `profile.kelas.id`; sediakan fallback untuk bentuk lain.
-      int? kelasId;
-      if (role == 'siswa' || role == 'wali') {
-        final kelas = profile?['kelas'];
-        if (kelas is Map) {
-          kelasId = (kelas['id'] as num?)?.toInt();
-        }
-        kelasId ??= (profile?['mst_kelas_id'] as num?)?.toInt();
-        kelasId ??= (profile?['kelas_id'] as num?)?.toInt();
-      }
-
-      context.read<JadwalBloc>().add(
-        JadwalLoadRequested(
-          role: role,
-          kelasId: kelasId,
-          guruId: role == 'guru' ? profileId : null,
-        ),
-      );
+      if (authState is AuthAuthenticated) _loadForUser(authState);
     });
   }
 
@@ -67,57 +67,72 @@ class _JadwalViewState extends State<_JadwalView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Jadwal Pelajaran'), centerTitle: true),
-      body: BlocBuilder<JadwalBloc, JadwalState>(
-        builder: (context, state) {
-          if (state is JadwalInitial || state is JadwalLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (state is JadwalError) {
-            return _ErrorView(
-              message: state.message,
-              onRetry: () => context.read<JadwalBloc>().add(
-                const JadwalRefreshRequested(),
-              ),
-            );
-          }
-          if (state is JadwalLoaded) {
-            return Column(
-              children: [
-                _HariSelector(
-                  hariList: state.availableHari,
-                  selected: state.selectedHari,
-                  hariIni: hariCodeFromWeekday(state.now.weekday),
-                  onSelected: (hari) =>
-                      context.read<JadwalBloc>().add(JadwalHariChanged(hari)),
-                ),
-                Expanded(
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxWidth: Responsive.lebarKontenMaks(context),
-                      ),
-                      child: RefreshIndicator(
-                        onRefresh: () async {
-                          context.read<JadwalBloc>().add(
-                            const JadwalRefreshRequested(),
-                          );
-                        },
-                        child: state.items.isEmpty
-                            ? _EmptyScrollView(
-                                message:
-                                    'Tidak ada jadwal pelajaran pada hari '
-                                    '${hariLabel(state.selectedHari)}',
-                              )
-                            : _JadwalList(state: state),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            );
-          }
-          return const SizedBox.shrink();
+      body: BlocListener<AuthBloc, AuthState>(
+        listenWhen: (_, state) => state is AuthAuthenticated,
+        listener: (context, state) {
+          if (state is AuthAuthenticated) _loadForUser(state);
         },
+        child: BlocBuilder<AuthBloc, AuthState>(
+          builder: (context, authState) {
+            if (authState is! AuthAuthenticated) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            return BlocBuilder<JadwalBloc, JadwalState>(
+              builder: (context, state) {
+                if (state is JadwalInitial || state is JadwalLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (state is JadwalError) {
+                  return _ErrorView(
+                    message: state.message,
+                    onRetry: () => context.read<JadwalBloc>().add(
+                      const JadwalRefreshRequested(),
+                    ),
+                  );
+                }
+                if (state is JadwalLoaded) {
+                  return Column(
+                    children: [
+                      _HariSelector(
+                        hariList: state.availableHari,
+                        selected: state.selectedHari,
+                        hariIni: hariCodeFromWeekday(state.now.weekday),
+                        onSelected: (hari) => context.read<JadwalBloc>().add(
+                          JadwalHariChanged(hari),
+                        ),
+                      ),
+                      Expanded(
+                        child: Center(
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxWidth: Responsive.lebarKontenMaks(context),
+                            ),
+                            child: RefreshIndicator(
+                              onRefresh: () async {
+                                context.read<JadwalBloc>().add(
+                                  const JadwalRefreshRequested(),
+                                );
+                              },
+                              child: state.items.isEmpty
+                                  ? _EmptyScrollView(
+                                      message:
+                                          'Tidak ada jadwal pelajaran pada hari '
+                                          '${hariLabel(state.selectedHari)}',
+                                    )
+                                  : _JadwalList(state: state),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            );
+          },
+        ),
       ),
     );
   }
@@ -311,134 +326,128 @@ class _JadwalCard extends StatelessWidget {
         ? AppColors.success
         : (selesai ? AppColors.textHint : AppColors.primary);
 
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // ── Kolom jam + garis timeline ────────────────────────────────
-          SizedBox(
-            width: Responsive.isCompact(context) ? 52 : 62,
-            child: Column(
-              children: [
-                const SizedBox(height: 14),
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    item.jamMulai ?? '--:--',
-                    maxLines: 1,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: selesai
-                          ? AppColors.textHint
-                          : AppColors.textPrimary,
-                    ),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── Kolom jam + garis timeline ────────────────────────────────
+        SizedBox(
+          width: Responsive.isCompact(context) ? 52 : 62,
+          child: Column(
+            children: [
+              const SizedBox(height: 14),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  item.jamMulai ?? '--:--',
+                  maxLines: 1,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: selesai ? AppColors.textHint : AppColors.textPrimary,
                   ),
                 ),
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    item.jamSelesai ?? '--:--',
-                    maxLines: 1,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: AppColors.textSecondary,
-                    ),
+              ),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  item.jamSelesai ?? '--:--',
+                  maxLines: 1,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textSecondary,
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          _TimelineBar(color: aksen, aktif: berlangsung, isLast: isLast),
-          // ── Kartu detail ──────────────────────────────────────────────
-          Expanded(
-            child: Opacity(
-              opacity: selesai ? 0.6 : 1,
-              child: Card(
-                margin: EdgeInsets.fromLTRB(
-                  10,
-                  6,
-                  Responsive.pagePadding(context).right,
-                  6,
+        ),
+        _TimelineBar(color: aksen, aktif: berlangsung, isLast: isLast),
+        // ── Kartu detail ──────────────────────────────────────────────
+        Expanded(
+          child: Opacity(
+            opacity: selesai ? 0.6 : 1,
+            child: Card(
+              margin: EdgeInsets.fromLTRB(
+                10,
+                6,
+                Responsive.pagePadding(context).right,
+                6,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(
+                  color: berlangsung ? AppColors.success : AppColors.divider,
+                  width: berlangsung ? 1.4 : 1,
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(
-                    color: berlangsung ? AppColors.success : AppColors.divider,
-                    width: berlangsung ? 1.4 : 1,
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              item.mapelNama ??
-                                  'Mata pelajaran tidak diketahui',
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textPrimary,
-                              ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            item.mapelNama ?? 'Mata pelajaran tidak diketahui',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
                             ),
                           ),
-                          if (berlangsung) ...[
-                            const SizedBox(width: 6),
-                            const _BadgeBerlangsung(),
-                          ],
+                        ),
+                        if (berlangsung) ...[
+                          const SizedBox(width: 6),
+                          const _BadgeBerlangsung(),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    _InfoRow(
+                      icon: Icons.person_outline,
+                      text: item.guruNama ?? 'Guru belum ditentukan',
+                    ),
+                    const SizedBox(height: 4),
+                    LayoutBuilder(
+                      builder: (context, c) => Wrap(
+                        spacing: 6,
+                        runSpacing: 4,
+                        children: [
+                          _Chip(
+                            icon: Icons.schedule,
+                            maxWidth: c.maxWidth,
+                            label: item.durasiMenit != null
+                                ? '${item.rentangJam} · ${item.durasiMenit} mnt'
+                                : item.rentangJam,
+                          ),
+                          if (item.ruangan != null && item.ruangan!.isNotEmpty)
+                            _Chip(
+                              icon: Icons.meeting_room_outlined,
+                              maxWidth: c.maxWidth,
+                              label: item.ruangan!,
+                            ),
+                          if (showKelas &&
+                              item.kelasNama != null &&
+                              item.kelasNama!.isNotEmpty)
+                            _Chip(
+                              icon: Icons.class_outlined,
+                              maxWidth: c.maxWidth,
+                              label: item.kelasNama!,
+                            ),
                         ],
                       ),
-                      const SizedBox(height: 6),
-                      _InfoRow(
-                        icon: Icons.person_outline,
-                        text: item.guruNama ?? 'Guru belum ditentukan',
-                      ),
-                      const SizedBox(height: 4),
-                      LayoutBuilder(
-                        builder: (context, c) => Wrap(
-                          spacing: 6,
-                          runSpacing: 4,
-                          children: [
-                            _Chip(
-                              icon: Icons.schedule,
-                              maxWidth: c.maxWidth,
-                              label: item.durasiMenit != null
-                                  ? '${item.rentangJam} · ${item.durasiMenit} mnt'
-                                  : item.rentangJam,
-                            ),
-                            if (item.ruangan != null &&
-                                item.ruangan!.isNotEmpty)
-                              _Chip(
-                                icon: Icons.meeting_room_outlined,
-                                maxWidth: c.maxWidth,
-                                label: item.ruangan!,
-                              ),
-                            if (showKelas &&
-                                item.kelasNama != null &&
-                                item.kelasNama!.isNotEmpty)
-                              _Chip(
-                                icon: Icons.class_outlined,
-                                maxWidth: c.maxWidth,
-                                label: item.kelasNama!,
-                              ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -472,7 +481,8 @@ class _TimelineBar extends StatelessWidget {
                   : null,
             ),
           ),
-          Expanded(
+          SizedBox(
+            height: 112,
             child: Container(
               width: 2,
               color: isLast ? Colors.transparent : AppColors.divider,

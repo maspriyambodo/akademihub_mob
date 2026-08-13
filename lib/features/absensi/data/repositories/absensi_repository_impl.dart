@@ -13,6 +13,16 @@ class AbsensiRepositoryImpl implements AbsensiRepository {
   const AbsensiRepositoryImpl(this._remote);
 
   @override
+  Future<Result<void>> checkIn() async {
+    try {
+      await _remote.checkIn();
+      return success(null);
+    } on DioException catch (e) {
+      return fail(_map(mapDioException(e)));
+    }
+  }
+
+  @override
   Future<Result<List<AbsensiSiswaEntity>>> getAbsensiSiswaList(
     int siswaId,
   ) async {

@@ -101,24 +101,6 @@ class _AbsensiViewState extends State<_AbsensiView> {
       ),
       body: Column(
         children: [
-          if (isSiswa)
-            Container(
-              width: double.infinity,
-              color: AppColors.info.withAlpha(20),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: const Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(Icons.info_outline, color: AppColors.info, size: 20),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'Absensi dicatat oleh guru atau admin sekolah. Tarik layar ke bawah untuk memperbarui riwayat.',
-                    ),
-                  ),
-                ],
-              ),
-            ),
           // ── Month selector ─────────────────────────────────────────────
           _MonthSelector(
             bulan: _bulan,
@@ -144,6 +126,7 @@ class _AbsensiViewState extends State<_AbsensiView> {
                 if (state is AbsensiLoaded) {
                   return _LoadedView(
                     state: state,
+                    isSiswa: isSiswa,
                     onRefresh: () async {
                       context.read<AbsensiBloc>().add(
                         const AbsensiRefreshRequested(),
@@ -240,9 +223,14 @@ class _MonthSelector extends StatelessWidget {
 
 class _LoadedView extends StatelessWidget {
   final AbsensiLoaded state;
+  final bool isSiswa;
   final Future<void> Function() onRefresh;
 
-  const _LoadedView({required this.state, required this.onRefresh});
+  const _LoadedView({
+    required this.state,
+    required this.isSiswa,
+    required this.onRefresh,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -258,6 +246,10 @@ class _LoadedView extends StatelessWidget {
           onRefresh: onRefresh,
           child: CustomScrollView(
             slivers: [
+              if (isSiswa)
+                SliverToBoxAdapter(
+                  child: _CheckInPanel(items: state.siswaItems),
+                ),
               // Summary cards
               SliverToBoxAdapter(child: _SummaryRow(summary: state.summary)),
               // List header
@@ -304,6 +296,73 @@ class _LoadedView extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _CheckInPanel extends StatelessWidget {
+  final List<AbsensiSiswaEntity> items;
+
+  const _CheckInPanel({required this.items});
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final today = items.where((item) {
+      final date = item.tanggalDate;
+      return date != null &&
+          date.year == now.year &&
+          date.month == now.month &&
+          date.day == now.day;
+    }).firstOrNull;
+    final checkedIn = today != null;
+    final color = checkedIn ? AppColors.success : AppColors.primary;
+
+    return Container(
+      margin: EdgeInsets.fromLTRB(
+        Responsive.pagePadding(context).left,
+        12,
+        Responsive.pagePadding(context).right,
+        4,
+      ),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withAlpha(18),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withAlpha(80)),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            checkedIn ? Icons.check_circle : Icons.how_to_reg,
+            color: color,
+            size: 28,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              checkedIn
+                  ? 'Kehadiran hari ini sudah tercatat'
+                  : 'Belum absen hari ini',
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+          FilledButton(
+            onPressed: checkedIn
+                ? null
+                : () => context.read<AbsensiBloc>().add(
+                    const AbsensiCheckInRequested(),
+                  ),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              minimumSize: const Size(0, 44),
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+            ),
+            child: Text(checkedIn ? 'Tercatat' : 'Absen sekarang'),
+          ),
+        ],
       ),
     );
   }

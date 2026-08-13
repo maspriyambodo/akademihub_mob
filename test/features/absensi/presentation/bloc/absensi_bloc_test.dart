@@ -14,6 +14,7 @@ void main() {
       getSiswaList: GetAbsensiSiswaListUseCase(repository),
       getSiswaGeneral: GetAbsensiSiswaGeneralUseCase(repository),
       getGuruList: GetAbsensiGuruListUseCase(repository),
+      checkIn: CheckInAbsensiUseCase(repository),
     );
 
     bloc.add(const AbsensiLoadRequested(role: 'admin', bulan: 7, tahun: 2026));
@@ -36,6 +37,7 @@ void main() {
       getSiswaList: GetAbsensiSiswaListUseCase(repository),
       getSiswaGeneral: GetAbsensiSiswaGeneralUseCase(repository),
       getGuruList: GetAbsensiGuruListUseCase(repository),
+      checkIn: CheckInAbsensiUseCase(repository),
     );
 
     bloc.add(const AbsensiLoadRequested(role: 'wali', bulan: 7, tahun: 2026));
@@ -50,10 +52,44 @@ void main() {
     expect(repository.ranges, isEmpty);
     await bloc.close();
   });
+
+  test('siswa dapat check-in lalu riwayat dimuat ulang', () async {
+    final repository = _FakeAbsensiRepository();
+    final bloc = AbsensiBloc(
+      getSiswaList: GetAbsensiSiswaListUseCase(repository),
+      getSiswaGeneral: GetAbsensiSiswaGeneralUseCase(repository),
+      getGuruList: GetAbsensiGuruListUseCase(repository),
+      checkIn: CheckInAbsensiUseCase(repository),
+    );
+
+    bloc.add(const AbsensiLoadRequested(
+      role: 'siswa',
+      profileId: 7,
+      bulan: 8,
+      tahun: 2026,
+    ));
+    await bloc.stream.firstWhere((state) => state is AbsensiLoaded);
+    bloc.add(const AbsensiCheckInRequested());
+    await bloc.stream.firstWhere(
+      (state) => state is AbsensiLoaded && state.siswaItems.isNotEmpty,
+    );
+
+    expect(repository.checkInCalls, 1);
+    expect(repository.siswaListCalls, 2);
+    await bloc.close();
+  });
 }
 
 class _FakeAbsensiRepository implements AbsensiRepository {
   final List<(String?, String?)> ranges = [];
+  int checkInCalls = 0;
+  int siswaListCalls = 0;
+
+  @override
+  Future<Result<void>> checkIn() async {
+    checkInCalls++;
+    return success(null);
+  }
 
   @override
   Future<Result<List<AbsensiGuruEntity>>> getAbsensiGuruList(
@@ -72,5 +108,14 @@ class _FakeAbsensiRepository implements AbsensiRepository {
   @override
   Future<Result<List<AbsensiSiswaEntity>>> getAbsensiSiswaList(
     int siswaId,
-  ) async => success(const []);
+  ) async {
+    siswaListCalls++;
+    return success([
+      AbsensiSiswaEntity(
+        id: siswaListCalls,
+        tanggal: '2026-08-13',
+        statusAbsensi: 'hadir',
+      ),
+    ]);
+  }
 }
