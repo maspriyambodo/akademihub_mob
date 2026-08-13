@@ -66,6 +66,9 @@ class AppRoutes {
     tmb => const ['tes-minat-bakat.view', 'tes-minat-bakat-peserta.view'],
     ppdb => const ['ppdb.pendaftaran.view', 'ppdb.gelombang.view'],
     ews => const ['ews.view'],
+    _ when path.startsWith('/siswa/') && path.endsWith('/insight') => const [
+      'siswa.view',
+    ],
     _ => const [],
   };
 }
