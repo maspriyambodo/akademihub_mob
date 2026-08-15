@@ -586,7 +586,9 @@ class _SiswaSessionTabState extends State<_SiswaSessionTab> {
                             if (ujian?.mapelNama != null) ujian!.mapelNama!,
                             session.statusLabel,
                             if (session.status == UjianSessionStatus.selesai)
-                              'Nilai ${session.nilaiAkhir.toStringAsFixed(2)}',
+                              session.nilaiAkhir == null
+                                  ? 'Nilai final belum tersedia'
+                                  : 'Nilai ${session.nilaiAkhir!.toStringAsFixed(2)}',
                           ].join(' · '),
                         ),
                         trailing: const Icon(Icons.chevron_right),

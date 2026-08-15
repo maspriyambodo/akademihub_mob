@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-enum UjianSessionStatus { belumMulai, mengerjakan, selesai }
+enum UjianSessionStatus { belumMulai, mengerjakan, selesai, menungguKoreksi }
 
 class UjianSessionEntity extends Equatable {
   final int id;
@@ -11,7 +11,8 @@ class UjianSessionEntity extends Equatable {
   final String? waktuSelesai;
   final int totalBenar;
   final int totalSalah;
-  final double nilaiAkhir;
+  final double? nilaiAkhir;
+  final double? nilaiProvisional;
   final int? sisaWaktu;
 
   const UjianSessionEntity({
@@ -23,7 +24,8 @@ class UjianSessionEntity extends Equatable {
     this.waktuSelesai,
     this.totalBenar = 0,
     this.totalSalah = 0,
-    this.nilaiAkhir = 0,
+    this.nilaiAkhir,
+    this.nilaiProvisional,
     this.sisaWaktu,
   });
 
@@ -31,6 +33,7 @@ class UjianSessionEntity extends Equatable {
     UjianSessionStatus.belumMulai => 'Belum mulai',
     UjianSessionStatus.mengerjakan => 'Mengerjakan',
     UjianSessionStatus.selesai => 'Selesai',
+    UjianSessionStatus.menungguKoreksi => 'Menunggu koreksi essay',
   };
 
   UjianSessionEntity copyWith({
@@ -40,6 +43,7 @@ class UjianSessionEntity extends Equatable {
     int? totalBenar,
     int? totalSalah,
     double? nilaiAkhir,
+    double? nilaiProvisional,
     int? sisaWaktu,
   }) => UjianSessionEntity(
     id: id,
@@ -51,6 +55,7 @@ class UjianSessionEntity extends Equatable {
     totalBenar: totalBenar ?? this.totalBenar,
     totalSalah: totalSalah ?? this.totalSalah,
     nilaiAkhir: nilaiAkhir ?? this.nilaiAkhir,
+    nilaiProvisional: nilaiProvisional ?? this.nilaiProvisional,
     sisaWaktu: sisaWaktu ?? this.sisaWaktu,
   );
 
@@ -65,6 +70,7 @@ class UjianSessionEntity extends Equatable {
     totalBenar,
     totalSalah,
     nilaiAkhir,
+    nilaiProvisional,
     sisaWaktu,
   ];
 }

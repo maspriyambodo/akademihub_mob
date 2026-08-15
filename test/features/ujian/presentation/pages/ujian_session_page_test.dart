@@ -58,6 +58,53 @@ void main() {
     expect(find.byKey(const Key('exam-result')), findsOneWidget);
     expect(repository.questionFetches, 0);
     expect(find.text('Dua tambah dua?'), findsNothing);
+    expect(find.text('Mulai Ujian'), findsNothing);
+    expect(find.byKey(const Key('finalize-exam')), findsNothing);
+  });
+
+  testWidgets(
+    'not-started session only offers start without fetching questions',
+    (tester) async {
+      final repository = _FakeRepository();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: UjianSessionPage(
+            repository: repository,
+            session: repository.session.copyWith(
+              status: UjianSessionStatus.belumMulai,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Mulai Ujian'), findsOneWidget);
+      expect(find.byKey(const Key('finalize-exam')), findsNothing);
+      expect(repository.questionFetches, 0);
+    },
+  );
+
+  testWidgets('awaiting grading is read-only without final score', (
+    tester,
+  ) async {
+    final repository = _FakeRepository();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: UjianSessionPage(
+          repository: repository,
+          session: repository.session.copyWith(
+            status: UjianSessionStatus.menungguKoreksi,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('awaiting-grading')), findsOneWidget);
+    expect(find.text('Mulai Ujian'), findsNothing);
+    expect(find.byKey(const Key('finalize-exam')), findsNothing);
+    expect(find.byKey(const Key('exam-result')), findsNothing);
+    expect(repository.questionFetches, 0);
   });
 }
 

@@ -241,13 +241,23 @@ class _UjianSessionPageState extends State<UjianSessionPage> {
                 Text('Status: ${_session.statusLabel}'),
                 if (_session.status == UjianSessionStatus.selesai) ...[
                   const SizedBox(height: 12),
-                  Text(
-                    'Nilai ${_session.nilaiAkhir.toStringAsFixed(2)}',
-                    key: const Key('exam-result'),
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
+                  if (_session.nilaiAkhir != null)
+                    Text(
+                      'Nilai ${_session.nilaiAkhir!.toStringAsFixed(2)}',
+                      key: const Key('exam-result'),
+                      style: Theme.of(context).textTheme.headlineMedium,
+                    )
+                  else
+                    const Text('Nilai final belum tersedia'),
                   Text(
                     'Benar ${_session.totalBenar} · Salah ${_session.totalSalah}',
+                  ),
+                ],
+                if (_session.status == UjianSessionStatus.menungguKoreksi) ...[
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Menunggu koreksi essay',
+                    key: Key('awaiting-grading'),
                   ),
                 ],
                 const SizedBox(height: 16),
