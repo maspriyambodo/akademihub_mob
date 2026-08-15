@@ -73,6 +73,7 @@ Mobile tetap berfokus pada pengguna sekolah yang sudah memiliki akun: siswa, gur
 - [x] **MOB-EXAM-01** — selesai (`akademihub_mob` commit `c950605`)
 - [x] **MOB-EXAM-02** — selesai (`akademihub_mob` commit `0f02e86`)
 - [x] **MOB-ABS-01** — selesai (`akademihub_mob` commit `13866ea`; `absensi-worker` commit `0cc97fa`)
+- [x] **API-ABS-01** — selesai (`absensi-worker` commit `f803814`, `7d9f6e7`)
 
 Item yang tidak tercantum di atas belum ditandai selesai.
 
