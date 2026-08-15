@@ -1,4 +1,5 @@
-import 'package:akademihub_mob/core/error/result.dart';
+import 'package:akademihub_mob/core/error/result.dart' as result;
+import 'package:akademihub_mob/core/error/failures.dart';
 import 'package:akademihub_mob/features/absensi/domain/entities/absensi_guru_entity.dart';
 import 'package:akademihub_mob/features/absensi/domain/entities/absensi_siswa_entity.dart';
 import 'package:akademihub_mob/features/absensi/domain/repositories/absensi_repository.dart';
@@ -62,12 +63,14 @@ void main() {
       checkIn: CheckInAbsensiUseCase(repository),
     );
 
-    bloc.add(const AbsensiLoadRequested(
-      role: 'siswa',
-      profileId: 7,
-      bulan: 8,
-      tahun: 2026,
-    ));
+    bloc.add(
+      const AbsensiLoadRequested(
+        role: 'siswa',
+        profileId: 7,
+        bulan: 8,
+        tahun: 2026,
+      ),
+    );
     await bloc.stream.firstWhere((state) => state is AbsensiLoaded);
     bloc.add(const AbsensiCheckInRequested());
     await bloc.stream.firstWhere(
@@ -78,39 +81,70 @@ void main() {
     expect(repository.siswaListCalls, 2);
     await bloc.close();
   });
+
+  test('error check-in backend ditampilkan tanpa reload riwayat', () async {
+    final repository = _FakeAbsensiRepository()
+      ..checkInFailure = const ServerFailure('Check-in ditutup oleh sekolah');
+    final bloc = AbsensiBloc(
+      getSiswaList: GetAbsensiSiswaListUseCase(repository),
+      getSiswaGeneral: GetAbsensiSiswaGeneralUseCase(repository),
+      getGuruList: GetAbsensiGuruListUseCase(repository),
+      checkIn: CheckInAbsensiUseCase(repository),
+    );
+
+    bloc.add(
+      const AbsensiLoadRequested(
+        role: 'siswa',
+        profileId: 7,
+        bulan: 8,
+        tahun: 2026,
+      ),
+    );
+    await bloc.stream.firstWhere((state) => state is AbsensiLoaded);
+    bloc.add(const AbsensiCheckInRequested());
+    final state = await bloc.stream.firstWhere(
+      (state) => state is AbsensiError,
+    );
+
+    expect((state as AbsensiError).message, 'Check-in ditutup oleh sekolah');
+    expect(repository.siswaListCalls, 1);
+    await bloc.close();
+  });
 }
 
 class _FakeAbsensiRepository implements AbsensiRepository {
   final List<(String?, String?)> ranges = [];
   int checkInCalls = 0;
   int siswaListCalls = 0;
+  Failure? checkInFailure;
 
   @override
-  Future<Result<void>> checkIn() async {
+  Future<result.Result<void>> checkIn() async {
     checkInCalls++;
-    return success(null);
+    if (checkInFailure != null) return result.fail(checkInFailure!);
+    return result.success(null);
   }
 
   @override
-  Future<Result<List<AbsensiGuruEntity>>> getAbsensiGuruList(
+  Future<result.Result<List<AbsensiGuruEntity>>> getAbsensiGuruList(
     int guruId,
-  ) async => success(const []);
+  ) async => result.success(const []);
 
   @override
-  Future<Result<List<AbsensiSiswaEntity>>> getAbsensiSiswaGeneral({
+  Future<result.Result<List<AbsensiSiswaEntity>>> getAbsensiSiswaGeneral({
     String? tanggalFrom,
     String? tanggalTo,
   }) async {
     ranges.add((tanggalFrom, tanggalTo));
-    return success(const []);
+    return result.success(const []);
   }
 
   @override
-  Future<Result<List<AbsensiSiswaEntity>>> getAbsensiSiswaList(
+  Future<result.Result<List<AbsensiSiswaEntity>>> getAbsensiSiswaList(
     int siswaId,
   ) async {
     siswaListCalls++;
-    return success([
+    return result.success([
       AbsensiSiswaEntity(
         id: siswaListCalls,
         tanggal: '2026-08-13',
