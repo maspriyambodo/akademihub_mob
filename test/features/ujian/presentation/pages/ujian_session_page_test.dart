@@ -88,24 +88,62 @@ void main() {
     tester,
   ) async {
     final repository = _FakeRepository();
+    repository.currentSession = repository.session.copyWith(
+      status: UjianSessionStatus.menungguKoreksi,
+      nilaiProvisional: 50,
+    );
     await tester.pumpWidget(
       MaterialApp(
         home: UjianSessionPage(
           repository: repository,
-          session: repository.session.copyWith(
-            status: UjianSessionStatus.menungguKoreksi,
-          ),
+          session: repository.currentSession,
         ),
       ),
     );
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('awaiting-grading')), findsOneWidget);
+    expect(find.byKey(const Key('provisional-result')), findsOneWidget);
+    expect(find.text('Nilai sementara 50.00'), findsOneWidget);
     expect(find.text('Mulai Ujian'), findsNothing);
     expect(find.byKey(const Key('finalize-exam')), findsNothing);
     expect(find.byKey(const Key('exam-result')), findsNothing);
     expect(repository.questionFetches, 0);
   });
+
+  testWidgets(
+    'refresh transitions awaiting grading to completed final result',
+    (tester) async {
+      final repository = _FakeRepository();
+      repository.currentSession = repository.session.copyWith(
+        status: UjianSessionStatus.menungguKoreksi,
+        nilaiProvisional: 50,
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: UjianSessionPage(
+            repository: repository,
+            session: repository.currentSession,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('provisional-result')), findsOneWidget);
+
+      repository.currentSession = repository.session.copyWith(
+        status: UjianSessionStatus.selesai,
+        nilaiAkhir: 80,
+      );
+      await tester.drag(find.byType(ListView), const Offset(0, 300));
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(repository.sessionFetches, 1);
+      expect(find.byKey(const Key('exam-result')), findsOneWidget);
+      expect(find.text('Nilai sementara 50.00'), findsNothing);
+      expect(find.text('Nilai 80.00'), findsOneWidget);
+    },
+  );
 }
 
 class _FakeRepository implements UjianRepository {
@@ -117,7 +155,9 @@ class _FakeRepository implements UjianRepository {
     sisaWaktu: 600,
   );
   final saved = <(int, int?, String?, bool)>[];
+  late UjianSessionEntity currentSession = session;
   int questionFetches = 0;
+  int sessionFetches = 0;
   bool finalized = false;
 
   @override
@@ -157,8 +197,10 @@ class _FakeRepository implements UjianRepository {
   }
 
   @override
-  Future<Result<UjianSessionEntity>> getSesi(int sesiId) async =>
-      success(session);
+  Future<Result<UjianSessionEntity>> getSesi(int sesiId) async {
+    sessionFetches++;
+    return success(currentSession);
+  }
 
   @override
   Future<Result<UjianSessionEntity>> selesaikanSesi(int sesiId) async {

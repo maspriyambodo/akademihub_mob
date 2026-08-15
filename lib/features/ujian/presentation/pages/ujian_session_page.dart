@@ -259,6 +259,11 @@ class _UjianSessionPageState extends State<UjianSessionPage> {
                     'Menunggu koreksi essay',
                     key: Key('awaiting-grading'),
                   ),
+                  if (_session.nilaiProvisional != null)
+                    Text(
+                      'Nilai sementara ${_session.nilaiProvisional!.toStringAsFixed(2)}',
+                      key: const Key('provisional-result'),
+                    ),
                 ],
                 const SizedBox(height: 16),
                 if (_session.status == UjianSessionStatus.belumMulai)

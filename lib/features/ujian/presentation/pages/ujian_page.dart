@@ -589,6 +589,10 @@ class _SiswaSessionTabState extends State<_SiswaSessionTab> {
                               session.nilaiAkhir == null
                                   ? 'Nilai final belum tersedia'
                                   : 'Nilai ${session.nilaiAkhir!.toStringAsFixed(2)}',
+                            if (session.status ==
+                                    UjianSessionStatus.menungguKoreksi &&
+                                session.nilaiProvisional != null)
+                              'Nilai sementara ${session.nilaiProvisional!.toStringAsFixed(2)}',
                           ].join(' · '),
                         ),
                         trailing: const Icon(Icons.chevron_right),
