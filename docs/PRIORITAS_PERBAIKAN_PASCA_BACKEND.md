@@ -54,7 +54,7 @@ Mobile tetap berfokus pada pengguna sekolah yang sudah memiliki akun: siswa, gur
 | MOB-AUTH-01 | P1 | Auth | Jadikan refresh token single-flight | Refresh paralel dapat memicu reuse dan revoke session family |
 | MOB-AUTH-02 | P1 | Auth | Satukan kontrak refresh token | Method manual masih mengirim token melalui Bearer header |
 | MOB-PPDB-01 | P1 | Scope | Hapus seluruh modul PPDB mobile | Selesai |
-| MOB-PAY-01 | P2 | Pembayaran | Refresh obligation setelah checkout | Redirect WebView bukan bukti pembayaran lunas |
+| MOB-PAY-01 | P2 | Pembayaran | Refresh obligation setelah checkout | Selesai |
 | MOB-TENANT-01 | P2 | Tenant | Validasi flow superadmin lintas tenant | Backend kini mewajibkan tenant eksplisit |
 | MOB-QA-01 | P1 | QA | Tambahkan contract dan integration test | Selesai |
 | MOB-ABS-01 | P0 | Absensi | Selaraskan fitur check-in dengan route backend aktual | Mobile memanggil endpoint yang tidak tersedia di `absensi-worker` |
