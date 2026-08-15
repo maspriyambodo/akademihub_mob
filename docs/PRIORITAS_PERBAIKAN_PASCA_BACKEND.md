@@ -56,7 +56,7 @@ Mobile tetap berfokus pada pengguna sekolah yang sudah memiliki akun: siswa, gur
 | MOB-PPDB-01 | P1 | Scope | Hapus seluruh modul PPDB mobile | Selesai |
 | MOB-PAY-01 | P2 | Pembayaran | Refresh obligation setelah checkout | Redirect WebView bukan bukti pembayaran lunas |
 | MOB-TENANT-01 | P2 | Tenant | Validasi flow superadmin lintas tenant | Backend kini mewajibkan tenant eksplisit |
-| MOB-QA-01 | P1 | QA | Tambahkan contract dan integration test | Unit test saat ini belum menangkap perubahan kontrak backend |
+| MOB-QA-01 | P1 | QA | Tambahkan contract dan integration test | Selesai |
 | MOB-ABS-01 | P0 | Absensi | Selaraskan fitur check-in dengan route backend aktual | Mobile memanggil endpoint yang tidak tersedia di `absensi-worker` |
 | API-ABS-01 | P0 | Absensi/AuthZ | Scope list, detail, rentang, rekap, dan mutasi per role/resource | JWT valid saat ini dapat membuka data absensi di luar kepemilikan |
 | MOB-DASH-01 | P1 | Dashboard | Gunakan field Go `total_mapel` | Selesai |

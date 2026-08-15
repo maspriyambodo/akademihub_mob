@@ -182,5 +182,51 @@ void main() {
 
       expect(refreshCalls, 0);
     });
+
+    test('retry that receives 401 again stops, clears token storage, and does not loop', () async {
+      int refreshCalls = 0;
+
+      apiClient.dio.httpClientAdapter = _TestAdapter((options) async {
+        if (options.path.contains('/auth/refresh')) {
+          refreshCalls++;
+          return ResponseBody.fromString(
+            '{"success":true,"data":{"access_token":"bad-access-token","refresh_token":"bad-refresh-token"}}',
+            200,
+            headers: {'content-type': ['application/json']},
+          );
+        }
+        // Retried request still gets 401
+        return ResponseBody.fromString('{"error":"unauthorized"}', 401, headers: {'content-type': ['application/json']});
+      });
+
+      await expectLater(
+        apiClient.dio.get('/profile'),
+        throwsA(isA<DioException>()),
+      );
+
+      expect(refreshCalls, 1);
+      expect(await storage.read(key: AppConfig.tokenKey), isNull);
+      expect(await storage.read(key: AppConfig.refreshTokenKey), isNull);
+    });
+
+    test('response 403 Forbidden does not trigger token refresh', () async {
+      int refreshCalls = 0;
+
+      apiClient.dio.httpClientAdapter = _TestAdapter((options) async {
+        if (options.path.contains('/auth/refresh')) {
+          refreshCalls++;
+          return ResponseBody.fromString('{"success":true}', 200);
+        }
+        return ResponseBody.fromString('{"error":"forbidden"}', 403, headers: {'content-type': ['application/json']});
+      });
+
+      await expectLater(
+        apiClient.dio.get('/admin/analytics'),
+        throwsA(isA<DioException>()),
+      );
+
+      expect(refreshCalls, 0);
+      expect(await storage.read(key: AppConfig.tokenKey), 'old-access-token');
+    });
   });
 }

@@ -91,6 +91,9 @@ class _AuthInterceptor extends Interceptor {
           path.contains('/auth/refresh') ||
           path.contains('/auth/logout') ||
           isRetry) {
+        if (isRetry) {
+          await _clearTokens();
+        }
         return handler.next(err);
       }
 
