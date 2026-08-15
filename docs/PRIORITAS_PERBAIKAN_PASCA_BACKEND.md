@@ -68,6 +68,14 @@ Mobile tetap berfokus pada pengguna sekolah yang sudah memiliki akun: siswa, gur
 | API-AUTHZ-01 | P0 | Shared AuthZ | Satukan role canonical dan tenant/resource scope | Service Go memakai sumber role dan enforcement berbeda |
 | API-QA-01 | P1 | QA Backend | Tambahkan contract/authorization test seluruh service Go | Mayoritas service lulus build tanpa test keamanan |
 
+### Status Implementasi
+
+- [x] **MOB-EXAM-01** — selesai (`akademihub_mob` commit `c950605`)
+- [x] **MOB-EXAM-02** — selesai (`akademihub_mob` commit `0f02e86`)
+- [x] **MOB-ABS-01** — selesai (`akademihub_mob` commit `13866ea`; `absensi-worker` commit `0cc97fa`)
+
+Item yang tidak tercantum di atas belum ditandai selesai.
+
 ---
 
 ## 4. P0 — Ujian
@@ -153,6 +161,8 @@ Backend dapat mengirim:
 ## 5. P0 — Absensi dan Authorization Backend
 
 ### MOB-ABS-01 — Selaraskan self check-in absensi
+
+**Status:** ✅ Selesai — mobile `13866ea`, backend `0cc97fa`.
 
 Mobile memanggil `POST /api/v1/akademik/absensi-siswa/check-in`, tetapi route tersebut tidak tersedia pada `absensi-worker`.
 
