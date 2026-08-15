@@ -5,7 +5,6 @@ abstract class AuthRemoteDataSource {
   Future<Map<String, dynamic>> login(String email, String password);
   Future<void> logout();
   Future<UserModel> getCurrentUser();
-  Future<Map<String, dynamic>> refreshToken(String refreshToken);
   Future<void> registerFcmToken(String token);
 }
 
@@ -34,15 +33,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<UserModel> getCurrentUser() async {
     final response = await _dio.get('/auth/me');
     return UserModel.fromJson(response.data['data'] ?? response.data);
-  }
-
-  @override
-  Future<Map<String, dynamic>> refreshToken(String token) async {
-    final response = await _dio.post(
-      '/auth/refresh',
-      options: Options(headers: {'Authorization': 'Bearer $token'}),
-    );
-    return Map<String, dynamic>.from(response.data);
   }
 
   @override

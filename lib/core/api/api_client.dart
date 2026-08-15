@@ -57,9 +57,10 @@ class _ServerDateInterceptor extends Interceptor {
   }
 }
 
-class _AuthInterceptor extends QueuedInterceptorsWrapper {
+class _AuthInterceptor extends Interceptor {
   final FlutterSecureStorage _storage;
   final Dio _dio;
+  Future<String?>? _refreshTokenFuture;
 
   _AuthInterceptor(this._storage, this._dio);
 
@@ -82,47 +83,98 @@ class _AuthInterceptor extends QueuedInterceptorsWrapper {
   ) async {
     if (err.response?.statusCode == 401) {
       final path = err.requestOptions.path;
-      // Jangan refresh token saat login/register gagal.
+      final isRetry = err.requestOptions.extra['is_retry'] == true;
+
+      // Jangan refresh token saat login, register, refresh, logout gagal, atau jika request sudah retry.
       if (path.contains('/auth/login') ||
           path.contains('/auth/register') ||
-          path.contains('/auth/refresh')) {
+          path.contains('/auth/refresh') ||
+          path.contains('/auth/logout') ||
+          isRetry) {
         return handler.next(err);
       }
 
       try {
-        final refreshToken = await _storage.read(
-          key: AppConfig.refreshTokenKey,
-        );
-        if (refreshToken == null) return handler.next(err);
-
-        // Backend expects refresh_token in request body
-        final response = await _dio.post(
-          '/auth/refresh',
-          data: {'refresh_token': refreshToken},
-        );
-
-        final newToken = response.data['data']['access_token'] as String;
-        final newRefresh = response.data['data']['refresh_token'] as String?;
-        await _storage.write(key: AppConfig.tokenKey, value: newToken);
-        if (newRefresh != null) {
-          await _storage.write(
-            key: AppConfig.refreshTokenKey,
-            value: newRefresh,
-          );
+        final newToken = await _getRefreshedToken();
+        if (newToken == null) {
+          return handler.next(err);
         }
 
         final opts = err.requestOptions;
         opts.headers['Authorization'] = 'Bearer $newToken';
+        opts.extra['is_retry'] = true;
+
         final retryResponse = await _dio.fetch(opts);
         return handler.resolve(retryResponse);
       } catch (_) {
-        await Future.wait([
-          _storage.delete(key: AppConfig.tokenKey),
-          _storage.delete(key: AppConfig.refreshTokenKey),
-        ]);
         return handler.next(err);
       }
     }
     return handler.next(err);
+  }
+
+  Future<String?> _getRefreshedToken() async {
+    if (_refreshTokenFuture != null) {
+      return _refreshTokenFuture;
+    }
+
+    _refreshTokenFuture = _performRefresh();
+    try {
+      return await _refreshTokenFuture;
+    } finally {
+      _refreshTokenFuture = null;
+    }
+  }
+
+  Future<String?> _performRefresh() async {
+    try {
+      final refreshToken = await _storage.read(key: AppConfig.refreshTokenKey);
+      if (refreshToken == null || refreshToken.isEmpty) {
+        await _clearTokens();
+        return null;
+      }
+
+      // Backend expects refresh_token in request body
+      final response = await _dio.post(
+        '/auth/refresh',
+        data: {'refresh_token': refreshToken},
+        options: Options(extra: {'is_retry': true}),
+      );
+
+      final body = response.data is Map<String, dynamic>
+          ? response.data as Map<String, dynamic>
+          : <String, dynamic>{};
+      final data = body['data'] is Map<String, dynamic>
+          ? body['data'] as Map<String, dynamic>
+          : body;
+
+      final newToken = data['access_token'] as String?;
+      final newRefresh = data['refresh_token'] as String?;
+
+      if (newToken == null || newToken.isEmpty) {
+        await _clearTokens();
+        return null;
+      }
+
+      await _storage.write(key: AppConfig.tokenKey, value: newToken);
+      if (newRefresh != null && newRefresh.isNotEmpty) {
+        await _storage.write(
+          key: AppConfig.refreshTokenKey,
+          value: newRefresh,
+        );
+      }
+
+      return newToken;
+    } catch (_) {
+      await _clearTokens();
+      return null;
+    }
+  }
+
+  Future<void> _clearTokens() async {
+    await Future.wait([
+      _storage.delete(key: AppConfig.tokenKey),
+      _storage.delete(key: AppConfig.refreshTokenKey),
+    ]);
   }
 }
