@@ -440,7 +440,7 @@ Test minimum:
 
 Contract fixture harus berasal dari response backend aktual, bukan payload buatan berdasarkan asumsi mobile.
 
-### API-QA-01 — Contract dan authorization test backend
+### API-QA-01 — Contract dan authorization test backend `[SELESAI]`
 
 Status `go test ./...` bukan gate yang cukup ketika package handler/middleware tidak memiliki test. Tambahkan test minimum:
 
@@ -452,7 +452,7 @@ Status `go test ./...` bukan gate yang cukup ketika package handler/middleware t
 6. fixture response yang dikonsumsi test kontrak Flutter;
 7. negative test direct URL/IDOR; menyembunyikan menu mobile tidak dihitung sebagai test keamanan.
 
-Semua service wajib memiliki test nyata pada handler/middleware atau integration layer yang membuktikan status HTTP dan scope data, bukan hanya test repository happy path.
+Semua service wajib memiliki test nyata pada handler/middleware atau integration layer yang membuktikan status HTTP dan scope data, bukan hanya test repository happy path. `[Selesai]`
 
 ---
 
