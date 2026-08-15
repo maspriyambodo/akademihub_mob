@@ -24,7 +24,6 @@ class DashboardModel {
   final Map<String, dynamic>? financial;
   final Map<String, dynamic>? academicAttendance;
   final Map<String, dynamic>? counseling;
-  final Map<String, dynamic>? ppdb;
 
   const DashboardModel({
     required this.role,
@@ -40,7 +39,6 @@ class DashboardModel {
     this.financial,
     this.academicAttendance,
     this.counseling,
-    this.ppdb,
   });
 
   factory DashboardModel.fromJson(Map<String, dynamic> json) {
@@ -70,7 +68,6 @@ class DashboardModel {
       financial: asMap(json['financial']),
       academicAttendance: asMap(json['academic_attendance']),
       counseling: asMap(json['counseling']),
-      ppdb: asMap(json['ppdb']),
     );
   }
 
@@ -88,7 +85,6 @@ class DashboardModel {
     financial: financial,
     academicAttendance: academicAttendance,
     counseling: counseling,
-    ppdb: ppdb,
   );
 }
 

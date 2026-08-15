@@ -22,7 +22,6 @@ class DashboardEntity extends Equatable {
   final Map<String, dynamic>? financial;
   final Map<String, dynamic>? academicAttendance;
   final Map<String, dynamic>? counseling;
-  final Map<String, dynamic>? ppdb;
 
   const DashboardEntity({
     required this.role,
@@ -38,7 +37,6 @@ class DashboardEntity extends Equatable {
     this.financial,
     this.academicAttendance,
     this.counseling,
-    this.ppdb,
   });
 
   @override

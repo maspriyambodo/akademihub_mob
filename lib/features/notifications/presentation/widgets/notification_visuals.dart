@@ -19,7 +19,7 @@ class NotificationVisual {
 /// Tipe yang benar-benar dipakai backend ada di
 /// `App\Services\SmartNotificationService`:
 /// `ews_alert`, `absensi`, `nilai_anomali`, `spp_tunggakan`,
-/// `ppdb_status`, `tugas_deadline`, `risk_profile`.
+/// `tugas_deadline`, `risk_profile`.
 /// Beberapa alias umum ikut dipetakan, sisanya jatuh ke fallback.
 NotificationVisual visualForType(String type) {
   switch (type.toLowerCase()) {
@@ -47,12 +47,6 @@ NotificationVisual visualForType(String type) {
         icon: Icons.account_balance_wallet_outlined,
         color: AppColors.waliColor,
         label: 'Tunggakan SPP',
-      );
-    case 'ppdb_status':
-      return const NotificationVisual(
-        icon: Icons.school_outlined,
-        color: AppColors.secondary,
-        label: 'PPDB',
       );
     case 'tugas_deadline':
     case 'tugas':

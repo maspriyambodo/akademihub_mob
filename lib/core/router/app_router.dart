@@ -22,8 +22,6 @@ import '../../features/kalender/presentation/pages/kalender_page.dart';
 import '../../features/bk/presentation/pages/bk_page.dart';
 import '../../features/ujian/presentation/pages/ujian_page.dart';
 import '../../features/tmb/presentation/pages/tmb_page.dart';
-import '../../features/ppdb/presentation/pages/ppdb_page.dart';
-import '../../features/ppdb/presentation/pages/ppdb_public_page.dart';
 import '../../features/ews/presentation/pages/ews_page.dart';
 import '../../features/siswa_insight/presentation/pages/siswa_insight_page.dart';
 
@@ -46,8 +44,6 @@ class AppRoutes {
   static const String bk = '/bk';
   static const String ujian = '/ujian';
   static const String tmb = '/tmb';
-  static const String ppdb = '/ppdb';
-  static const String ppdbPublic = '/ppdb/portal';
   static const String ews = '/ews';
   static const List<String> ewsAliases = [
     '/early-warning',
@@ -64,7 +60,6 @@ class AppRoutes {
     bk => const ['bk-kasus.view'],
     ujian => const ['ujian.view', 'ranking.view'],
     tmb => const ['tes-minat-bakat.view', 'tes-minat-bakat-peserta.view'],
-    ppdb => const ['ppdb.pendaftaran.view', 'ppdb.gelombang.view'],
     ews => const ['ews.view'],
     _ when path.startsWith('/siswa/') && path.endsWith('/insight') => const [
       'siswa.view',
@@ -78,8 +73,6 @@ final router = GoRouter(
   redirect: (context, state) {
     final authState = context.read<AuthBloc>().state;
     final path = state.uri.path;
-
-    if (path == AppRoutes.ppdbPublic) return null;
 
     // Initial hanya terjadi saat bootstrap. Loading login harus tetap di login.
     if (authState is AuthInitial) {
@@ -113,10 +106,6 @@ final router = GoRouter(
   routes: [
     GoRoute(path: AppRoutes.splash, builder: (_, _) => const _SplashPage()),
     GoRoute(path: AppRoutes.login, builder: (_, _) => const LoginPage()),
-    GoRoute(
-      path: AppRoutes.ppdbPublic,
-      builder: (_, _) => const PpdbPublicPage(),
-    ),
     for (final alias in AppRoutes.ewsAliases)
       GoRoute(path: alias, redirect: (_, _) => AppRoutes.ews),
     ShellRoute(
@@ -156,7 +145,6 @@ final router = GoRouter(
         GoRoute(path: AppRoutes.bk, builder: (_, _) => const BkPage()),
         GoRoute(path: AppRoutes.ujian, builder: (_, _) => const UjianPage()),
         GoRoute(path: AppRoutes.tmb, builder: (_, _) => const TmbPage()),
-        GoRoute(path: AppRoutes.ppdb, builder: (_, _) => const PpdbPage()),
         GoRoute(path: AppRoutes.ews, builder: (_, _) => const EwsPage()),
       ],
     ),

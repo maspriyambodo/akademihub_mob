@@ -6,7 +6,7 @@ class NotificationEntity extends Equatable {
 
   /// Jenis notifikasi dari backend:
   /// `ews_alert`, `absensi`, `nilai_anomali`, `spp_tunggakan`,
-  /// `ppdb_status`, `tugas_deadline`, `risk_profile`.
+  /// `tugas_deadline`, `risk_profile`.
   final String type;
 
   /// Tingkat urgensi: `critical` | `high` | `medium` | `low`.

@@ -30,8 +30,6 @@ class AdminDashboardWidget extends StatelessWidget {
         '${tunggakan?['month'] ?? ''} ${tunggakan?['year'] ?? ''} · '
         '${tunggakan?['jumlah_siswa'] ?? 0} siswa';
 
-    final ppdbSummary = cards['ppdb_summary'] as Map<String, dynamic>?;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -93,32 +91,6 @@ class AdminDashboardWidget extends StatelessWidget {
           description: tunggakanDesc.trim().isNotEmpty ? tunggakanDesc : null,
         ),
         const SizedBox(height: 10),
-
-        // PPDB summary (if available)
-        if (ppdbSummary != null) ...[
-          GridView(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: Responsive.gridDelegate(context, tinggi: 140),
-            children: [
-              DashboardStatCard(
-                title: 'Total Pendaftar PPDB',
-                value:
-                    '${(ppdbSummary['total_pendaftar'] as num?)?.toInt() ?? 0}',
-                icon: Icons.person_add,
-                color: Colors.deepPurple,
-              ),
-              DashboardStatCard(
-                title: 'Pendaftar Diterima',
-                value:
-                    '${(ppdbSummary['pendaftar_diterima'] as num?)?.toInt() ?? 0}',
-                icon: Icons.how_to_reg,
-                color: AppColors.success,
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-        ],
 
         // Quick Actions
         DashboardQuickActions(role: 'admin', permissions: permissions),

@@ -107,12 +107,6 @@ const _adminActions = [
     color: AppColors.guruColor,
   ),
   _QuickAction(
-    label: 'PPDB',
-    icon: Icons.how_to_reg_outlined,
-    route: AppRoutes.ppdb,
-    color: AppColors.info,
-  ),
-  _QuickAction(
     label: 'EWS',
     icon: Icons.warning_amber,
     route: AppRoutes.ews,
@@ -394,10 +388,6 @@ class DashboardQuickActions extends StatelessWidget {
         AppRoutes.ews => const ['ews.view'],
         AppRoutes.bk => const ['bk-kasus.view'],
         AppRoutes.kalender => const ['kalender-akademik.view'],
-        AppRoutes.ppdb => const [
-          'ppdb.pendaftaran.view',
-          'ppdb.gelombang.view',
-        ],
         AppRoutes.ujian => const ['ujian.view', 'ranking.view'],
         AppRoutes.tmb => const [
           'tes-minat-bakat.view',

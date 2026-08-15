@@ -161,22 +161,6 @@ import '../../features/tmb/presentation/bloc/tmb_bloc.dart';
 import '../../features/tmb/presentation/bloc/tmb_hasil_bloc.dart';
 import '../../features/tmb/presentation/bloc/tmb_pengerjaan_bloc.dart';
 import '../../features/tmb/presentation/bloc/tmb_peserta_bloc.dart';
-import '../../features/ppdb/data/datasources/ppdb_remote_datasource.dart';
-import '../../features/ppdb/data/repositories/ppdb_repository_impl.dart';
-import '../../features/ppdb/domain/repositories/ppdb_repository.dart';
-import '../../features/ppdb/domain/usecases/get_ppdb_gelombang_usecase.dart';
-import '../../features/ppdb/domain/usecases/get_ppdb_pendaftar_usecase.dart';
-import '../../features/ppdb/domain/usecases/get_ppdb_pendaftar_detail_usecase.dart';
-import '../../features/ppdb/domain/usecases/get_ppdb_statistik_usecase.dart';
-import '../../features/ppdb/domain/usecases/get_ppdb_dokumen_usecase.dart';
-import '../../features/ppdb/domain/usecases/get_ppdb_nilai_rapor_usecase.dart';
-import '../../features/ppdb/domain/usecases/get_ppdb_hasil_seleksi_usecase.dart';
-import '../../features/ppdb/domain/usecases/verifikasi_ppdb_dokumen_usecase.dart';
-import '../../features/ppdb/domain/usecases/tolak_ppdb_dokumen_usecase.dart';
-import '../../features/ppdb/domain/usecases/ubah_status_ppdb_pendaftar_usecase.dart';
-import '../../features/ppdb/presentation/bloc/ppdb_bloc.dart';
-import '../../features/ppdb/presentation/bloc/ppdb_detail_bloc.dart';
-import '../../features/ppdb/presentation/bloc/ppdb_public_bloc.dart';
 import '../../features/ews/data/datasources/ews_remote_datasource.dart';
 import '../../features/ews/data/repositories/ews_repository_impl.dart';
 import '../../features/ews/domain/repositories/ews_repository.dart';
@@ -642,36 +626,6 @@ Future<void> configureDependencies() async {
     () => TmbHasilBloc(getHasilByPeserta: sl(), getPesertaBySiswa: sl()),
   );
 
-  // ── PPDB feature ──────────────────────────────────────────────────────────
-  sl.registerLazySingleton<PpdbRemoteDataSource>(
-    () => PpdbRemoteDataSourceImpl(sl<ApiClient>().dio),
-  );
-  sl.registerLazySingleton<PpdbRepository>(() => PpdbRepositoryImpl(sl()));
-  sl.registerLazySingleton(() => GetPpdbGelombangUseCase(sl()));
-  sl.registerLazySingleton(() => GetPpdbPendaftarUseCase(sl()));
-  sl.registerLazySingleton(() => GetPpdbPendaftarDetailUseCase(sl()));
-  sl.registerLazySingleton(() => GetPpdbStatistikUseCase(sl()));
-  sl.registerLazySingleton(() => GetPpdbDokumenUseCase(sl()));
-  sl.registerLazySingleton(() => GetPpdbNilaiRaporUseCase(sl()));
-  sl.registerLazySingleton(() => GetPpdbHasilSeleksiUseCase(sl()));
-  sl.registerLazySingleton(() => VerifikasiPpdbDokumenUseCase(sl()));
-  sl.registerLazySingleton(() => TolakPpdbDokumenUseCase(sl()));
-  sl.registerLazySingleton(() => UbahStatusPpdbPendaftarUseCase(sl()));
-  sl.registerFactory(
-    () => PpdbBloc(getGelombang: sl(), getPendaftar: sl(), getStatistik: sl()),
-  );
-  sl.registerFactory(
-    () => PpdbDetailBloc(
-      getDetail: sl(),
-      getDokumen: sl(),
-      getNilaiRapor: sl(),
-      getHasilSeleksi: sl(),
-      verifikasiDokumen: sl(),
-      tolakDokumen: sl(),
-      ubahStatusPendaftar: sl(),
-    ),
-  );
-
   // ── EWS (Early Warning System) feature ────────────────────────────────────
   sl.registerLazySingleton<EwsRemoteDataSource>(
     () => EwsRemoteDataSourceImpl(sl<ApiClient>().dio),
@@ -684,7 +638,6 @@ Future<void> configureDependencies() async {
   sl.registerFactory(
     () => EwsBloc(getAlerts: sl(), resolveAlert: sl(), triggerCheck: sl()),
   );
-  sl.registerFactory(() => PpdbPublicBloc(sl()));
 
   // ── Siswa Insight feature ──────────────────────────────────────────────────
   sl.registerLazySingleton<SiswaInsightRemoteDataSource>(

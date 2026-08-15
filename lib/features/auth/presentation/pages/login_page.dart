@@ -3,8 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/batas_lebar_konten.dart';
-import '../../../../core/router/app_router.dart';
-import 'package:go_router/go_router.dart';
 import '../bloc/auth_bloc.dart';
 
 class LoginPage extends StatefulWidget {
@@ -196,13 +194,6 @@ class _LoginPageState extends State<LoginPage> {
                                           ),
                                   );
                                 },
-                              ),
-                              const SizedBox(height: 10),
-                              TextButton.icon(
-                                onPressed: () =>
-                                    context.go(AppRoutes.ppdbPublic),
-                                icon: const Icon(Icons.how_to_reg_outlined),
-                                label: const Text('Portal PPDB'),
                               ),
                             ],
                           ),

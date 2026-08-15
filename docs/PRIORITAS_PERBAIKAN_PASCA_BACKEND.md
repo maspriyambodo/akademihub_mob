@@ -53,14 +53,14 @@ Mobile tetap berfokus pada pengguna sekolah yang sudah memiliki akun: siswa, gur
 | MOB-EXAM-03 | P1 | Ujian | Gunakan deadline server dan sinkronkan timeout | UI masih aktif setelah deadline server |
 | MOB-AUTH-01 | P1 | Auth | Jadikan refresh token single-flight | Refresh paralel dapat memicu reuse dan revoke session family |
 | MOB-AUTH-02 | P1 | Auth | Satukan kontrak refresh token | Method manual masih mengirim token melalui Bearer header |
-| MOB-PPDB-01 | P1 | Scope | Hapus seluruh modul PPDB mobile | PPDB telah diputuskan web-only |
+| MOB-PPDB-01 | P1 | Scope | Hapus seluruh modul PPDB mobile | Selesai |
 | MOB-PAY-01 | P2 | Pembayaran | Refresh obligation setelah checkout | Redirect WebView bukan bukti pembayaran lunas |
 | MOB-TENANT-01 | P2 | Tenant | Validasi flow superadmin lintas tenant | Backend kini mewajibkan tenant eksplisit |
 | MOB-QA-01 | P1 | QA | Tambahkan contract dan integration test | Unit test saat ini belum menangkap perubahan kontrak backend |
 | MOB-ABS-01 | P0 | Absensi | Selaraskan fitur check-in dengan route backend aktual | Mobile memanggil endpoint yang tidak tersedia di `absensi-worker` |
 | API-ABS-01 | P0 | Absensi/AuthZ | Scope list, detail, rentang, rekap, dan mutasi per role/resource | JWT valid saat ini dapat membuka data absensi di luar kepemilikan |
 | MOB-DASH-01 | P1 | Dashboard | Gunakan field Go `total_mapel` | UI guru menampilkan nol walau backend mengirim nilai |
-| MOB-DASH-02 | P1 | Dashboard/PPDB | Hapus parser dan kartu PPDB mobile | Dashboard masih melanggar keputusan PPDB web-only |
+| MOB-DASH-02 | P1 | Dashboard/PPDB | Hapus parser dan kartu PPDB mobile | Selesai |
 | API-DASH-01 | P0 | Dashboard/AuthZ | Lindungi endpoint analytics dengan permission | User login dapat meminta analytics sensitif langsung |
 | MOB-EWS-01 | P1 | EWS | Sediakan detail alert authoritative | Detail mobile hanya mencari halaman pertama |
 | API-EWS-01 | P0 | EWS/AuthZ | Lindungi process, list, detail, dan resolve | Semua user login berpotensi membaca/mengubah alert |
