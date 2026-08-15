@@ -8,7 +8,9 @@ class UjianSessionModel {
   final int status;
   final String? statusCode;
   final String? waktuMulai;
+  final String? deadlineAt;
   final String? waktuSelesai;
+  final String? timedOutAt;
   final int totalBenar;
   final int totalSalah;
   final double? nilaiAkhir;
@@ -22,7 +24,9 @@ class UjianSessionModel {
     required this.status,
     this.statusCode,
     this.waktuMulai,
+    this.deadlineAt,
     this.waktuSelesai,
+    this.timedOutAt,
     this.totalBenar = 0,
     this.totalSalah = 0,
     this.nilaiAkhir,
@@ -42,7 +46,9 @@ class UjianSessionModel {
       status: (json['status'] as num?)?.toInt() ?? 0,
       statusCode: json['status_code']?.toString(),
       waktuMulai: json['waktu_mulai']?.toString(),
+      deadlineAt: json['deadline_at']?.toString(),
       waktuSelesai: json['waktu_selesai']?.toString(),
+      timedOutAt: json['timed_out_at']?.toString(),
       totalBenar: (json['total_benar'] as num?)?.toInt() ?? 0,
       totalSalah: (json['total_salah'] as num?)?.toInt() ?? 0,
       nilaiAkhir: (json['nilai_akhir'] as num?)?.toDouble(),
@@ -82,7 +88,9 @@ class UjianSessionModel {
     namaUjian: namaUjian,
     status: _parseStatus(),
     waktuMulai: waktuMulai,
+    deadlineAt: deadlineAt,
     waktuSelesai: waktuSelesai,
+    timedOutAt: timedOutAt,
     totalBenar: totalBenar,
     totalSalah: totalSalah,
     nilaiAkhir: nilaiAkhir,

@@ -47,6 +47,20 @@ void main() {
     expect(session.nilaiAkhir, isNull);
     expect(session.nilaiProvisional, 50);
   });
+  test('parses deadline_at and timed_out_at from Go backend struct', () {
+    final session = UjianSessionModel.fromJson({
+      'id': 45,
+      'trx_ujian_id': 10,
+      'status': 2,
+      'status_code': 'in_progress',
+      'deadline_at': '2026-08-16 14:00:00',
+      'timed_out_at': '2026-08-16 14:00:00',
+    }).toEntity();
+
+    expect(session.deadlineAt, '2026-08-16 14:00:00');
+    expect(session.timedOutAt, '2026-08-16 14:00:00');
+    expect(session.isTimedOut, isTrue);
+  });
 
   test('status tidak dikenal menghasilkan error kontrak', () {
     expect(

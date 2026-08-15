@@ -8,7 +8,9 @@ class UjianSessionEntity extends Equatable {
   final String namaUjian;
   final UjianSessionStatus status;
   final String? waktuMulai;
+  final String? deadlineAt;
   final String? waktuSelesai;
+  final String? timedOutAt;
   final int totalBenar;
   final int totalSalah;
   final double? nilaiAkhir;
@@ -21,13 +23,17 @@ class UjianSessionEntity extends Equatable {
     required this.namaUjian,
     required this.status,
     this.waktuMulai,
+    this.deadlineAt,
     this.waktuSelesai,
+    this.timedOutAt,
     this.totalBenar = 0,
     this.totalSalah = 0,
     this.nilaiAkhir,
     this.nilaiProvisional,
     this.sisaWaktu,
   });
+
+  bool get isTimedOut => timedOutAt != null && timedOutAt!.isNotEmpty;
 
   String get statusLabel => switch (status) {
     UjianSessionStatus.belumMulai => 'Belum mulai',
@@ -39,7 +45,9 @@ class UjianSessionEntity extends Equatable {
   UjianSessionEntity copyWith({
     UjianSessionStatus? status,
     String? waktuMulai,
+    String? deadlineAt,
     String? waktuSelesai,
+    String? timedOutAt,
     int? totalBenar,
     int? totalSalah,
     double? nilaiAkhir,
@@ -51,7 +59,9 @@ class UjianSessionEntity extends Equatable {
     namaUjian: namaUjian,
     status: status ?? this.status,
     waktuMulai: waktuMulai ?? this.waktuMulai,
+    deadlineAt: deadlineAt ?? this.deadlineAt,
     waktuSelesai: waktuSelesai ?? this.waktuSelesai,
+    timedOutAt: timedOutAt ?? this.timedOutAt,
     totalBenar: totalBenar ?? this.totalBenar,
     totalSalah: totalSalah ?? this.totalSalah,
     nilaiAkhir: nilaiAkhir ?? this.nilaiAkhir,
@@ -66,7 +76,9 @@ class UjianSessionEntity extends Equatable {
     namaUjian,
     status,
     waktuMulai,
+    deadlineAt,
     waktuSelesai,
+    timedOutAt,
     totalBenar,
     totalSalah,
     nilaiAkhir,

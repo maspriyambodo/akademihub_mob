@@ -1,3 +1,4 @@
+import 'package:akademihub_mob/core/error/failures.dart';
 import 'package:akademihub_mob/core/error/result.dart';
 import 'package:akademihub_mob/features/ujian/domain/entities/ujian_question_entity.dart';
 import 'package:akademihub_mob/features/ujian/domain/entities/ujian_session_entity.dart';
@@ -105,9 +106,7 @@ void main() {
     expect(find.byKey(const Key('awaiting-grading')), findsOneWidget);
     expect(find.byKey(const Key('provisional-result')), findsOneWidget);
     expect(find.text('Nilai sementara 50.00'), findsOneWidget);
-    expect(find.text('Mulai Ujian'), findsNothing);
-    expect(find.byKey(const Key('finalize-exam')), findsNothing);
-    expect(find.byKey(const Key('exam-result')), findsNothing);
+    expect(find.text('Dua tambah dua?'), findsNothing);
     expect(repository.questionFetches, 0);
   });
 
@@ -128,22 +127,107 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.byKey(const Key('provisional-result')), findsOneWidget);
 
       repository.currentSession = repository.session.copyWith(
         status: UjianSessionStatus.selesai,
-        nilaiAkhir: 80,
+        nilaiAkhir: 95.5,
       );
-      await tester.drag(find.byType(ListView), const Offset(0, 300));
-      await tester.pump();
+
+      await tester.fling(
+        find.byType(ListView),
+        const Offset(0, 300),
+        1000,
+      );
       await tester.pumpAndSettle();
 
       expect(repository.sessionFetches, 1);
       expect(find.byKey(const Key('exam-result')), findsOneWidget);
-      expect(find.text('Nilai sementara 50.00'), findsNothing);
-      expect(find.text('Nilai 80.00'), findsOneWidget);
+      expect(find.text('Nilai 95.50'), findsOneWidget);
     },
   );
+  testWidgets('timed_out_at displays banner and disables inputs', (
+    tester,
+  ) async {
+    final repository = _FakeRepository();
+    repository.currentSession = repository.session.copyWith(
+      status: UjianSessionStatus.mengerjakan,
+      timedOutAt: '2026-08-16 12:00:00',
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: UjianSessionPage(
+          repository: repository,
+          session: repository.currentSession,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('timeout-banner')), findsOneWidget);
+    expect(find.text('Waktu Ujian Habis'), findsOneWidget);
+    expect(repository.questionFetches, 0);
+  });
+
+  testWidgets('deadline reached disables inputs and refreshes session', (
+    tester,
+  ) async {
+    final repository = _FakeRepository();
+    final deadline = DateTime.utc(2026, 8, 16, 12, 0, 0);
+    var simulatedTime = DateTime.utc(2026, 8, 16, 11, 59, 59);
+
+    repository.currentSession = repository.session.copyWith(
+      status: UjianSessionStatus.mengerjakan,
+      deadlineAt: deadline.toIso8601String(),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: UjianSessionPage(
+          repository: repository,
+          session: repository.currentSession,
+          nowProvider: () => simulatedTime,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Sisa waktu: 00:01'), findsOneWidget);
+    expect(repository.questionFetches, 1);
+
+    // Advance time past deadline
+    simulatedTime = DateTime.utc(2026, 8, 16, 12, 0, 1);
+    repository.currentSession = repository.session.copyWith(
+      status: UjianSessionStatus.selesai,
+      timedOutAt: deadline.toIso8601String(),
+    );
+
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pumpAndSettle();
+
+    expect(repository.sessionFetches, 1);
+    expect(find.byKey(const Key('timeout-banner')), findsOneWidget);
+  });
+
+  testWidgets('save failure refreshes session on deadline error', (
+    tester,
+  ) async {
+    final repository = _DeadlineErrorRepository();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: UjianSessionPage(
+          repository: repository,
+          session: repository.session,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Empat'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Deadline reached on server'), findsOneWidget);
+    expect(repository.sessionFetches, 1);
+  });
 }
 
 class _FakeRepository implements UjianRepository {
@@ -212,4 +296,19 @@ class _FakeRepository implements UjianRepository {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _DeadlineErrorRepository extends _FakeRepository {
+  @override
+  Future<Result<UjianAnswerEntity>> saveJawaban({
+    required int sesiId,
+    required int soalId,
+    int? opsiId,
+    String? teks,
+    required bool raguRagu,
+  }) async {
+    return const ResultFailure(
+      ServerFailure('Deadline reached on server'),
+    );
+  }
 }

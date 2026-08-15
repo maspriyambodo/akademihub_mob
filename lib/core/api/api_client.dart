@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -5,6 +6,10 @@ import '../config/app_config.dart';
 import '../config/tenant_config.dart';
 
 class ApiClient {
+  static Duration serverTimeOffset = Duration.zero;
+  static DateTime get currentServerTime =>
+      DateTime.now().toUtc().add(serverTimeOffset);
+
   late final Dio dio;
   final FlutterSecureStorage _storage;
 
@@ -19,6 +24,7 @@ class ApiClient {
     );
 
     dio.interceptors.addAll([
+      _ServerDateInterceptor(),
       _AuthInterceptor(_storage, dio),
       if (kDebugMode)
         LogInterceptor(
@@ -33,6 +39,21 @@ class ApiClient {
 
   void applyTenant(TenantConfig? tenant) {
     dio.options.baseUrl = AppConfig.normalizeApiBaseUrl(tenant?.apiBaseUrl);
+  }
+}
+
+class _ServerDateInterceptor extends Interceptor {
+  @override
+  void onResponse(Response response, ResponseInterceptorHandler handler) {
+    try {
+      final dateHeader = response.headers.value('date');
+      if (dateHeader != null) {
+        final serverTime = HttpDate.parse(dateHeader).toUtc();
+        ApiClient.serverTimeOffset =
+            serverTime.difference(DateTime.now().toUtc());
+      }
+    } catch (_) {}
+    super.onResponse(response, handler);
   }
 }
 
