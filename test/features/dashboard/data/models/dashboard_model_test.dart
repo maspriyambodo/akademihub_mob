@@ -19,4 +19,20 @@ void main() {
 
     expect(dashboard.summary?['total_mata_pelajaran'], 6);
   });
+
+  test('ignores ppdb and ppdb_summary fields in admin payload without error', () {
+    final json = {
+      'role': 'admin',
+      'summary': {
+        'total_siswa': 120,
+        'total_guru': 15,
+        'ppdb': {'total_pendaftar': 50},
+        'ppdb_summary': {'gelombang_aktif': 1},
+      },
+    };
+
+    final dashboard = DashboardModel.fromJson(json).toEntity();
+    expect(dashboard.role, 'admin');
+    expect(dashboard.summary?['total_siswa'], 120);
+  });
 }
