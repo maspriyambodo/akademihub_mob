@@ -59,7 +59,7 @@ Mobile tetap berfokus pada pengguna sekolah yang sudah memiliki akun: siswa, gur
 | MOB-QA-01 | P1 | QA | Tambahkan contract dan integration test | Unit test saat ini belum menangkap perubahan kontrak backend |
 | MOB-ABS-01 | P0 | Absensi | Selaraskan fitur check-in dengan route backend aktual | Mobile memanggil endpoint yang tidak tersedia di `absensi-worker` |
 | API-ABS-01 | P0 | Absensi/AuthZ | Scope list, detail, rentang, rekap, dan mutasi per role/resource | JWT valid saat ini dapat membuka data absensi di luar kepemilikan |
-| MOB-DASH-01 | P1 | Dashboard | Gunakan field Go `total_mapel` | UI guru menampilkan nol walau backend mengirim nilai |
+| MOB-DASH-01 | P1 | Dashboard | Gunakan field Go `total_mapel` | Selesai |
 | MOB-DASH-02 | P1 | Dashboard/PPDB | Hapus parser dan kartu PPDB mobile | Selesai |
 | API-DASH-01 | P0 | Dashboard/AuthZ | Lindungi endpoint analytics dengan permission | User login dapat meminta analytics sensitif langsung |
 | MOB-EWS-01 | P1 | EWS | Sediakan detail alert authoritative | Detail mobile hanya mencari halaman pertama |
