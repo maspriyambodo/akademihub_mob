@@ -74,6 +74,10 @@ Mobile tetap berfokus pada pengguna sekolah yang sudah memiliki akun: siswa, gur
 - [x] **MOB-EXAM-02** — selesai (`akademihub_mob` commit `0f02e86`)
 - [x] **MOB-ABS-01** — selesai (`akademihub_mob` commit `13866ea`; `absensi-worker` commit `0cc97fa`)
 - [x] **API-ABS-01** — selesai (`absensi-worker` commit `f803814`, `7d9f6e7`)
+- [x] **API-DASH-01** — selesai (`dashboard-engine` commit `4dc576d`)
+- [x] **API-EWS-01** — selesai (`ews-worker` commit `a31439e`)
+- [x] **API-STAT-01** — selesai (`statistik-engine` commit `914c73d`)
+- [x] **API-AUTHZ-01** — selesai (unify canonical role `LOWER(COALESCE(r.code, r.name))` and case-insensitive check across 5 Go microservices)
 
 Item yang tidak tercantum di atas belum ditandai selesai.
 
