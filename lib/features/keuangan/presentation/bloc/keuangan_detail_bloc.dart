@@ -53,7 +53,9 @@ class KeuanganDetailBloc
     Emitter<KeuanganDetailState> emit,
   ) async {
     if (_pembayaranId == null) return;
-    emit(KeuanganDetailLoading());
+    if (state is! KeuanganDetailLoaded) {
+      emit(KeuanganDetailLoading());
+    }
     await _fetchAndEmit(emit);
   }
 

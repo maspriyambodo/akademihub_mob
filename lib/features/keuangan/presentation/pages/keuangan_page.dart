@@ -34,9 +34,12 @@ class _KeuanganView extends StatefulWidget {
   State<_KeuanganView> createState() => _KeuanganViewState();
 }
 
-class _KeuanganViewState extends State<_KeuanganView> {
+class _KeuanganViewState extends State<_KeuanganView>
+    with WidgetsBindingObserver {
   final TextEditingController _searchController = TextEditingController();
   Timer? _debounce;
+  Timer? _pollTimer;
+  int _pollCount = 0;
 
   String _role = '';
   bool _canBayar = false;
@@ -44,6 +47,7 @@ class _KeuanganViewState extends State<_KeuanganView> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -83,9 +87,41 @@ class _KeuanganViewState extends State<_KeuanganView> {
 
   @override
   void dispose() {
+    _pollTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     _debounce?.cancel();
     _searchController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && mounted) {
+      _mulaiRekonsiliasi();
+    }
+  }
+
+  void _mulaiRekonsiliasi() {
+    _pollTimer?.cancel();
+    _pollCount = 0;
+
+    if (!mounted) return;
+    context.read<KeuanganBloc>().add(const KeuanganRefreshRequested());
+
+    _pollTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+
+      _pollCount++;
+      if (_pollCount >= 3) {
+        timer.cancel();
+        return;
+      }
+
+      context.read<KeuanganBloc>().add(const KeuanganRefreshRequested());
+    });
   }
 
   void _onSearchChanged(String value) {

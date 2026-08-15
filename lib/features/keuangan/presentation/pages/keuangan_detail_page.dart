@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -47,7 +49,7 @@ class KeuanganDetailPage extends StatelessWidget {
   }
 }
 
-class _KeuanganDetailView extends StatelessWidget {
+class _KeuanganDetailView extends StatefulWidget {
   final PembayaranSppEntity awal;
   final bool canBayar;
   final bool modeAdmin;
@@ -57,6 +59,67 @@ class _KeuanganDetailView extends StatelessWidget {
     required this.canBayar,
     required this.modeAdmin,
   });
+
+  @override
+  State<_KeuanganDetailView> createState() => _KeuanganDetailViewState();
+}
+
+class _KeuanganDetailViewState extends State<_KeuanganDetailView>
+    with WidgetsBindingObserver {
+  Timer? _pollTimer;
+  int _pollCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && mounted) {
+      _mulaiRekonsiliasi();
+    }
+  }
+
+  void _mulaiRekonsiliasi() {
+    _pollTimer?.cancel();
+    _pollCount = 0;
+
+    if (!mounted) return;
+    context.read<KeuanganDetailBloc>().add(
+      const KeuanganDetailRefreshRequested(),
+    );
+
+    _pollTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      final blocState = context.read<KeuanganDetailBloc>().state;
+      if (blocState is KeuanganDetailLoaded && blocState.pembayaran.isLunas) {
+        timer.cancel();
+        return;
+      }
+
+      _pollCount++;
+      if (_pollCount >= 3) {
+        timer.cancel();
+        return;
+      }
+
+      context.read<KeuanganDetailBloc>().add(
+        const KeuanganDetailRefreshRequested(),
+      );
+    });
+  }
 
   Future<void> _bukaCheckout(BuildContext context, String url) async {
     final uri = Uri.tryParse(url);
@@ -73,6 +136,8 @@ class _KeuanganDetailView extends StatelessWidget {
         'Tidak dapat membuka halaman pembayaran. Salin tautan berikut:\n$url',
         gagal: true,
       );
+    } else {
+      _mulaiRekonsiliasi();
     }
   }
 
