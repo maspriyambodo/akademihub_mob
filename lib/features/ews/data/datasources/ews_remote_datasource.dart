@@ -56,12 +56,13 @@ class EwsRemoteDataSourceImpl implements EwsRemoteDataSource {
 
   @override
   Future<EwsAlertModel> getAlertDetail(int id) async {
-    // Go hanya menyediakan koleksi dan daftar per siswa; tidak ada detail alert.
-    final alerts = await getAlerts();
-    for (final alert in alerts) {
-      if (alert.id == id) return alert;
+    final response = await _dio.get('/ews/alerts/$id');
+    final body = _asMap(response.data);
+    final raw = body['data'];
+    if (raw is Map) {
+      return EwsAlertModel.fromJson(raw.cast<String, dynamic>());
     }
-    throw const FormatException('Alert EWS tidak ditemukan');
+    return EwsAlertModel.fromJson(body);
   }
 
   @override

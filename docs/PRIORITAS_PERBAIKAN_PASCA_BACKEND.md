@@ -62,7 +62,7 @@ Mobile tetap berfokus pada pengguna sekolah yang sudah memiliki akun: siswa, gur
 | MOB-DASH-01 | P1 | Dashboard | Gunakan field Go `total_mapel` | Selesai |
 | MOB-DASH-02 | P1 | Dashboard/PPDB | Hapus parser dan kartu PPDB mobile | Selesai |
 | API-DASH-01 | P0 | Dashboard/AuthZ | Lindungi endpoint analytics dengan permission | User login dapat meminta analytics sensitif langsung |
-| MOB-EWS-01 | P1 | EWS | Sediakan detail alert authoritative | Detail mobile hanya mencari halaman pertama |
+| MOB-EWS-01 | P1 | EWS | Sediakan detail alert authoritative | Selesai |
 | API-EWS-01 | P0 | EWS/AuthZ | Lindungi process, list, detail, dan resolve | Semua user login berpotensi membaca/mengubah alert |
 | API-STAT-01 | P0 | Statistik/AuthZ | Lindungi statistik global dan validasi filter | Semua user login berpotensi membaca statistik sensitif |
 | API-AUTHZ-01 | P0 | Shared AuthZ | Satukan role canonical dan tenant/resource scope | Service Go memakai sumber role dan enforcement berbeda |
