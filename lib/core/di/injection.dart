@@ -209,6 +209,7 @@ Future<void> configureDependencies() async {
       resolveTenant: sl(),
       listTenants: sl(),
       tenantStorage: sl(),
+      tokenStorage: sl(),
       apiClient: sl(),
     ),
   );
@@ -218,7 +219,7 @@ Future<void> configureDependencies() async {
     () => AuthRemoteDataSourceImpl(sl<ApiClient>().dio),
   );
   sl.registerLazySingleton<AuthRepository>(
-    () => AuthRepositoryImpl(sl(), sl()),
+    () => AuthRepositoryImpl(sl(), sl(), sl()),
   );
   sl.registerLazySingleton(() => LoginUseCase(sl()));
   sl.registerLazySingleton(() => LogoutUseCase(sl()));

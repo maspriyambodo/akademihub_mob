@@ -11,19 +11,27 @@ class TokenStorage {
   Future<String?> getRefreshToken() =>
       _storage.read(key: AppConfig.refreshTokenKey);
 
+  Future<String?> getTokenOrigin() =>
+      _storage.read(key: AppConfig.tokenOriginKey);
+
   Future<void> saveTokens({
     required String accessToken,
     String? refreshToken,
+    String? origin,
   }) async {
     await _storage.write(key: AppConfig.tokenKey, value: accessToken);
     if (refreshToken != null) {
       await _storage.write(key: AppConfig.refreshTokenKey, value: refreshToken);
+    }
+    if (origin != null) {
+      await _storage.write(key: AppConfig.tokenOriginKey, value: origin);
     }
   }
 
   Future<void> clearTokens() async {
     await _storage.delete(key: AppConfig.tokenKey);
     await _storage.delete(key: AppConfig.refreshTokenKey);
+    await _storage.delete(key: AppConfig.tokenOriginKey);
   }
 
   Future<bool> hasValidToken() async {

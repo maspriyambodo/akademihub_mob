@@ -4,6 +4,7 @@ import '../../domain/entities/tenant_entity.dart';
 import '../../domain/usecases/tenant_usecases.dart';
 import '../../../../core/config/tenant_config.dart';
 import '../../../../core/storage/tenant_storage.dart';
+import '../../../../core/storage/token_storage.dart';
 import '../../../../core/api/api_client.dart';
 
 part 'tenant_event.dart';
@@ -13,12 +14,14 @@ class TenantBloc extends Bloc<TenantEvent, TenantState> {
   final ResolveTenantUseCase resolveTenant;
   final ListTenantsUseCase listTenants;
   final TenantStorage tenantStorage;
+  final TokenStorage tokenStorage;
   final ApiClient apiClient;
 
   TenantBloc({
     required this.resolveTenant,
     required this.listTenants,
     required this.tenantStorage,
+    required this.tokenStorage,
     required this.apiClient,
   }) : super(TenantInitial()) {
     on<TenantLoadSaved>(_onLoadSaved);
@@ -55,6 +58,8 @@ class TenantBloc extends Bloc<TenantEvent, TenantState> {
     TenantSelected event,
     Emitter<TenantState> emit,
   ) async {
+    // Clear old tokens and tenant session when switching tenant
+    await tokenStorage.clearTokens();
     final config = event.tenant.toConfig();
     apiClient.applyTenant(config);
     await tenantStorage.saveTenant(config);
@@ -65,6 +70,7 @@ class TenantBloc extends Bloc<TenantEvent, TenantState> {
     TenantCleared event,
     Emitter<TenantState> emit,
   ) async {
+    await tokenStorage.clearTokens();
     await tenantStorage.clearTenant();
     apiClient.applyTenant(null);
     emit(TenantNotSelected());

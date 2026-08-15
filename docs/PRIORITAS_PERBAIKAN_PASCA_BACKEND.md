@@ -55,7 +55,7 @@ Mobile tetap berfokus pada pengguna sekolah yang sudah memiliki akun: siswa, gur
 | MOB-AUTH-02 | P1 | Auth | Satukan kontrak refresh token | Method manual masih mengirim token melalui Bearer header |
 | MOB-PPDB-01 | P1 | Scope | Hapus seluruh modul PPDB mobile | Selesai |
 | MOB-PAY-01 | P2 | Pembayaran | Refresh obligation setelah checkout | Selesai |
-| MOB-TENANT-01 | P2 | Tenant | Validasi flow superadmin lintas tenant | Backend kini mewajibkan tenant eksplisit |
+| MOB-TENANT-01 | P2 | Tenant | Validasi flow superadmin lintas tenant | Selesai |
 | MOB-QA-01 | P1 | QA | Tambahkan contract dan integration test | Selesai |
 | MOB-ABS-01 | P0 | Absensi | Selaraskan fitur check-in dengan route backend aktual | Mobile memanggil endpoint yang tidak tersedia di `absensi-worker` |
 | API-ABS-01 | P0 | Absensi/AuthZ | Scope list, detail, rentang, rekap, dan mutasi per role/resource | JWT valid saat ini dapat membuka data absensi di luar kepemilikan |
@@ -510,6 +510,13 @@ Implementasi mobile tetap wajib:
 - mengikat access token dan refresh token ke origin tenant tempat token diterbitkan;
 - membersihkan session dan meminta login ulang, bukan mengirim refresh token ke origin berbeda, jika origin tenant aktif tidak cocok dengan origin token;
 - menyediakan test bahwa perpindahan tenant tidak membawa state tenant lama dan tidak mengirim refresh token lintas origin.
+
+**Status Implementasi (Selesai):**
+- Superadmin cross-tenant ditetapkan web-only; entry point superadmin lintas tenant tidak ditambahkan pada mobile.
+- Helper `AppConfig.extractOrigin()` dan `TokenStorage.getTokenOrigin()` mengikat token ke origin tempat token diterbitkan.
+- `_AuthInterceptor` memvalidasi `tokenOrigin` vs active `baseUrl` origin. Pada ketidakcocokan origin, token dibersihkan dan refresh token lintas origin diblokir (meminta re-login).
+- `TenantBloc` dan `AuthRepositoryImpl` membersihkan cache/state tenant (`TenantStorage`) dan token (`TokenStorage`) saat perpindahan tenant maupun logout.
+- Unit test `test/core/tenant_origin_binding_test.dart` menguji ekstraksi origin, penyimpanan/pembersihan token origin, pembatalan cache tenant, dan proteksi role superadmin.
 
 ---
 

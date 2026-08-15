@@ -70,6 +70,17 @@ class _AuthInterceptor extends Interceptor {
     RequestInterceptorHandler handler,
   ) async {
     final token = await _storage.read(key: AppConfig.tokenKey);
+    final tokenOrigin = await _storage.read(key: AppConfig.tokenOriginKey);
+    final currentOrigin = AppConfig.extractOrigin(options.baseUrl);
+
+    if (tokenOrigin != null &&
+        currentOrigin != null &&
+        tokenOrigin != currentOrigin) {
+      // Origin mismatch — clear tokens & do not attach cross-origin token!
+      await _clearTokens();
+      return handler.next(options);
+    }
+
     if (token != null) {
       options.headers['Authorization'] = 'Bearer $token';
     }
@@ -131,6 +142,17 @@ class _AuthInterceptor extends Interceptor {
 
   Future<String?> _performRefresh() async {
     try {
+      final tokenOrigin = await _storage.read(key: AppConfig.tokenOriginKey);
+      final currentOrigin = AppConfig.extractOrigin(_dio.options.baseUrl);
+
+      if (tokenOrigin != null &&
+          currentOrigin != null &&
+          tokenOrigin != currentOrigin) {
+        // Stop cross-origin refresh token request & clear session
+        await _clearTokens();
+        return null;
+      }
+
       final refreshToken = await _storage.read(key: AppConfig.refreshTokenKey);
       if (refreshToken == null || refreshToken.isEmpty) {
         await _clearTokens();
@@ -178,6 +200,7 @@ class _AuthInterceptor extends Interceptor {
     await Future.wait([
       _storage.delete(key: AppConfig.tokenKey),
       _storage.delete(key: AppConfig.refreshTokenKey),
+      _storage.delete(key: AppConfig.tokenOriginKey),
     ]);
   }
 }

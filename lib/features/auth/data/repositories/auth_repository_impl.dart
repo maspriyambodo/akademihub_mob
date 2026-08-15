@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
+import '../../../../core/config/app_config.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/error/result.dart';
+import '../../../../core/storage/tenant_storage.dart';
 import '../../../../core/storage/token_storage.dart';
 import '../datasources/auth_remote_datasource.dart';
 import '../models/user_model.dart';
@@ -11,8 +13,13 @@ import '../../domain/repositories/auth_repository.dart';
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource _remoteDataSource;
   final TokenStorage _tokenStorage;
+  final TenantStorage _tenantStorage;
 
-  const AuthRepositoryImpl(this._remoteDataSource, this._tokenStorage);
+  const AuthRepositoryImpl(
+    this._remoteDataSource,
+    this._tokenStorage,
+    this._tenantStorage,
+  );
 
   @override
   Future<Result<UserEntity>> login(String email, String password) async {
@@ -24,6 +31,7 @@ class AuthRepositoryImpl implements AuthRepository {
       await _tokenStorage.saveTokens(
         accessToken: token,
         refreshToken: refreshToken,
+        origin: AppConfig.extractOrigin(AppConfig.apiBaseUrl),
       );
       return success(_userModelToEntity(user));
     } on DioException catch (e) {
@@ -40,9 +48,11 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       await _remoteDataSource.logout();
       await _tokenStorage.clearTokens();
+      await _tenantStorage.clearTenant();
       return success(null);
     } on DioException catch (e) {
       await _tokenStorage.clearTokens();
+      await _tenantStorage.clearTenant();
       return fail(_mapException(mapDioException(e)));
     }
   }

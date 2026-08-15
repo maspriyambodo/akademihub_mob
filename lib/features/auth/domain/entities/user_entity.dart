@@ -26,6 +26,7 @@ class UserEntity extends Equatable {
   bool get isGuru => role == 'guru';
   bool get isWali => role == 'wali';
   bool get isAdmin => role == 'admin';
+  bool get isSuperAdmin => (role ?? '').toLowerCase() == 'superadmin';
 
   String get primaryRole => role ?? 'unknown';
 

@@ -234,9 +234,9 @@ class _KeuanganDetailViewState extends State<_KeuanganDetailView>
               },
               child: _Isi(
                 state: state,
-                awal: awal,
-                canBayar: canBayar,
-                modeAdmin: modeAdmin,
+                awal: widget.awal,
+                canBayar: widget.canBayar,
+                modeAdmin: widget.modeAdmin,
                 onBayarOnline: () => context.read<KeuanganDetailBloc>().add(
                   const KeuanganDetailBayarOnlineRequested(),
                 ),

@@ -59,6 +59,16 @@ class AppConfig {
   // ── Token storage keys ─────────────────────────────────────────────────────
   static const String tokenKey = 'access_token';
   static const String refreshTokenKey = 'refresh_token';
+  static const String tokenOriginKey = 'token_origin';
+
+  static String? extractOrigin(String? url) {
+    if (url == null || url.trim().isEmpty) return null;
+    final uri = Uri.tryParse(url.trim());
+    if (uri == null || !uri.hasScheme || uri.host.isEmpty) return null;
+    final scheme = uri.scheme.toLowerCase();
+    final host = uri.host.toLowerCase();
+    return '$scheme://$host${uri.hasPort ? ':${uri.port}' : ''}';
+  }
 
   // ── HTTP timeouts ──────────────────────────────────────────────────────────
   static const Duration connectTimeout = Duration(seconds: 30);
