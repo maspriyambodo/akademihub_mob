@@ -220,11 +220,18 @@ class _UjianSessionPageState extends State<UjianSessionPage>
   Future<void> _refreshSession() async {
     final result = await _repository.getSesi(_session.id);
     if (!mounted || result.isFailure) return;
+    final nextSession = result.requireData;
+    final isTerminal =
+        nextSession.status != UjianSessionStatus.mengerjakan ||
+        nextSession.isTimedOut;
+
+    if (isTerminal) {
+      unawaited(_disableKioskSecurity());
+    }
+
     setState(() {
-      _session = result.requireData;
-      if (_session.status != UjianSessionStatus.mengerjakan ||
-          _session.isTimedOut ||
-          (_remainingSeconds != null && _remainingSeconds! <= 0)) {
+      _session = nextSession;
+      if (isTerminal || (_remainingSeconds != null && _remainingSeconds! <= 0)) {
         _questions = const [];
       }
       _setAuthoritativeTimer(_session);
