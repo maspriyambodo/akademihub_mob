@@ -38,9 +38,9 @@ class _UjianSessionPageState extends State<UjianSessionPage>
   int? _remainingSeconds;
   bool _loading = false;
   String? _loadError;
-  int _violationCount = 0;
-  final int _maxAllowedViolations = 3;
-  DateTime? _lastViolationTime;
+  bool _isKioskInitializing = false;
+  bool _violationInFlight = false;
+  bool _examClosed = false;
 
   DateTime _getNow() {
     return (widget.nowProvider ?? () => ApiClient.currentServerTime)().toUtc();
@@ -60,46 +60,50 @@ class _UjianSessionPageState extends State<UjianSessionPage>
     if (_session.status == UjianSessionStatus.mengerjakan &&
         !_session.isTimedOut &&
         (_remainingSeconds == null || _remainingSeconds! > 0)) {
-      _enableKioskSecurity();
-      _loadQuestions();
+      unawaited(_enableKioskSecurity());
+      unawaited(_loadQuestions());
     }
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _disableKioskSecurity();
+    unawaited(_disableKioskSecurity());
     _timer?.cancel();
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (_session.status != UjianSessionStatus.mengerjakan) return;
+    if (_session.status != UjianSessionStatus.mengerjakan || _examClosed) {
+      return;
+    }
 
     if (state == AppLifecycleState.paused) {
-      final now = DateTime.now();
-      if (_lastViolationTime != null &&
-          now.difference(_lastViolationTime!) < const Duration(seconds: 2)) {
-        return;
-      }
-      _lastViolationTime = now;
-      _handleViolation('APP_MINIMIZED');
+      if (_isKioskInitializing || _violationInFlight) return;
+      unawaited(_handleViolation('APP_MINIMIZED'));
     } else if (state == AppLifecycleState.resumed) {
-      ExamAlarmService.stopAlarm();
+      unawaited(ExamAlarmService.stopAlarm());
     }
   }
 
   Future<void> _enableKioskSecurity() async {
+    _isKioskInitializing = true;
     try {
-      final bool? isKioskActive = await _kioskChannel.invokeMethod<bool>('startKioskMode');
+      final bool? isKioskActive = await _kioskChannel.invokeMethod<bool>(
+        'startKioskMode',
+      );
       if (isKioskActive == false) {
-        debugPrint('Kiosk Mode (ASAM/LockTask) not supported or not active on device');
+        debugPrint(
+          'Kiosk Mode (ASAM/LockTask) not supported or not active on device',
+        );
       }
     } on PlatformException catch (e) {
       debugPrint('Kiosk Error: ${e.message}');
     } on MissingPluginException {
       debugPrint('Kiosk plugin missing on platform');
+    } finally {
+      _isKioskInitializing = false;
     }
 
     try {
@@ -126,32 +130,38 @@ class _UjianSessionPageState extends State<UjianSessionPage>
   }
 
   Future<void> _handleViolation(String type) async {
-    _violationCount++;
-    await ExamAlarmService.triggerViolationAlarm();
+    if (_violationInFlight || _examClosed) return;
 
-    final res = await _repository.reportViolation(
-      sesiId: _session.id,
-      type: type,
-    );
+    _violationInFlight = true;
+    try {
+      unawaited(ExamAlarmService.triggerViolationAlarm());
+      final res = await _repository.reportViolation(
+        sesiId: _session.id,
+        type: type,
+      );
 
-    if (!mounted) return;
-
-    if (res.isSuccess) {
-      final data = res.requireData;
-      final autoSubmitted = data['auto_submitted'] == true;
-      if (autoSubmitted || _violationCount >= _maxAllowedViolations) {
-        await _disableKioskSecurity();
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Ujian di-submit otomatis karena melanggar batas perizinan aplikasi.',
-            ),
-            backgroundColor: AppColors.error,
-          ),
-        );
-        _refreshSession();
+      if (!mounted || res.isFailure) {
+        return;
       }
+
+      final data = res.requireData;
+      final violationCount = (data['violation_count'] as num?)?.toInt() ?? 0;
+      if (data['auto_submitted'] != true && violationCount < 3) return;
+
+      _examClosed = true;
+      await _disableKioskSecurity();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Ujian di-submit otomatis karena melanggar batas perizinan aplikasi.',
+          ),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      await _refreshSession();
+    } finally {
+      _violationInFlight = false;
     }
   }
 
@@ -260,7 +270,8 @@ class _UjianSessionPageState extends State<UjianSessionPage>
     String? text,
     bool? doubtful,
   }) async {
-    if (_session.isTimedOut || (_remainingSeconds != null && _remainingSeconds! <= 0)) {
+    if (_session.isTimedOut ||
+        (_remainingSeconds != null && _remainingSeconds! <= 0)) {
       _error('Waktu ujian habis');
       await _refreshSession();
       return;

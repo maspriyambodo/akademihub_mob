@@ -15,7 +15,9 @@ import UIKit
       if call.method == "startKioskMode" {
         if #available(iOS 12.0, *) {
           UIAccessibility.requestGuidedAccessSession(enabled: true) { success in
-            result(success)
+            DispatchQueue.main.async {
+              result(success)
+            }
           }
         } else {
           result(FlutterError(code: "UNSUPPORTED", message: "iOS version not supported", details: nil))
@@ -23,7 +25,9 @@ import UIKit
       } else if call.method == "stopKioskMode" {
         if #available(iOS 12.0, *) {
           UIAccessibility.requestGuidedAccessSession(enabled: false) { success in
-            result(success)
+            DispatchQueue.main.async {
+              result(success)
+            }
           }
         } else {
           result(FlutterError(code: "UNSUPPORTED", message: "iOS version not supported", details: nil))

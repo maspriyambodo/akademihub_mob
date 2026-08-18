@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:akademihub_mob/core/error/failures.dart';
 import 'package:akademihub_mob/core/error/result.dart';
 import 'package:akademihub_mob/features/ujian/domain/entities/ujian_question_entity.dart';
@@ -5,6 +7,7 @@ import 'package:akademihub_mob/features/ujian/domain/entities/ujian_session_enti
 import 'package:akademihub_mob/features/ujian/domain/repositories/ujian_repository.dart';
 import 'package:akademihub_mob/features/ujian/presentation/pages/ujian_session_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -133,11 +136,7 @@ void main() {
         nilaiAkhir: 95.5,
       );
 
-      await tester.fling(
-        find.byType(ListView),
-        const Offset(0, 300),
-        1000,
-      );
+      await tester.fling(find.byType(ListView), const Offset(0, 300), 1000);
       await tester.pumpAndSettle();
 
       expect(repository.sessionFetches, 1);
@@ -228,6 +227,82 @@ void main() {
     expect(find.text('Deadline reached on server'), findsOneWidget);
     expect(repository.sessionFetches, 1);
   });
+
+  testWidgets('records one violation while the prior report is pending', (
+    tester,
+  ) async {
+    const kioskChannel = MethodChannel('com.akademihub.app/kiosk');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(kioskChannel, (call) async => true);
+    addTearDown(
+      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(kioskChannel, null),
+    );
+    final repository = _PendingViolationRepository();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: UjianSessionPage(
+          repository: repository,
+          session: repository.session,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump();
+
+    // A second valid background cycle must not create concurrent telemetry.
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+
+    expect(repository.violationReports, 1);
+    repository.completeViolation();
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('closes kiosk when backend reports the violation threshold', (
+    tester,
+  ) async {
+    const kioskChannel = MethodChannel('com.akademihub.app/kiosk');
+    var stopKioskCalls = 0;
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(kioskChannel, (call) async {
+          if (call.method == 'stopKioskMode') stopKioskCalls++;
+          return true;
+        });
+    addTearDown(
+      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(kioskChannel, null),
+    );
+    final repository = _ThresholdViolationRepository();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: UjianSessionPage(
+          repository: repository,
+          session: repository.session,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump();
+    await tester.pump();
+
+    expect(repository.violationReports, 1);
+    expect(stopKioskCalls, 1);
+  });
 }
 
 class _FakeRepository implements UjianRepository {
@@ -307,8 +382,35 @@ class _DeadlineErrorRepository extends _FakeRepository {
     String? teks,
     required bool raguRagu,
   }) async {
-    return const ResultFailure(
-      ServerFailure('Deadline reached on server'),
-    );
+    return const ResultFailure(ServerFailure('Deadline reached on server'));
+  }
+}
+
+class _PendingViolationRepository extends _FakeRepository {
+  final _violation = Completer<Result<Map<String, dynamic>>>();
+  int violationReports = 0;
+
+  @override
+  Future<Result<Map<String, dynamic>>> reportViolation({
+    required int sesiId,
+    required String type,
+  }) {
+    violationReports++;
+    return _violation.future;
+  }
+
+  void completeViolation() => _violation.complete(success(const {}));
+}
+
+class _ThresholdViolationRepository extends _FakeRepository {
+  int violationReports = 0;
+
+  @override
+  Future<Result<Map<String, dynamic>>> reportViolation({
+    required int sesiId,
+    required String type,
+  }) async {
+    violationReports++;
+    return success(const {'violation_count': 3, 'auto_submitted': false});
   }
 }

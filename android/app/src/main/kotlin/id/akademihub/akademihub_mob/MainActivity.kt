@@ -18,8 +18,8 @@ class MainActivity : FlutterActivity() {
                 "startKioskMode" -> {
                     try {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                            startLockTask()
                             window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                            startLockTask()
                             
                             val am = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
                             val isPinned = am.lockTaskModeState != ActivityManager.LOCK_TASK_MODE_NONE
@@ -34,7 +34,10 @@ class MainActivity : FlutterActivity() {
                 "stopKioskMode" -> {
                     try {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                            stopLockTask()
+                            val am = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+                            if (am.lockTaskModeState != ActivityManager.LOCK_TASK_MODE_NONE) {
+                                stopLockTask()
+                            }
                             window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
                             result.success(true)
                         } else {
