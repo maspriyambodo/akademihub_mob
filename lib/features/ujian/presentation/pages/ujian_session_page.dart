@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../../core/api/api_client.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../data/services/exam_alarm_service.dart';
 import '../../domain/entities/ujian_question_entity.dart';
 import '../../domain/entities/ujian_session_entity.dart';
 import '../../domain/repositories/ujian_repository.dart';
@@ -25,7 +27,9 @@ class UjianSessionPage extends StatefulWidget {
   State<UjianSessionPage> createState() => _UjianSessionPageState();
 }
 
-class _UjianSessionPageState extends State<UjianSessionPage> {
+class _UjianSessionPageState extends State<UjianSessionPage>
+    with WidgetsBindingObserver {
+  static const _kioskChannel = MethodChannel('com.akademihub.app/kiosk');
   late UjianSessionEntity _session = widget.session;
   late final UjianRepository _repository = widget.repository ?? sl();
   final _saving = <int>{};
@@ -34,6 +38,8 @@ class _UjianSessionPageState extends State<UjianSessionPage> {
   int? _remainingSeconds;
   bool _loading = false;
   String? _loadError;
+  int _violationCount = 0;
+  final int _maxAllowedViolations = 3;
 
   DateTime _getNow() {
     return (widget.nowProvider ?? () => ApiClient.currentServerTime)().toUtc();
@@ -48,18 +54,84 @@ class _UjianSessionPageState extends State<UjianSessionPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _setAuthoritativeTimer(_session);
     if (_session.status == UjianSessionStatus.mengerjakan &&
         !_session.isTimedOut &&
         (_remainingSeconds == null || _remainingSeconds! > 0)) {
+      _enableKioskSecurity();
       _loadQuestions();
     }
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _disableKioskSecurity();
     _timer?.cancel();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (_session.status != UjianSessionStatus.mengerjakan) return;
+
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      _handleViolation('APP_MINIMIZED');
+    } else if (state == AppLifecycleState.resumed) {
+      ExamAlarmService.stopAlarm();
+    }
+  }
+
+  Future<void> _enableKioskSecurity() async {
+    try {
+      await _kioskChannel.invokeMethod('startKioskMode');
+      await ExamAlarmService.initAudio();
+    } on PlatformException catch (e) {
+      debugPrint('Kiosk Error: ${e.message}');
+    } on MissingPluginException {
+      debugPrint('Kiosk plugin missing on platform');
+    }
+  }
+
+  Future<void> _disableKioskSecurity() async {
+    try {
+      await _kioskChannel.invokeMethod('stopKioskMode');
+      await ExamAlarmService.stopAlarm();
+    } on PlatformException catch (e) {
+      debugPrint('Kiosk Error: ${e.message}');
+    } on MissingPluginException {
+      debugPrint('Kiosk plugin missing on platform');
+    }
+  }
+
+  Future<void> _handleViolation(String type) async {
+    _violationCount++;
+    await ExamAlarmService.triggerViolationAlarm();
+
+    final res = await _repository.reportViolation(
+      sesiId: _session.id,
+      type: type,
+    );
+
+    if (!mounted) return;
+
+    if (res.isSuccess) {
+      final data = res.requireData;
+      final autoSubmitted = data['auto_submitted'] == true;
+      if (autoSubmitted || _violationCount >= _maxAllowedViolations) {
+        await _disableKioskSecurity();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Ujian di-submit otomatis karena melanggar batas perizinan aplikasi.',
+            ),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        _refreshSession();
+      }
+    }
   }
 
   void _setAuthoritativeTimer(UjianSessionEntity session) {
@@ -157,6 +229,7 @@ class _UjianSessionPageState extends State<UjianSessionPage> {
       _session = result.requireData;
       _setAuthoritativeTimer(_session);
     });
+    await _enableKioskSecurity();
     await _loadQuestions();
   }
 
@@ -210,6 +283,7 @@ class _UjianSessionPageState extends State<UjianSessionPage> {
       await _refreshSession();
       return;
     }
+    await _disableKioskSecurity();
     setState(() {
       _loading = false;
       _session = result.requireData;
@@ -368,61 +442,66 @@ class _UjianSessionPageState extends State<UjianSessionPage> {
         (_remainingSeconds == null || _remainingSeconds! > 0) &&
         !_loading;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_session.namaUjian),
-        actions: [
-          if (_session.status == UjianSessionStatus.mengerjakan)
-            Padding(
-              padding: const EdgeInsets.only(right: 12),
-              child: Center(child: _buildTimerBadge()),
-            ),
-        ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: _refreshSession,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            _buildStatusBanner(),
-            const SizedBox(height: 12),
-            if (_loading) const Center(child: CircularProgressIndicator()),
-            if (_loadError != null)
-              Center(
-                child: Column(
-                  children: [
-                    Text(
-                      _loadError!,
-                      style: const TextStyle(color: AppColors.error),
-                    ),
-                    const SizedBox(height: 8),
-                    ElevatedButton(
-                      onPressed: _loadQuestions,
-                      child: const Text('Coba Lagi'),
-                    ),
-                  ],
-                ),
+    return PopScope(
+      canPop: _session.status != UjianSessionStatus.mengerjakan,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(_session.namaUjian),
+          automaticallyImplyLeading:
+              _session.status != UjianSessionStatus.mengerjakan,
+          actions: [
+            if (_session.status == UjianSessionStatus.mengerjakan)
+              Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: Center(child: _buildTimerBadge()),
               ),
-            if (_session.status == UjianSessionStatus.mengerjakan) ...[
-              for (var i = 0; i < _questions.length; i++)
-                _QuestionCard(
-                  number: i + 1,
-                  question: _questions[i],
-                  enabled: inputsEnabled,
-                  saving: _saving.contains(_questions[i].id),
-                  onOption: (opId) => _save(_questions[i], optionId: opId),
-                  onEssay: (text) => _save(_questions[i], text: text),
-                  onDoubtful: (r) => _save(_questions[i], doubtful: r),
-                ),
-              const SizedBox(height: 12),
-              ElevatedButton.icon(
-                key: const Key('finalize-exam'),
-                onPressed: inputsEnabled ? _selesaikan : null,
-                icon: const Icon(Icons.check_outlined),
-                label: const Text('Selesaikan Ujian'),
-              ),
-            ],
           ],
+        ),
+        body: RefreshIndicator(
+          onRefresh: _refreshSession,
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              _buildStatusBanner(),
+              const SizedBox(height: 12),
+              if (_loading) const Center(child: CircularProgressIndicator()),
+              if (_loadError != null)
+                Center(
+                  child: Column(
+                    children: [
+                      Text(
+                        _loadError!,
+                        style: const TextStyle(color: AppColors.error),
+                      ),
+                      const SizedBox(height: 8),
+                      ElevatedButton(
+                        onPressed: _loadQuestions,
+                        child: const Text('Coba Lagi'),
+                      ),
+                    ],
+                  ),
+                ),
+              if (_session.status == UjianSessionStatus.mengerjakan) ...[
+                for (var i = 0; i < _questions.length; i++)
+                  _QuestionCard(
+                    number: i + 1,
+                    question: _questions[i],
+                    enabled: inputsEnabled,
+                    saving: _saving.contains(_questions[i].id),
+                    onOption: (opId) => _save(_questions[i], optionId: opId),
+                    onEssay: (text) => _save(_questions[i], text: text),
+                    onDoubtful: (r) => _save(_questions[i], doubtful: r),
+                  ),
+                const SizedBox(height: 12),
+                ElevatedButton.icon(
+                  key: const Key('finalize-exam'),
+                  onPressed: inputsEnabled ? _selesaikan : null,
+                  icon: const Icon(Icons.check_outlined),
+                  label: const Text('Selesaikan Ujian'),
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );

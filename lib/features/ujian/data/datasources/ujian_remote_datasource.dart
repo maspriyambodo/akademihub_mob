@@ -43,6 +43,10 @@ abstract class UjianRemoteDataSource {
   Future<int> getJumlahJawaban(int sesiId);
   Future<UjianSessionModel> mulaiSesi(int sesiId);
   Future<UjianSessionModel> selesaikanSesi(int sesiId);
+  Future<Map<String, dynamic>> reportViolation({
+    required int sesiId,
+    required String type,
+  });
 }
 
 class UjianRemoteDataSourceImpl implements UjianRemoteDataSource {
@@ -148,6 +152,20 @@ class UjianRemoteDataSourceImpl implements UjianRemoteDataSource {
   Future<UjianSessionModel> selesaikanSesi(int sesiId) async {
     final response = await _dio.post('/akademik/ujian-user/$sesiId/selesaikan');
     return UjianSessionModel.fromJson(_extractObject(response.data));
+  }
+
+  @override
+  Future<Map<String, dynamic>> reportViolation({
+    required int sesiId,
+    required String type,
+  }) async {
+    final response = await _dio.post(
+      '/akademik/ujian-user/$sesiId/violation',
+      data: <String, dynamic>{
+        'violation_type': type,
+      },
+    );
+    return _extractObject(response.data);
   }
 
   @override

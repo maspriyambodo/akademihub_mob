@@ -265,12 +265,12 @@ CREATE INDEX idx_violation_ujian_siswa ON trx_ujian_violation_logs(trx_ujian_id,
 
 ## 5. Checklist Verifikasi & QA Testing
 
-- [ ] **Lock Task Test (Android)**: Tombol Home, Recent Apps, dan Status Bar terpencil.
-- [ ] **Guided Access Test (iOS)**: Gesture swipe-up ke home screen diblokir.
-- [ ] **Silent Bypass Test**: HP Mode Silent -> Minimalkan App -> Alarm tetap berbunyi via `STREAM_ALARM`/`Playback`.
-- [ ] **Anti Screenshot Test**: `FLAG_SECURE` aktif, hasil capture hitam/blank.
-- [ ] **Telemetry Test**: Violation log tercatat di DB `trx_ujian_violation_logs`.
-- [ ] **Auto Force-Submit Test**: 3x pelanggaran otomatis mengunci dan submit sesi ujian.
+- [x] **Lock Task Test (Android)**: Tombol Home, Recent Apps, dan Status Bar terpencil.
+- [x] **Guided Access Test (iOS)**: Gesture swipe-up ke home screen diblokir.
+- [x] **Silent Bypass Test**: HP Mode Silent -> Minimalkan App -> Alarm tetap berbunyi via `STREAM_ALARM`/`Playback`.
+- [x] **Anti Screenshot Test**: `FLAG_SECURE` aktif, hasil capture hitam/blank.
+- [x] **Telemetry Test**: Violation log tercatat di DB `trx_ujian_violation_logs`.
+- [x] **Auto Force-Submit Test**: 3x pelanggaran otomatis mengunci dan submit sesi ujian.
 
 ---
 `ponytail:` implementation boundary set for native Flutter method channel bridge & Go telemetry handler. upgrade path: MDM (Mobile Device Management) auto-enrollment for school-owned devices.

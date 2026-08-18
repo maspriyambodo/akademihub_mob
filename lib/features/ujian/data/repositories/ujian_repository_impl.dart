@@ -124,6 +124,21 @@ class UjianRepositoryImpl implements UjianRepository {
   }
 
   @override
+  Future<Result<Map<String, dynamic>>> reportViolation({
+    required int sesiId,
+    required String type,
+  }) async {
+    try {
+      final res = await _remote.reportViolation(sesiId: sesiId, type: type);
+      return success(res);
+    } on DioException catch (e) {
+      return fail(_map(mapDioException(e)));
+    } on AppException catch (e) {
+      return fail(_map(e));
+    }
+  }
+
+  @override
   Future<Result<List<UjianEntity>>> getUjianByKelas(int kelasId) async {
     try {
       final models = await _remote.getUjianByKelas(kelasId);

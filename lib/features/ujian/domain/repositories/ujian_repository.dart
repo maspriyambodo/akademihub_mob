@@ -50,4 +50,8 @@ abstract class UjianRepository {
   Future<Result<int>> getJumlahJawaban(int sesiId);
   Future<Result<UjianSessionEntity>> mulaiSesi(int sesiId);
   Future<Result<UjianSessionEntity>> selesaikanSesi(int sesiId);
+  Future<Result<Map<String, dynamic>>> reportViolation({
+    required int sesiId,
+    required String type,
+  });
 }
