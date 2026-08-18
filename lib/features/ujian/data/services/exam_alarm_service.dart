@@ -35,7 +35,7 @@ class ExamAlarmService {
         await initAudio();
       }
       await _audioPlayer.play(
-        AssetSource('sounds/cheat_alarm.mp3'),
+        AssetSource('sounds/cheat_alarm.wav'),
         volume: 1.0,
       );
     } catch (e) {

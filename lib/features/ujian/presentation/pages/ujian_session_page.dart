@@ -40,6 +40,7 @@ class _UjianSessionPageState extends State<UjianSessionPage>
   String? _loadError;
   int _violationCount = 0;
   final int _maxAllowedViolations = 3;
+  DateTime? _lastViolationTime;
 
   DateTime _getNow() {
     return (widget.nowProvider ?? () => ApiClient.currentServerTime)().toUtc();
@@ -76,7 +77,13 @@ class _UjianSessionPageState extends State<UjianSessionPage>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (_session.status != UjianSessionStatus.mengerjakan) return;
 
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+    if (state == AppLifecycleState.paused) {
+      final now = DateTime.now();
+      if (_lastViolationTime != null &&
+          now.difference(_lastViolationTime!) < const Duration(seconds: 2)) {
+        return;
+      }
+      _lastViolationTime = now;
       _handleViolation('APP_MINIMIZED');
     } else if (state == AppLifecycleState.resumed) {
       ExamAlarmService.stopAlarm();
@@ -85,23 +92,36 @@ class _UjianSessionPageState extends State<UjianSessionPage>
 
   Future<void> _enableKioskSecurity() async {
     try {
-      await _kioskChannel.invokeMethod('startKioskMode');
-      await ExamAlarmService.initAudio();
+      final bool? isKioskActive = await _kioskChannel.invokeMethod<bool>('startKioskMode');
+      if (isKioskActive == false) {
+        debugPrint('Kiosk Mode (ASAM/LockTask) not supported or not active on device');
+      }
     } on PlatformException catch (e) {
       debugPrint('Kiosk Error: ${e.message}');
     } on MissingPluginException {
       debugPrint('Kiosk plugin missing on platform');
+    }
+
+    try {
+      await ExamAlarmService.initAudio();
+    } catch (e) {
+      debugPrint('Audio init error: $e');
     }
   }
 
   Future<void> _disableKioskSecurity() async {
     try {
       await _kioskChannel.invokeMethod('stopKioskMode');
-      await ExamAlarmService.stopAlarm();
     } on PlatformException catch (e) {
       debugPrint('Kiosk Error: ${e.message}');
     } on MissingPluginException {
       debugPrint('Kiosk plugin missing on platform');
+    }
+
+    try {
+      await ExamAlarmService.stopAlarm();
+    } catch (e) {
+      debugPrint('Audio stop error: $e');
     }
   }
 
@@ -121,6 +141,7 @@ class _UjianSessionPageState extends State<UjianSessionPage>
       final autoSubmitted = data['auto_submitted'] == true;
       if (autoSubmitted || _violationCount >= _maxAllowedViolations) {
         await _disableKioskSecurity();
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
@@ -518,7 +539,6 @@ class _QuestionCard extends StatefulWidget {
   final ValueChanged<bool> onDoubtful;
 
   const _QuestionCard({
-    super.key,
     required this.number,
     required this.question,
     required this.enabled,
@@ -564,7 +584,9 @@ class _QuestionCardState extends State<_QuestionCard> {
                     .map(
                       (option) => RadioListTile<int>(
                         value: option.id,
+                        // ignore: deprecated_member_use
                         groupValue: question.answer?.optionId,
+                        // ignore: deprecated_member_use
                         onChanged: (value) {
                           if (widget.enabled && value != null) {
                             widget.onOption(value);
