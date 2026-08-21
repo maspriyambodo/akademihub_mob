@@ -8,6 +8,7 @@ import '../bloc/tugas_bloc.dart';
 import '../widgets/tugas_widgets.dart';
 import 'tugas_detail_page.dart';
 import 'pengumpulan_tugas_page.dart';
+import '../../../materi/presentation/pages/akademik_publikasi_form_page.dart';
 
 class TugasPage extends StatelessWidget {
   const TugasPage({super.key});
@@ -93,6 +94,23 @@ class _TugasViewState extends State<_TugasView> {
         ),
       ),
     );
+  }
+
+  bool _bolehBuat(BuildContext context) {
+    final auth = context.read<AuthBloc>().state;
+    return auth is AuthAuthenticated && auth.user.hasPermission('tugas.create');
+  }
+
+  Future<void> _tambahTugas() async {
+    final dibuat = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) =>
+            AkademikPublikasiFormPage(type: AkademikPublikasiType.tugas),
+      ),
+    );
+    if (dibuat == true && mounted) {
+      context.read<TugasBloc>().add(const TugasRefreshRequested());
+    }
   }
 
   @override
@@ -190,6 +208,13 @@ class _TugasViewState extends State<_TugasView> {
           return const SizedBox.shrink();
         },
       ),
+      floatingActionButton: _bolehBuat(context)
+          ? FloatingActionButton.extended(
+              onPressed: _tambahTugas,
+              icon: const Icon(Icons.add),
+              label: const Text('Tugas'),
+            )
+          : null,
     );
   }
 

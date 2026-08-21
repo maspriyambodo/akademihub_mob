@@ -1,6 +1,12 @@
+import 'dart:io';
+
+import 'package:dio/dio.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../core/api/api_client.dart';
+import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../domain/entities/tugas_item_entity.dart';
@@ -519,6 +525,7 @@ class _KumpulkanSheetState extends State<_KumpulkanSheet> {
   late final TextEditingController _fileCtrl;
   final _formKey = GlobalKey<FormState>();
   String? _errorUmum;
+  bool _mengunggah = false;
 
   @override
   void initState() {
@@ -552,6 +559,63 @@ class _KumpulkanSheetState extends State<_KumpulkanSheet> {
         fileJawaban: file.isEmpty ? null : file,
       ),
     );
+  }
+
+  Future<void> _pilihBerkas() async {
+    final hasil = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: const ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'],
+      withData: false,
+    );
+    if (hasil == null || !mounted) return;
+
+    final berkas = hasil.files.single;
+    final path = berkas.path;
+    if (path == null) {
+      setState(() => _errorUmum = 'Berkas tidak dapat dibaca dari perangkat');
+      return;
+    }
+    if (berkas.size > 2 * 1024 * 1024) {
+      setState(() => _errorUmum = 'Ukuran berkas maksimal 2 MB');
+      return;
+    }
+
+    setState(() {
+      _mengunggah = true;
+      _errorUmum = null;
+    });
+    try {
+      final response = await sl<ApiClient>().dio.post(
+        '/files/upload',
+        data: FormData.fromMap({
+          'folder': 'tugas',
+          'file': await MultipartFile.fromFile(path, filename: berkas.name),
+        }),
+      );
+      final body = response.data;
+      final data = body is Map ? body['data'] : null;
+      final filePath = data is Map
+          ? (data['path'] ?? data['file_path'] ?? data['url'])?.toString()
+          : null;
+      if (filePath == null || filePath.isEmpty) {
+        throw const FormatException('Respons unggah tidak memuat path berkas');
+      }
+      if (!mounted) return;
+      setState(() => _fileCtrl.text = filePath);
+    } on DioException catch (error) {
+      if (!mounted) return;
+      final body = error.response?.data;
+      final message = body is Map ? body['message']?.toString() : null;
+      setState(() => _errorUmum = message ?? 'Unggah berkas gagal');
+    } on FileSystemException {
+      if (mounted) {
+        setState(() => _errorUmum = 'Berkas tidak dapat dibaca dari perangkat');
+      }
+    } on FormatException catch (error) {
+      if (mounted) setState(() => _errorUmum = error.message);
+    } finally {
+      if (mounted) setState(() => _mengunggah = false);
+    }
   }
 
   @override
@@ -625,30 +689,30 @@ class _KumpulkanSheetState extends State<_KumpulkanSheet> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                TextFormField(
-                  controller: _fileCtrl,
-                  keyboardType: TextInputType.url,
-                  decoration: const InputDecoration(
-                    labelText: 'Tautan lampiran (opsional)',
-                    hintText: 'https://drive.google.com/...',
-                    prefixIcon: Icon(Icons.link),
-                  ),
-                  validator: (value) {
-                    final v = (value ?? '').trim();
-                    if (v.isEmpty) return null;
-                    if (v.length > 255) return 'Maksimal 255 karakter';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  'Unggah berkas langsung belum tersedia — salin tautan berkas '
-                  '(Google Drive, dsb.) ke kolom di atas.',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: AppColors.textSecondary,
+                OutlinedButton.icon(
+                  onPressed: _mengunggah ? null : _pilihBerkas,
+                  icon: _mengunggah
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.attach_file_outlined),
+                  label: Text(_mengunggah ? 'Mengunggah...' : 'Pilih berkas'),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 48),
                   ),
                 ),
+                if (_fileCtrl.text.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    'Berkas siap dikirim',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.success,
+                    ),
+                  ),
+                ],
                 if (_errorUmum != null) ...[
                   const SizedBox(height: 8),
                   Text(

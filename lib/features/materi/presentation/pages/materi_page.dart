@@ -8,6 +8,7 @@ import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../domain/entities/materi_entity.dart';
 import '../bloc/materi_bloc.dart';
 import '../widgets/materi_widgets.dart';
+import 'akademik_publikasi_form_page.dart';
 import 'materi_detail_page.dart';
 
 class MateriPage extends StatelessWidget {
@@ -98,6 +99,24 @@ class _MateriViewState extends State<_MateriView> {
     );
   }
 
+  bool _bolehBuat(BuildContext context) {
+    final auth = context.read<AuthBloc>().state;
+    return auth is AuthAuthenticated &&
+        auth.user.hasPermission('materi.create');
+  }
+
+  Future<void> _tambahMateri() async {
+    final dibuat = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) =>
+            AkademikPublikasiFormPage(type: AkademikPublikasiType.materi),
+      ),
+    );
+    if (dibuat == true && mounted) {
+      context.read<MateriBloc>().add(const MateriRefreshRequested());
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -161,6 +180,13 @@ class _MateriViewState extends State<_MateriView> {
           return const SizedBox.shrink();
         },
       ),
+      floatingActionButton: _bolehBuat(context)
+          ? FloatingActionButton.extended(
+              onPressed: _tambahMateri,
+              icon: const Icon(Icons.add),
+              label: const Text('Materi'),
+            )
+          : null,
     );
   }
 
