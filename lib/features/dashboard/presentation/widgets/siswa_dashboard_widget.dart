@@ -48,10 +48,8 @@ class SiswaDashboardWidget extends StatelessWidget {
       children: [
         // Header
         Text(
-          'Selamat Datang, ${profile['nama'] ?? 'Siswa'}',
-          style: Theme.of(
-            context,
-          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+          'Selamat datang,\n${profile['nama'] ?? 'Siswa'}',
+          style: Theme.of(context).textTheme.headlineSmall,
         ),
         const SizedBox(height: 4),
         Text(
@@ -60,7 +58,7 @@ class SiswaDashboardWidget extends StatelessWidget {
             context,
           ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 28),
 
         // Attendance summary stats
         Text(
@@ -123,7 +121,7 @@ class SiswaDashboardWidget extends StatelessWidget {
             );
           },
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
 
         // Unpaid SPP
         Card(
@@ -165,7 +163,7 @@ class SiswaDashboardWidget extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
 
         // Recent Grades
         Card(
@@ -194,7 +192,7 @@ class SiswaDashboardWidget extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
 
         // Upcoming Tasks
         Card(
@@ -236,11 +234,11 @@ class SiswaDashboardWidget extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
 
         // Quick Actions
         DashboardQuickActions(role: 'siswa', permissions: permissions),
-        const SizedBox(height: 16),
+        const SizedBox(height: 24),
       ],
     );
   }
@@ -369,10 +367,14 @@ class _TaskRow extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: Colors.purple.withAlpha(30),
-              borderRadius: BorderRadius.circular(20),
+              color: AppColors.primary.withAlpha(24),
+              borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(Icons.schedule, color: Colors.purple, size: 14),
+            child: const Icon(
+              Icons.schedule,
+              color: AppColors.primary,
+              size: 14,
+            ),
           ),
           const SizedBox(width: 10),
           Expanded(

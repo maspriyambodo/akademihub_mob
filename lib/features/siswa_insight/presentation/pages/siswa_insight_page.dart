@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive.dart';
+import '../../../../core/widgets/batas_lebar_konten.dart';
 import '../../domain/entities/siswa_insight_entity.dart';
 import '../bloc/siswa_insight_bloc.dart';
 
@@ -140,15 +141,17 @@ class _LoadedView extends StatelessWidget {
           ),
         ),
         Expanded(
-          child: IndexedStack(
-            index: state.activeTab,
-            children: [
-              _OverviewTab(insight: state.insight),
-              _RiskProfileTab(insight: state.insight),
-              _AcademicTab(insight: state.insight),
-              _AttendanceTab(insight: state.insight),
-              _FinanceTab(insight: state.insight),
-            ],
+          child: BatasLebarKonten(
+            child: IndexedStack(
+              index: state.activeTab,
+              children: [
+                _OverviewTab(insight: state.insight),
+                _RiskProfileTab(insight: state.insight),
+                _AcademicTab(insight: state.insight),
+                _AttendanceTab(insight: state.insight),
+                _FinanceTab(insight: state.insight),
+              ],
+            ),
           ),
         ),
       ],
@@ -193,6 +196,33 @@ class _HeaderCard extends StatelessWidget {
   }
 }
 
+class _ResponsiveRow extends StatelessWidget {
+  final List<Widget> children;
+
+  const _ResponsiveRow({required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth >= Responsive.compactWidth) {
+          return Row(children: children);
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: children.map((child) {
+            if (child is Expanded) return child.child;
+            if (child is SizedBox && child.width != null) {
+              return SizedBox(height: child.width);
+            }
+            return child;
+          }).toList(),
+        );
+      },
+    );
+  }
+}
+
 class _OverviewTab extends StatelessWidget {
   final SiswaInsightEntity insight;
 
@@ -204,7 +234,7 @@ class _OverviewTab extends StatelessWidget {
     return ListView(
       padding: EdgeInsets.fromLTRB(pad.left, 12, pad.right, pad.bottom + 24),
       children: [
-        Row(
+        _ResponsiveRow(
           children: [
             Expanded(
               child: _SummaryCard(
@@ -229,7 +259,7 @@ class _OverviewTab extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 10),
-        Row(
+        _ResponsiveRow(
           children: [
             Expanded(
               child: _SummaryCard(
@@ -606,7 +636,7 @@ class _AcademicTab extends StatelessWidget {
     return ListView(
       padding: EdgeInsets.fromLTRB(pad.left, 12, pad.right, pad.bottom + 24),
       children: [
-        Row(
+        _ResponsiveRow(
           children: [
             Expanded(
               child: Card(
@@ -919,7 +949,7 @@ class _FinanceTab extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        Row(
+        _ResponsiveRow(
           children: [
             Expanded(
               child: Card(

@@ -6,6 +6,8 @@ import 'package:flutter/services.dart';
 import '../../../../core/api/api_client.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
+import '../../../../core/widgets/batas_lebar_konten.dart';
 import '../../data/services/exam_alarm_service.dart';
 import '../../domain/entities/ujian_question_entity.dart';
 import '../../domain/entities/ujian_session_entity.dart';
@@ -231,7 +233,8 @@ class _UjianSessionPageState extends State<UjianSessionPage>
 
     setState(() {
       _session = nextSession;
-      if (isTerminal || (_remainingSeconds != null && _remainingSeconds! <= 0)) {
+      if (isTerminal ||
+          (_remainingSeconds != null && _remainingSeconds! <= 0)) {
         _questions = const [];
       }
       _setAuthoritativeTimer(_session);
@@ -485,7 +488,11 @@ class _UjianSessionPageState extends State<UjianSessionPage>
       canPop: _session.status != UjianSessionStatus.mengerjakan,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(_session.namaUjian),
+          title: Text(
+            _session.namaUjian,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
           automaticallyImplyLeading:
               _session.status != UjianSessionStatus.mengerjakan,
           actions: [
@@ -496,50 +503,67 @@ class _UjianSessionPageState extends State<UjianSessionPage>
               ),
           ],
         ),
-        body: RefreshIndicator(
-          onRefresh: _refreshSession,
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              _buildStatusBanner(),
-              const SizedBox(height: 12),
-              if (_loading) const Center(child: CircularProgressIndicator()),
-              if (_loadError != null)
-                Center(
-                  child: Column(
+        body: BatasLebarKonten(
+          child: RefreshIndicator(
+            onRefresh: _refreshSession,
+            child: ListView.builder(
+              padding: Responsive.pagePadding(context),
+              itemCount:
+                  1 +
+                  (_session.status == UjianSessionStatus.mengerjakan
+                      ? _questions.length + 1
+                      : 0),
+              itemBuilder: (context, index) {
+                if (index == 0) {
+                  return Column(
                     children: [
-                      Text(
-                        _loadError!,
-                        style: const TextStyle(color: AppColors.error),
-                      ),
-                      const SizedBox(height: 8),
-                      ElevatedButton(
-                        onPressed: _loadQuestions,
-                        child: const Text('Coba Lagi'),
-                      ),
+                      _buildStatusBanner(),
+                      const SizedBox(height: 12),
+                      if (_loading)
+                        const Center(child: CircularProgressIndicator()),
+                      if (_loadError != null)
+                        Center(
+                          child: Column(
+                            children: [
+                              Text(
+                                _loadError!,
+                                style: const TextStyle(color: AppColors.error),
+                              ),
+                              const SizedBox(height: 8),
+                              ElevatedButton(
+                                onPressed: _loadQuestions,
+                                child: const Text('Coba Lagi'),
+                              ),
+                            ],
+                          ),
+                        ),
                     ],
-                  ),
-                ),
-              if (_session.status == UjianSessionStatus.mengerjakan) ...[
-                for (var i = 0; i < _questions.length; i++)
-                  _QuestionCard(
-                    number: i + 1,
-                    question: _questions[i],
+                  );
+                }
+                if (index <= _questions.length) {
+                  final question = _questions[index - 1];
+                  return _QuestionCard(
+                    key: ValueKey(question.id),
+                    number: index,
+                    question: question,
                     enabled: inputsEnabled,
-                    saving: _saving.contains(_questions[i].id),
-                    onOption: (opId) => _save(_questions[i], optionId: opId),
-                    onEssay: (text) => _save(_questions[i], text: text),
-                    onDoubtful: (r) => _save(_questions[i], doubtful: r),
+                    saving: _saving.contains(question.id),
+                    onOption: (opId) => _save(question, optionId: opId),
+                    onEssay: (text) => _save(question, text: text),
+                    onDoubtful: (r) => _save(question, doubtful: r),
+                  );
+                }
+                return Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: ElevatedButton.icon(
+                    key: const Key('finalize-exam'),
+                    onPressed: inputsEnabled ? _selesaikan : null,
+                    icon: const Icon(Icons.check_outlined),
+                    label: const Text('Selesaikan Ujian'),
                   ),
-                const SizedBox(height: 12),
-                ElevatedButton.icon(
-                  key: const Key('finalize-exam'),
-                  onPressed: inputsEnabled ? _selesaikan : null,
-                  icon: const Icon(Icons.check_outlined),
-                  label: const Text('Selesaikan Ujian'),
-                ),
-              ],
-            ],
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -557,6 +581,7 @@ class _QuestionCard extends StatefulWidget {
   final ValueChanged<bool> onDoubtful;
 
   const _QuestionCard({
+    super.key,
     required this.number,
     required this.question,
     required this.enabled,
@@ -570,7 +595,8 @@ class _QuestionCard extends StatefulWidget {
   State<_QuestionCard> createState() => _QuestionCardState();
 }
 
-class _QuestionCardState extends State<_QuestionCard> {
+class _QuestionCardState extends State<_QuestionCard>
+    with AutomaticKeepAliveClientMixin {
   late final TextEditingController _controller = TextEditingController(
     text: widget.question.answer?.text,
   );
@@ -583,6 +609,7 @@ class _QuestionCardState extends State<_QuestionCard> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final question = widget.question;
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -658,4 +685,7 @@ class _QuestionCardState extends State<_QuestionCard> {
       ),
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

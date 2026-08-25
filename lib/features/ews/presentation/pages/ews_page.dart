@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive.dart';
+import '../../../../core/widgets/batas_lebar_konten.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../domain/entities/ews_alert_entity.dart';
 import '../bloc/ews_bloc.dart';
@@ -144,12 +145,18 @@ class _LoadedView extends StatelessWidget {
 
     return Column(
       children: [
-        _SummaryBar(active: active, resolved: resolved),
-        _FilterBar(
-          kategori: kategori,
-          level: level,
-          onlyUnresolved: onlyUnresolved ?? false,
-          onChanged: onFilter,
+        BatasLebarKonten(
+          child: Column(
+            children: [
+              _SummaryBar(active: active, resolved: resolved),
+              _FilterBar(
+                kategori: kategori,
+                level: level,
+                onlyUnresolved: onlyUnresolved ?? false,
+                onChanged: onFilter,
+              ),
+            ],
+          ),
         ),
         Expanded(
           child: RefreshIndicator(
@@ -166,24 +173,26 @@ class _LoadedView extends StatelessWidget {
                       ),
                     ],
                   )
-                : ListView.builder(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: EdgeInsets.fromLTRB(
-                      pad.left,
-                      8,
-                      pad.right,
-                      pad.bottom + 24,
+                : BatasLebarKonten(
+                    child: ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: EdgeInsets.fromLTRB(
+                        pad.left,
+                        8,
+                        pad.right,
+                        pad.bottom + 24,
+                      ),
+                      itemCount: items.length,
+                      itemBuilder: (context, i) {
+                        final item = items[i];
+                        return EwsAlertTile(
+                          alert: item,
+                          onResolve: !item.isResolved && canManage
+                              ? () => onResolve(item.id)
+                              : null,
+                        );
+                      },
                     ),
-                    itemCount: items.length,
-                    itemBuilder: (context, i) {
-                      final item = items[i];
-                      return EwsAlertTile(
-                        alert: item,
-                        onResolve: !item.isResolved && canManage
-                            ? () => onResolve(item.id)
-                            : null,
-                      );
-                    },
                   ),
           ),
         ),
@@ -256,12 +265,14 @@ class _SummaryCard extends StatelessWidget {
               child: Icon(icon, color: color, size: 20),
             ),
             const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label, style: Theme.of(context).textTheme.bodyMedium),
-                Text(value, style: Theme.of(context).textTheme.titleLarge),
-              ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label, style: Theme.of(context).textTheme.bodyMedium),
+                  Text(value, style: Theme.of(context).textTheme.titleLarge),
+                ],
+              ),
             ),
           ],
         ),
