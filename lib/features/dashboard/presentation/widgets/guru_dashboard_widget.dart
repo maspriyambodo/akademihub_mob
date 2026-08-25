@@ -24,7 +24,8 @@ class GuruDashboardWidget extends StatelessWidget {
     final totalSiswaWali = (summary['total_siswa_wali'] as num?)?.toInt() ?? 0;
     // `total_mapel` adalah field authoritative dari dashboard-engine (Go).
     // `total_mata_pelajaran` dipertahankan sebagai fallback legacy.
-    final totalMapel = (summary['total_mapel'] as num?)?.toInt() ??
+    final totalMapel =
+        (summary['total_mapel'] as num?)?.toInt() ??
         (summary['total_mata_pelajaran'] as num?)?.toInt() ??
         0;
     final totalKelasWali = (summary['total_kelas_wali'] as num?)?.toInt() ?? 0;
@@ -79,7 +80,7 @@ class GuruDashboardWidget extends StatelessWidget {
               title: 'Kelas Wali',
               value: '$totalKelasWali',
               icon: Icons.school,
-              color: Colors.purple,
+              color: AppColors.primary,
             ),
             DashboardStatCard(
               title: 'Tugas Belum Dinilai',

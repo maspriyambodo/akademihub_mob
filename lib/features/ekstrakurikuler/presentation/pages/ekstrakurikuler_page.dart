@@ -167,11 +167,7 @@ class _EkstrakurikulerViewState extends State<_EkstrakurikulerView> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Ekstrakurikuler'),
-          centerTitle: true,
           bottom: const TabBar(
-            indicatorColor: Colors.white,
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white70,
             tabs: [
               Tab(text: 'Semua Ekskul'),
               Tab(text: 'Ekskul Saya'),

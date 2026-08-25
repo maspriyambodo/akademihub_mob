@@ -20,11 +20,14 @@ class Responsive {
   /// Jendela sempit (HP kecil / split-screen).
   static const double compactWidth = 360;
 
+  /// Jendela medium — konten mulai mendapat ruang tambahan.
+  static const double mediumWidth = 600;
+
   /// Jendela lebar — batasi konten & gunakan rail navigasi.
-  static const double expandedWidth = 600;
+  static const double expandedWidth = 840;
 
   /// Ambang konten berkolom (form/list side-by-side bila relevan).
-  static const double largeScreenMinWidth = 600;
+  static const double largeScreenMinWidth = mediumWidth;
 
   static double widthOf(BuildContext context) =>
       MediaQuery.sizeOf(context).width;
@@ -40,16 +43,22 @@ class Responsive {
   static bool isExpanded(BuildContext context) =>
       widthOf(context) >= expandedWidth;
 
+  static bool isMedium(BuildContext context) =>
+      widthOf(context) >= mediumWidth && widthOf(context) < expandedWidth;
+
   /// True bila [maxWidth] (dari LayoutBuilder) melebihi ambang large screen.
   static bool isLargeConstraints(BoxConstraints constraints) =>
-      constraints.maxWidth > largeScreenMinWidth;
+      constraints.maxWidth >= largeScreenMinWidth;
 
   // ── Padding & jarak ────────────────────────────────────────────────────────
   /// Padding tepi halaman yang menyesuaikan lebar layar.
   static EdgeInsets pagePadding(BuildContext context) {
     final w = widthOf(context);
     if (w < compactWidth) return const EdgeInsets.all(12);
-    if (w >= expandedWidth) return const EdgeInsets.all(24);
+    if (w >= expandedWidth) {
+      return const EdgeInsets.symmetric(horizontal: 32, vertical: 24);
+    }
+    if (w >= mediumWidth) return const EdgeInsets.all(24);
     return const EdgeInsets.all(16);
   }
 
@@ -101,7 +110,7 @@ class Responsive {
 
   /// Batas lebar konten agar teks tidak terlalu melebar di tablet.
   static double lebarKontenMaks(BuildContext context) =>
-      isExpanded(context) ? 720 : double.infinity;
+      widthOf(context) >= mediumWidth ? 760 : double.infinity;
 
   /// Tinggi aman untuk sheet/daftar di dalam ruang tak terbatas.
   /// Dipakai menggantikan `MediaQuery.size.height * x` yang bisa melebihi

@@ -35,14 +35,14 @@ class AdminDashboardWidget extends StatelessWidget {
       children: [
         // Header
         Text(
-          'Dashboard Overview',
+          'Ringkasan sekolah',
           style: Theme.of(
             context,
           ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 4),
         Text(
-          'School Management System Analytics',
+          'Data utama operasional sekolah saat ini',
           style: Theme.of(
             context,
           ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
@@ -71,7 +71,7 @@ class AdminDashboardWidget extends StatelessWidget {
               title: 'Total Kelas',
               value: '$totalKelas',
               icon: Icons.school,
-              color: Colors.purple,
+              color: AppColors.primary,
             ),
             DashboardStatCard(
               title: 'Kasus BK Proses',

@@ -262,12 +262,8 @@ class _UjianViewState extends State<_UjianView>
         return Scaffold(
           appBar: AppBar(
             title: const Text('Ujian & Ranking'),
-            centerTitle: true,
             bottom: TabBar(
               controller: _tabController,
-              indicatorColor: Colors.white,
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.white70,
               labelStyle: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -332,8 +328,8 @@ class _UjianViewState extends State<_UjianView>
                     onGenerate: () => _mintaParameter(
                       context,
                       state,
-                      judul: 'Generate Ranking',
-                      labelTombol: 'Generate',
+                      judul: 'Buat peringkat',
+                      labelTombol: 'Buat',
                       onSubmit: (semesterId, tahunId) =>
                           context.read<UjianBloc>().add(
                             UjianGenerateRequested(
@@ -345,7 +341,7 @@ class _UjianViewState extends State<_UjianView>
                     onExport: () => _mintaParameter(
                       context,
                       state,
-                      judul: 'Export Ranking (xlsx)',
+                      judul: 'Ekspor peringkat (xlsx)',
                       labelTombol: 'Unduh',
                       onSubmit: (semesterId, tahunId) =>
                           context.read<UjianBloc>().add(

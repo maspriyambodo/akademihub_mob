@@ -366,7 +366,7 @@ const _actionsByRole = {
   'wali': _waliActions,
 };
 
-class DashboardQuickActions extends StatelessWidget {
+class DashboardQuickActions extends StatefulWidget {
   final String role;
   final List<String> permissions;
   final bool hasChild;
@@ -379,9 +379,20 @@ class DashboardQuickActions extends StatelessWidget {
   });
 
   @override
+  State<DashboardQuickActions> createState() => _DashboardQuickActionsState();
+}
+
+class _DashboardQuickActionsState extends State<DashboardQuickActions> {
+  bool _showAll = false;
+
+  @override
   Widget build(BuildContext context) {
-    final actions = (_actionsByRole[role] ?? _adminActions).where((action) {
-      if (role == 'wali' && !hasChild && action.route != AppRoutes.profil) {
+    final actions = (_actionsByRole[widget.role] ?? _adminActions).where((
+      action,
+    ) {
+      if (widget.role == 'wali' &&
+          !widget.hasChild &&
+          action.route != AppRoutes.profil) {
         return false;
       }
       final required = switch (action.route) {
@@ -395,23 +406,33 @@ class DashboardQuickActions extends StatelessWidget {
         ],
         _ => const <String>[],
       };
-      return required.isEmpty || required.any(permissions.contains);
+      return required.isEmpty || required.any(widget.permissions.contains);
     }).toList();
+    final visibleActions = _showAll ? actions : actions.take(6).toList();
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
           children: [
-            Text(
-              'Quick Actions',
-              style: Theme.of(
-                context,
-              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+            Expanded(
+              child: Text(
+                'Layanan',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
             ),
-            const SizedBox(height: 12),
-            GridView.builder(
+            if (actions.length > 6)
+              TextButton(
+                onPressed: () => setState(() => _showAll = !_showAll),
+                child: Text(_showAll ? 'Tampilkan ringkas' : 'Lihat semua'),
+              ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               // Lebar maks per sel menentukan jumlah kolom (3 di HP umum,
@@ -422,16 +443,16 @@ class DashboardQuickActions extends StatelessWidget {
                 lebarMaks: 120,
                 tinggi: 96,
               ),
-              itemCount: actions.length,
+              itemCount: visibleActions.length,
               itemBuilder: (context, i) {
-                final action = actions[i];
+                final action = visibleActions[i];
                 return InkWell(
                   onTap: () => context.go(action.route),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(14),
                   child: Container(
                     decoration: BoxDecoration(
-                      border: Border.all(color: AppColors.divider),
-                      borderRadius: BorderRadius.circular(12),
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(14),
                     ),
                     padding: const EdgeInsets.all(10),
                     child: Column(
@@ -440,12 +461,12 @@ class DashboardQuickActions extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: action.color.withAlpha(30),
-                            borderRadius: BorderRadius.circular(8),
+                            color: const Color(0xFFD5E9E4),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                           child: Icon(
                             action.icon,
-                            color: action.color,
+                            color: AppColors.primary,
                             size: 20,
                           ),
                         ),
@@ -455,7 +476,7 @@ class DashboardQuickActions extends StatelessWidget {
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
                                 fontWeight: FontWeight.w500,
-                                fontSize: 11,
+                                fontSize: 12,
                               ),
                           textAlign: TextAlign.center,
                           maxLines: 2,
@@ -467,9 +488,9 @@ class DashboardQuickActions extends StatelessWidget {
                 );
               },
             ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }

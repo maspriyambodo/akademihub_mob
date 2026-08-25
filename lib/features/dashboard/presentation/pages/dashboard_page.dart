@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_router.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/batas_lebar_konten.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
@@ -29,10 +30,10 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget build(BuildContext context) {
     final user = (context.watch<AuthBloc>().state as AuthAuthenticated?)?.user;
     final roleLabel = switch (user?.role) {
-      'siswa' => 'Portal Siswa',
-      'guru' => 'Portal Guru',
-      'wali' => 'Portal Wali',
-      _ => 'Portal Admin',
+      'siswa' => 'Ruang siswa',
+      'guru' => 'Ruang guru',
+      'wali' => 'Ruang wali',
+      _ => 'Ruang admin',
     };
 
     return Scaffold(
@@ -43,37 +44,28 @@ class _DashboardPageState extends State<DashboardPage> {
           children: [
             Text(
               roleLabel,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             ),
             if (user != null)
               Text(
-                user.name,
-                style: const TextStyle(fontSize: 11, color: Colors.white70),
+                'Halo, ${user.name}',
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.textSecondary,
+                ),
               ),
           ],
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
+            tooltip: 'Notifikasi',
             onPressed: () => context.push(AppRoutes.notifications),
           ),
-          PopupMenuButton<_DashboardAction>(
-            icon: const Icon(Icons.more_vert),
-            onSelected: (action) {
-              if (action == _DashboardAction.logout) {
-                context.read<AuthBloc>().add(AuthLogoutRequested());
-              }
-            },
-            itemBuilder: (_) => const [
-              PopupMenuItem(
-                value: _DashboardAction.logout,
-                child: ListTile(
-                  leading: Icon(Icons.logout),
-                  title: Text('Keluar'),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-            ],
+          IconButton(
+            icon: const Icon(Icons.account_circle_outlined),
+            tooltip: 'Profil',
+            onPressed: () => context.go(AppRoutes.profil),
           ),
         ],
       ),
@@ -149,8 +141,8 @@ class _LoadingSkeleton extends StatelessWidget {
             height: 28,
             width: 200,
             decoration: BoxDecoration(
-              color: Colors.grey[300],
-              borderRadius: BorderRadius.circular(6),
+              color: AppColors.divider,
+              borderRadius: BorderRadius.circular(8),
             ),
           ),
           const SizedBox(height: 8),
@@ -158,7 +150,7 @@ class _LoadingSkeleton extends StatelessWidget {
             height: 16,
             width: 140,
             decoration: BoxDecoration(
-              color: Colors.grey[200],
+              color: AppColors.surfaceMuted,
               borderRadius: BorderRadius.circular(4),
             ),
           ),
@@ -171,8 +163,8 @@ class _LoadingSkeleton extends StatelessWidget {
               4,
               (_) => Container(
                 decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.surfaceMuted,
+                  borderRadius: BorderRadius.circular(16),
                 ),
               ),
             ),
@@ -181,16 +173,16 @@ class _LoadingSkeleton extends StatelessWidget {
           Container(
             height: 120,
             decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(12),
+              color: AppColors.surfaceMuted,
+              borderRadius: BorderRadius.circular(16),
             ),
           ),
           const SizedBox(height: 16),
           Container(
             height: 200,
             decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(12),
+              color: AppColors.surfaceMuted,
+              borderRadius: BorderRadius.circular(16),
             ),
           ),
         ],
@@ -213,10 +205,21 @@ class _ErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline, size: 64, color: Colors.red),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: const BoxDecoration(
+                color: Color(0xFFF3DDDB),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.wifi_off_rounded,
+                size: 32,
+                color: AppColors.error,
+              ),
+            ),
             const SizedBox(height: 16),
             Text(
-              'Gagal Memuat Dashboard',
+              'Dashboard belum dapat dimuat',
               style: Theme.of(context).textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),
@@ -229,7 +232,7 @@ class _ErrorView extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            ElevatedButton.icon(
+            FilledButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh),
               label: const Text('Coba Lagi'),
@@ -240,5 +243,3 @@ class _ErrorView extends StatelessWidget {
     );
   }
 }
-
-enum _DashboardAction { logout }

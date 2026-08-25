@@ -82,7 +82,6 @@ class _NotificationsViewState extends State<_NotificationsView> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Notifikasi'),
-        centerTitle: true,
         actions: [
           BlocBuilder<NotificationsBloc, NotificationsState>(
             builder: (context, state) {
@@ -93,7 +92,9 @@ class _NotificationsViewState extends State<_NotificationsView> {
               return IconButton(
                 tooltip: 'Tandai semua dibaca',
                 icon: const Icon(Icons.done_all),
-                color: enabled ? Colors.white : Colors.white54,
+                color: enabled
+                    ? Theme.of(context).colorScheme.onSurface
+                    : Theme.of(context).disabledColor,
                 onPressed: enabled
                     ? () => context.read<NotificationsBloc>().add(
                         const NotificationsMarkAllReadRequested(),
