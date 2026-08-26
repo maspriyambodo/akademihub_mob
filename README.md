@@ -103,8 +103,8 @@ Catatan:
 - **Android emulator** → `10.0.2.2` = localhost PC.
 - **iOS simulator** → gunakan `http://127.0.0.1:8002/api/v1` (ubah `_apiBaseUrlDev` jika perlu).
 - **Device fisik** → ganti ke IP LAN mesin backend, mis. `http://192.168.1.10:8002/api/v1`.
-- Multi-tenant: user bisa memilih tenant; base URL tenant disimpan lewat `tenant` config/storage.
-- Token Origin & Tenant Binding: access/refresh token diikat ke origin tenant tempat token diterbitkan (`token_origin`). Jika origin tenant aktif berbeda dengan origin token, session dibersihkan dan meminta login ulang (mencegah kebocoran refresh token lintas origin). Perpindahan tenant atau logout selalu membersihkan cache `TenantStorage` dan `TokenStorage`.
+- Multi-tenant: login hanya memakai username dan password. Backend menentukan tenant/sekolah user; mobile tidak menyediakan tenant selector atau tenant switcher.
+- Token Origin & Tenant Binding: access/refresh token diikat ke tenant yang ditentukan backend (`token_origin`). Jika session context tidak cocok dengan origin token, session dibersihkan dan meminta login ulang. Logout selalu membersihkan cache `TenantStorage` dan `TokenStorage`.
 - Batasan Superadmin: manajemen dan switching superadmin lintas tenant adalah **web-only**. Aplikasi mobile khusus melayani user tenant sekolah terdaftar dan tidak menyediakan entry point pemilih tenant superadmin.
 
 Client HTTP: `lib/core/api/api_client.dart`  
@@ -298,7 +298,6 @@ Theme & warna: `lib/core/theme/app_theme.dart`.
 | `ujian` | ujian & ranking |
 | `tmb` | tes minat bakat |
 | `keuangan` | SPP / pembayaran |
-| `ppdb` | pendaftaran siswa baru |
 | `bk` | bimbingan konseling |
 | `kalender` | agenda sekolah |
 | `forum` | diskusi |
