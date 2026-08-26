@@ -29,6 +29,9 @@ class _NilaiView extends StatefulWidget {
 
 class _NilaiViewState extends State<_NilaiView> {
   final TextEditingController _searchController = TextEditingController();
+  bool _canCreate = false;
+  bool _canUpdate = false;
+  bool _canDelete = false;
 
   @override
   void initState() {
@@ -39,8 +42,16 @@ class _NilaiViewState extends State<_NilaiView> {
       if (authState is AuthAuthenticated) {
         final user = authState.user;
         final profileId = user.profile?['id'] as int?;
+        setState(() {
+          _canCreate = user.hasPermission('nilai.create');
+          _canUpdate = user.hasPermission('nilai.update');
+          _canDelete = user.hasPermission('nilai.delete');
+        });
         context.read<NilaiBloc>().add(
-          NilaiLoadRequested(role: user.role ?? 'admin', profileId: profileId),
+          NilaiLoadRequested(
+            role: user.role ?? 'unknown',
+            profileId: profileId,
+          ),
         );
       }
     });
@@ -56,7 +67,33 @@ class _NilaiViewState extends State<_NilaiView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Nilai'), centerTitle: true),
-      body: BlocBuilder<NilaiBloc, NilaiState>(
+      floatingActionButton: _canCreate
+          ? FloatingActionButton.extended(
+              onPressed: () => _openForm(context),
+              icon: const Icon(Icons.add),
+              label: const Text('Tambah Nilai'),
+            )
+          : null,
+      body: BlocConsumer<NilaiBloc, NilaiState>(
+        listenWhen: (_, state) =>
+            state is NilaiActionSuccess || state is NilaiActionFailure,
+        listener: (context, state) {
+          final message = state is NilaiActionSuccess
+              ? state.message
+              : (state as NilaiActionFailure).message;
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(
+                content: Text(message),
+                backgroundColor: state is NilaiActionSuccess
+                    ? AppColors.success
+                    : AppColors.error,
+              ),
+            );
+        },
+        buildWhen: (_, state) =>
+            state is! NilaiActionSuccess && state is! NilaiActionFailure,
         builder: (context, state) {
           if (state is NilaiLoading || state is NilaiInitial) {
             return const Center(child: CircularProgressIndicator());
@@ -72,12 +109,69 @@ class _NilaiViewState extends State<_NilaiView> {
             return _LoadedView(
               state: state,
               searchController: _searchController,
+              canUpdate: _canUpdate,
+              canDelete: _canDelete,
+              onEdit: (item) => _openForm(context, initial: item),
+              onDelete: (item) => _confirmDelete(context, item),
             );
           }
           return const SizedBox.shrink();
         },
       ),
     );
+  }
+
+  Future<void> _openForm(BuildContext context, {NilaiEntity? initial}) async {
+    final state = context.read<NilaiBloc>().state;
+    if (state is! NilaiLoaded) return;
+    final result = await showModalBottomSheet<NilaiFormValue>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => NilaiFormSheet(items: state.items, initial: initial),
+    );
+    if (result == null || !context.mounted) return;
+    final bloc = context.read<NilaiBloc>();
+    if (initial == null) {
+      bloc.add(
+        NilaiCreateRequested(
+          siswaId: result.siswaId!,
+          ujianId: result.ujianId!,
+          nilai: result.nilai,
+          keterangan: result.keterangan,
+        ),
+      );
+    } else {
+      bloc.add(
+        NilaiUpdateRequested(
+          id: initial.id,
+          nilai: result.nilai,
+          keterangan: result.keterangan,
+        ),
+      );
+    }
+  }
+
+  Future<void> _confirmDelete(BuildContext context, NilaiEntity item) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Hapus nilai?'),
+        content: Text('${item.siswaNama ?? 'Siswa'}: ${item.judul}'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && context.mounted) {
+      context.read<NilaiBloc>().add(NilaiDeleteRequested(item.id));
+    }
   }
 }
 
@@ -86,8 +180,19 @@ class _NilaiViewState extends State<_NilaiView> {
 class _LoadedView extends StatelessWidget {
   final NilaiLoaded state;
   final TextEditingController searchController;
+  final bool canUpdate;
+  final bool canDelete;
+  final ValueChanged<NilaiEntity> onEdit;
+  final ValueChanged<NilaiEntity> onDelete;
 
-  const _LoadedView({required this.state, required this.searchController});
+  const _LoadedView({
+    required this.state,
+    required this.searchController,
+    required this.canUpdate,
+    required this.canDelete,
+    required this.onEdit,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -172,7 +277,13 @@ class _LoadedView extends StatelessWidget {
           ),
           SliverList(
             delegate: SliverChildBuilderDelegate(
-              (_, i) => _NilaiSiswaTile(item: items[i]),
+              (_, i) => _NilaiSiswaTile(
+                item: items[i],
+                canUpdate: canUpdate,
+                canDelete: canDelete,
+                onEdit: onEdit,
+                onDelete: onDelete,
+              ),
               childCount: items.length,
             ),
           ),
@@ -895,7 +1006,17 @@ class _NilaiRow extends StatelessWidget {
 
 class _NilaiSiswaTile extends StatelessWidget {
   final NilaiEntity item;
-  const _NilaiSiswaTile({required this.item});
+  final bool canUpdate;
+  final bool canDelete;
+  final ValueChanged<NilaiEntity> onEdit;
+  final ValueChanged<NilaiEntity> onDelete;
+  const _NilaiSiswaTile({
+    required this.item,
+    required this.canUpdate,
+    required this.canDelete,
+    required this.onEdit,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1016,7 +1137,26 @@ class _NilaiSiswaTile extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 10),
-            _NilaiBadge(nilai: item.nilai),
+            Column(
+              children: [
+                _NilaiBadge(nilai: item.nilai),
+                if (canUpdate || canDelete)
+                  PopupMenuButton<String>(
+                    tooltip: 'Aksi nilai',
+                    onSelected: (action) =>
+                        action == 'edit' ? onEdit(item) : onDelete(item),
+                    itemBuilder: (_) => [
+                      if (canUpdate)
+                        const PopupMenuItem(value: 'edit', child: Text('Ubah')),
+                      if (canDelete)
+                        const PopupMenuItem(
+                          value: 'delete',
+                          child: Text('Hapus'),
+                        ),
+                    ],
+                  ),
+              ],
+            ),
           ],
         ),
       ),
@@ -1066,6 +1206,188 @@ class _NilaiBadge extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class NilaiFormValue {
+  final int? siswaId;
+  final int? ujianId;
+  final double nilai;
+  final String? keterangan;
+  const NilaiFormValue({
+    this.siswaId,
+    this.ujianId,
+    required this.nilai,
+    this.keterangan,
+  });
+}
+
+class NilaiFormSheet extends StatefulWidget {
+  final List<NilaiEntity> items;
+  final NilaiEntity? initial;
+  const NilaiFormSheet({super.key, required this.items, this.initial});
+
+  @override
+  State<NilaiFormSheet> createState() => _NilaiFormSheetState();
+}
+
+class _NilaiFormSheetState extends State<NilaiFormSheet> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _nilai;
+  late final TextEditingController _keterangan;
+  int? _siswaId;
+  int? _ujianId;
+
+  @override
+  void initState() {
+    super.initState();
+    final initial = widget.initial;
+    _siswaId = initial?.siswaId;
+    _ujianId = initial?.ujianId;
+    _nilai = TextEditingController(text: initial?.nilai?.toString() ?? '');
+    _keterangan = TextEditingController(text: initial?.keterangan ?? '');
+  }
+
+  @override
+  void dispose() {
+    _nilai.dispose();
+    _keterangan.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final siswa = <int, String>{
+      for (final item in widget.items)
+        if (item.siswaId != null && item.siswaNama != null)
+          item.siswaId!:
+              '${item.siswaNama}${item.siswaNis == null ? '' : ' (${item.siswaNis})'}',
+    };
+    final ujian = <int, String>{
+      for (final item in widget.items)
+        if (item.ujianId != null) item.ujianId!: item.judul,
+    };
+    final isEdit = widget.initial != null;
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          20,
+          20,
+          20,
+          MediaQuery.viewInsetsOf(context).bottom + 20,
+        ),
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  isEdit ? 'Ubah Nilai' : 'Tambah Nilai',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 16),
+                if (!isEdit) ...[
+                  DropdownButtonFormField<int>(
+                    key: const Key('nilai_form_siswa'),
+                    initialValue: _siswaId,
+                    isExpanded: true,
+                    decoration: const InputDecoration(labelText: 'Siswa'),
+                    items: siswa.entries
+                        .map(
+                          (entry) => DropdownMenuItem(
+                            value: entry.key,
+                            child: Text(
+                              entry.value,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) => setState(() => _siswaId = value),
+                    validator: (value) => value == null
+                        ? 'Pilih siswa dari daftar tersedia'
+                        : null,
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<int>(
+                    key: const Key('nilai_form_ujian'),
+                    initialValue: _ujianId,
+                    isExpanded: true,
+                    decoration: const InputDecoration(labelText: 'Ujian'),
+                    items: ujian.entries
+                        .map(
+                          (entry) => DropdownMenuItem(
+                            value: entry.key,
+                            child: Text(
+                              entry.value,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) => setState(() => _ujianId = value),
+                    validator: (value) => value == null
+                        ? 'Pilih ujian dari daftar tersedia'
+                        : null,
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                TextFormField(
+                  key: const Key('nilai_form_nilai'),
+                  controller: _nilai,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: const InputDecoration(
+                    labelText: 'Nilai',
+                    hintText: '0 - 100',
+                  ),
+                  validator: (value) {
+                    final score = double.tryParse(
+                      (value ?? '').replaceAll(',', '.'),
+                    );
+                    return score == null || score < 0 || score > 100
+                        ? 'Masukkan nilai 0 sampai 100'
+                        : null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  key: const Key('nilai_form_keterangan'),
+                  controller: _keterangan,
+                  maxLength: 1000,
+                  maxLines: 3,
+                  decoration: const InputDecoration(
+                    labelText: 'Keterangan (opsional)',
+                  ),
+                ),
+                const SizedBox(height: 8),
+                FilledButton(
+                  key: const Key('nilai_form_submit'),
+                  onPressed: () {
+                    if (!_formKey.currentState!.validate()) return;
+                    Navigator.pop(
+                      context,
+                      NilaiFormValue(
+                        siswaId: _siswaId,
+                        ujianId: _ujianId,
+                        nilai: double.parse(_nilai.text.replaceAll(',', '.')),
+                        keterangan: _keterangan.text.trim().isEmpty
+                            ? null
+                            : _keterangan.text.trim(),
+                      ),
+                    );
+                  },
+                  child: Text(isEdit ? 'Simpan Perubahan' : 'Simpan Nilai'),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

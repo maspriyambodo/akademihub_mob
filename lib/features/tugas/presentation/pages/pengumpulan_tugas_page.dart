@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../domain/entities/tugas_entity.dart';
 import '../../domain/entities/tugas_siswa_entity.dart';
 import '../bloc/pengumpulan_bloc.dart';
@@ -16,9 +17,14 @@ class PengumpulanTugasPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.read<AuthBloc>().state;
+    final canNilai =
+        auth is AuthAuthenticated &&
+        auth.user.hasPermission('tugas-siswa.nilai');
     return BlocProvider(
       create: (_) =>
-          sl<PengumpulanBloc>()..add(PengumpulanLoadRequested(tugas.id)),
+          sl<PengumpulanBloc>()
+            ..add(PengumpulanLoadRequested(tugas.id, canNilai: canNilai)),
       child: _PengumpulanView(tugas: tugas),
     );
   }

@@ -45,3 +45,29 @@ class NilaiUjianSelected extends NilaiEvent {
   @override
   List<Object?> get props => [ujianId];
 }
+
+class NilaiCreateRequested extends NilaiEvent {
+  final int siswaId;
+  final int ujianId;
+  final double nilai;
+  final String? keterangan;
+  const NilaiCreateRequested({required this.siswaId, required this.ujianId, required this.nilai, this.keterangan});
+  @override
+  List<Object?> get props => [siswaId, ujianId, nilai, keterangan];
+}
+
+class NilaiUpdateRequested extends NilaiEvent {
+  final int id;
+  final double nilai;
+  final String? keterangan;
+  const NilaiUpdateRequested({required this.id, required this.nilai, this.keterangan});
+  @override
+  List<Object?> get props => [id, nilai, keterangan];
+}
+
+class NilaiDeleteRequested extends NilaiEvent {
+  final int id;
+  const NilaiDeleteRequested(this.id);
+  @override
+  List<Object?> get props => [id];
+}

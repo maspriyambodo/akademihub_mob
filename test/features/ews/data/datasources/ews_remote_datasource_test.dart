@@ -11,9 +11,9 @@ void main() {
     dataSource = EwsRemoteDataSourceImpl(dio);
   });
 
-  test('getAlertDetail fetches canonical GET /ews/alerts/{id} endpoint', () async {
+  test('getAlertDetail fetches canonical GET /ews/{id} endpoint', () async {
     dio.httpClientAdapter = _MockAdapter((options) {
-      if (options.path == '/ews/alerts/105' && options.method == 'GET') {
+      if (options.path == '/ews/105' && options.method == 'GET') {
         return ResponseBody.fromString(
           '{"success":true,"data":{"id":105,"mst_siswa_id":12,"kategori":"absensi","level":2,"pesan":"Absen 3 hari","is_resolved":false}}',
           200,
@@ -43,10 +43,7 @@ void main() {
       );
     });
 
-    expect(
-      () => dataSource.getAlertDetail(999),
-      throwsA(isA<DioException>()),
-    );
+    expect(() => dataSource.getAlertDetail(999), throwsA(isA<DioException>()));
   });
 }
 

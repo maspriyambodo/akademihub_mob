@@ -282,6 +282,7 @@ class KeuanganRepositoryImpl implements KeuanganRepository {
   Failure _map(AppException e) {
     if (e is NetworkException) return NetworkFailure(e.message);
     if (e is AuthException) return AuthFailure(e.message);
+    if (e is ForbiddenException) return ForbiddenFailure(e.message);
     if (e is NotFoundException) return NotFoundFailure(e.message);
     if (e is ValidationException) return ValidationFailure(e.message);
     return ServerFailure(e.message);

@@ -20,6 +20,10 @@ class AuthFailure extends Failure {
   const AuthFailure([super.message = 'Sesi telah berakhir']);
 }
 
+class ForbiddenFailure extends Failure {
+  const ForbiddenFailure([super.message = 'Akses ditolak']);
+}
+
 class ValidationFailure extends Failure {
   final Map<String, List<String>>? errors;
   const ValidationFailure(super.message, {this.errors});

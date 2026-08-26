@@ -19,4 +19,21 @@ abstract class NilaiRepository {
   /// Rata-rata nilai siswa — `GET /akademik/nilai/siswa/{siswaId}/rata-rata`.
   /// Response bukan list, melainkan `{ "rata_rata": 85.5 }` (bisa null).
   Future<Result<double?>> getRataRataSiswa(int siswaId);
+
+  Future<Result<NilaiEntity>> createNilai({
+    required int siswaId,
+    required int ujianId,
+    required double nilai,
+    String? keterangan,
+  });
+
+  Future<Result<NilaiEntity>> updateNilai({
+    required int id,
+    int? siswaId,
+    int? ujianId,
+    double? nilai,
+    String? keterangan,
+  });
+
+  Future<Result<bool>> deleteNilai(int id);
 }

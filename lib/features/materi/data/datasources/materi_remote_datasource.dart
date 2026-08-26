@@ -8,6 +8,24 @@ abstract class MateriRemoteDataSource {
   Future<MateriModel> getMateriDetail(int id);
   Future<List<MateriModel>> getMateriByGuruMapel(int guruMapelId);
   Future<List<MateriPopulerModel>> getMateriPopuler({int limit});
+  Future<MateriModel> createMateri({
+    required int guruMapelId,
+    required String judul,
+    String? deskripsi,
+    String? fileMateri,
+    String? linkVideo,
+    int? status,
+  });
+  Future<MateriModel> updateMateri({
+    required int id,
+    int? guruMapelId,
+    String? judul,
+    String? deskripsi,
+    String? fileMateri,
+    String? linkVideo,
+    int? status,
+  });
+  Future<bool> deleteMateri(int id);
 
   Future<List<LogAksesMateriModel>> getLogAksesByMateri(int materiId);
   Future<List<LogAksesMateriModel>> getLogAksesBySiswa(int siswaId);
@@ -104,6 +122,59 @@ class MateriRemoteDataSourceImpl implements MateriRemoteDataSource {
       queryParameters: <String, dynamic>{'limit': limit},
     );
     return _asMaps(response.data).map(MateriPopulerModel.fromJson).toList();
+  }
+
+  @override
+  Future<MateriModel> createMateri({
+    required int guruMapelId,
+    required String judul,
+    String? deskripsi,
+    String? fileMateri,
+    String? linkVideo,
+    int? status,
+  }) async {
+    final response = await _dio.post(
+      '/akademik/materi',
+      data: <String, dynamic>{
+        'mst_guru_mapel_id': guruMapelId,
+        'judul': judul,
+        'deskripsi': ?deskripsi,
+        'file_materi': ?fileMateri,
+        'link_video': ?linkVideo,
+        'status': ?status,
+      },
+    );
+    return MateriModel.fromJson(_extractObject(response.data));
+  }
+
+  @override
+  Future<MateriModel> updateMateri({
+    required int id,
+    int? guruMapelId,
+    String? judul,
+    String? deskripsi,
+    String? fileMateri,
+    String? linkVideo,
+    int? status,
+  }) async {
+    final response = await _dio.put(
+      '/akademik/materi/$id',
+      data: <String, dynamic>{
+        'mst_guru_mapel_id': ?guruMapelId,
+        'judul': ?judul,
+        'deskripsi': ?deskripsi,
+        'file_materi': ?fileMateri,
+        'link_video': ?linkVideo,
+        'status': ?status,
+      },
+    );
+    return MateriModel.fromJson(_extractObject(response.data));
+  }
+
+  @override
+  Future<bool> deleteMateri(int id) async {
+    await _dio.delete('/akademik/materi/$id');
+    return true;
   }
 
   // ── Log akses materi ───────────────────────────────────────────────────────

@@ -165,6 +165,11 @@ class ForumBloc extends Bloc<ForumEvent, ForumState> {
     ForumCreateRequested event,
     Emitter<ForumState> emit,
   ) async {
+    if (!_canCreate) {
+      emit(const ForumActionFailure('Anda tidak memiliki izin membuat topik'));
+      emit(_buildLoaded());
+      return;
+    }
     final userId = _userId;
     final sekolahId = _sekolahId;
 
@@ -208,6 +213,11 @@ class ForumBloc extends Bloc<ForumEvent, ForumState> {
     ForumUpdateRequested event,
     Emitter<ForumState> emit,
   ) async {
+    if (!_canUpdate) {
+      emit(const ForumActionFailure('Anda tidak memiliki izin mengubah topik'));
+      emit(_buildLoaded());
+      return;
+    }
     final result = await updateForum(
       id: event.id,
       judul: event.judul,
@@ -230,6 +240,13 @@ class ForumBloc extends Bloc<ForumEvent, ForumState> {
     ForumDeleteRequested event,
     Emitter<ForumState> emit,
   ) async {
+    if (!_canDelete) {
+      emit(
+        const ForumActionFailure('Anda tidak memiliki izin menghapus topik'),
+      );
+      emit(_buildLoaded());
+      return;
+    }
     final result = await deleteForum(event.id);
 
     if (result.isFailure) {

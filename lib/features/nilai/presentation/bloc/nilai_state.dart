@@ -103,3 +103,17 @@ class NilaiError extends NilaiState {
   @override
   List<Object?> get props => [message];
 }
+
+class NilaiActionSuccess extends NilaiState {
+  final String message;
+  const NilaiActionSuccess(this.message);
+  @override
+  List<Object?> get props => [message];
+}
+
+class NilaiActionFailure extends NilaiState {
+  final String message;
+  const NilaiActionFailure(this.message);
+  @override
+  List<Object?> get props => [message];
+}

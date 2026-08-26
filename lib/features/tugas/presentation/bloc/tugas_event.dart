@@ -20,6 +20,7 @@ class TugasLoadRequested extends TugasEvent {
 
   /// Id `mst_guru_mapel` bila tersedia di profil (opsional).
   final int? guruMapelId;
+  final bool canSubmit;
 
   const TugasLoadRequested({
     required this.role,
@@ -27,10 +28,18 @@ class TugasLoadRequested extends TugasEvent {
     this.kelasId,
     this.guruId,
     this.guruMapelId,
+    this.canSubmit = false,
   });
 
   @override
-  List<Object?> get props => [role, siswaId, kelasId, guruId, guruMapelId];
+  List<Object?> get props => [
+    role,
+    siswaId,
+    kelasId,
+    guruId,
+    guruMapelId,
+    canSubmit,
+  ];
 }
 
 class TugasRefreshRequested extends TugasEvent {

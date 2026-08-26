@@ -141,6 +141,7 @@ class KalenderRepositoryImpl implements KalenderRepository {
   Failure _mapException(AppException e) {
     if (e is NetworkException) return NetworkFailure(e.message);
     if (e is AuthException) return AuthFailure(e.message);
+    if (e is ForbiddenException) return ForbiddenFailure(e.message);
     if (e is NotFoundException) return NotFoundFailure(e.message);
     return ServerFailure(e.message);
   }

@@ -58,6 +58,65 @@ class MateriRepositoryImpl implements MateriRepository {
   }
 
   @override
+  Future<Result<MateriEntity>> createMateri({
+    required int guruMapelId,
+    required String judul,
+    String? deskripsi,
+    String? fileMateri,
+    String? linkVideo,
+    int? status,
+  }) async {
+    try {
+      final model = await _remote.createMateri(
+        guruMapelId: guruMapelId,
+        judul: judul,
+        deskripsi: deskripsi,
+        fileMateri: fileMateri,
+        linkVideo: linkVideo,
+        status: status,
+      );
+      return success(model.toEntity());
+    } on DioException catch (e) {
+      return fail(_map(mapDioException(e)));
+    }
+  }
+
+  @override
+  Future<Result<MateriEntity>> updateMateri({
+    required int id,
+    int? guruMapelId,
+    String? judul,
+    String? deskripsi,
+    String? fileMateri,
+    String? linkVideo,
+    int? status,
+  }) async {
+    try {
+      final model = await _remote.updateMateri(
+        id: id,
+        guruMapelId: guruMapelId,
+        judul: judul,
+        deskripsi: deskripsi,
+        fileMateri: fileMateri,
+        linkVideo: linkVideo,
+        status: status,
+      );
+      return success(model.toEntity());
+    } on DioException catch (e) {
+      return fail(_map(mapDioException(e)));
+    }
+  }
+
+  @override
+  Future<Result<bool>> deleteMateri(int id) async {
+    try {
+      return success(await _remote.deleteMateri(id));
+    } on DioException catch (e) {
+      return fail(_map(mapDioException(e)));
+    }
+  }
+
+  @override
   Future<Result<List<LogAksesMateriEntity>>> getLogAksesByMateri(
     int materiId,
   ) async {
@@ -118,6 +177,7 @@ class MateriRepositoryImpl implements MateriRepository {
   Failure _map(AppException e) {
     if (e is NetworkException) return NetworkFailure(e.message);
     if (e is AuthException) return AuthFailure(e.message);
+    if (e is ForbiddenException) return ForbiddenFailure(e.message);
     if (e is ValidationException) {
       return ValidationFailure(e.message, errors: e.errors);
     }

@@ -118,12 +118,16 @@ class TugasCard extends StatelessWidget {
 
   /// Tampilkan badge status pengumpulan (siswa/wali). Guru/admin: false.
   final bool showStatus;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   const TugasCard({
     super.key,
     required this.item,
     required this.onTap,
     this.showStatus = true,
+    this.onEdit,
+    this.onDelete,
   });
 
   @override
@@ -210,6 +214,25 @@ class TugasCard extends StatelessWidget {
                       maxWidth: 110,
                     ),
                   ],
+                  if (onEdit != null || onDelete != null)
+                    PopupMenuButton<String>(
+                      tooltip: 'Aksi tugas',
+                      onSelected: (action) => action == 'edit'
+                          ? onEdit?.call()
+                          : onDelete?.call(),
+                      itemBuilder: (_) => [
+                        if (onEdit != null)
+                          const PopupMenuItem(
+                            value: 'edit',
+                            child: Text('Ubah'),
+                          ),
+                        if (onDelete != null)
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: Text('Hapus'),
+                          ),
+                      ],
+                    ),
                 ],
               ),
               const SizedBox(height: 10),

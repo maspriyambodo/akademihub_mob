@@ -49,8 +49,9 @@ class _ServerDateInterceptor extends Interceptor {
       final dateHeader = response.headers.value('date');
       if (dateHeader != null) {
         final serverTime = HttpDate.parse(dateHeader).toUtc();
-        ApiClient.serverTimeOffset =
-            serverTime.difference(DateTime.now().toUtc());
+        ApiClient.serverTimeOffset = serverTime.difference(
+          DateTime.now().toUtc(),
+        );
       }
     } catch (_) {}
     super.onResponse(response, handler);
@@ -63,6 +64,8 @@ class _AuthInterceptor extends Interceptor {
   Future<String?>? _refreshTokenFuture;
 
   _AuthInterceptor(this._storage, this._dio);
+
+  static const _safeRetryMethods = {'GET', 'HEAD', 'OPTIONS'};
 
   @override
   Future<void> onRequest(
@@ -115,6 +118,9 @@ class _AuthInterceptor extends Interceptor {
         }
 
         final opts = err.requestOptions;
+        if (!_safeRetryMethods.contains(opts.method.toUpperCase())) {
+          return handler.next(err);
+        }
         opts.headers['Authorization'] = 'Bearer $newToken';
         opts.extra['is_retry'] = true;
 
@@ -183,10 +189,7 @@ class _AuthInterceptor extends Interceptor {
 
       await _storage.write(key: AppConfig.tokenKey, value: newToken);
       if (newRefresh != null && newRefresh.isNotEmpty) {
-        await _storage.write(
-          key: AppConfig.refreshTokenKey,
-          value: newRefresh,
-        );
+        await _storage.write(key: AppConfig.refreshTokenKey, value: newRefresh);
       }
 
       return newToken;

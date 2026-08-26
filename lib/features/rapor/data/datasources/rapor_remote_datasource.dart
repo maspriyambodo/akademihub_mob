@@ -11,6 +11,25 @@ abstract class RaporRemoteDataSource {
   Future<List<RaporModel>> getRaporList({String? search});
   Future<List<RaporModel>> getRaporBySiswa(int siswaId);
   Future<RaporDetailModel> getRaporDetail(int raporId);
+  Future<RaporModel> createRapor({
+    required int siswaId,
+    required int semester,
+    String? catatanWali,
+    int? sakit,
+    int? izin,
+    int? tanpaKeterangan,
+    List<Map<String, dynamic>>? details,
+  });
+  Future<RaporModel> updateRapor({
+    required int id,
+    int? siswaId,
+    int? semester,
+    String? catatanWali,
+    int? sakit,
+    int? izin,
+    int? tanpaKeterangan,
+  });
+  Future<bool> deleteRapor(int id);
 
   /// Mengunduh xlsx rapor dan menyimpannya ke direktori sementara aplikasi.
   /// Mengembalikan path file lokal.
@@ -56,6 +75,12 @@ class RaporRemoteDataSourceImpl implements RaporRemoteDataSource {
     return result;
   }
 
+  RaporModel _parseRapor(dynamic body, String message) {
+    final raw = body is Map ? body['data'] : null;
+    if (raw is! Map) throw ServerException(message);
+    return RaporModel.fromJson(Map<String, dynamic>.from(raw));
+  }
+
   @override
   Future<List<RaporModel>> getRaporList({String? search}) async {
     final response = await _dio.get(
@@ -85,6 +110,61 @@ class RaporRemoteDataSourceImpl implements RaporRemoteDataSource {
       throw const NotFoundException('Detail rapor tidak tersedia');
     }
     return RaporDetailModel.fromJson(raw);
+  }
+
+  @override
+  Future<RaporModel> createRapor({
+    required int siswaId,
+    required int semester,
+    String? catatanWali,
+    int? sakit,
+    int? izin,
+    int? tanpaKeterangan,
+    List<Map<String, dynamic>>? details,
+  }) async {
+    final response = await _dio.post(
+      '/akademik/rapor',
+      data: <String, dynamic>{
+        'mst_siswa_id': siswaId,
+        'semester': semester,
+        'catatan_wali': ?catatanWali,
+        'sakit': ?sakit,
+        'izin': ?izin,
+        'tanpa_keterangan': ?tanpaKeterangan,
+        'details': ?details,
+      },
+    );
+    return _parseRapor(response.data, 'Respons pembuatan rapor tidak valid');
+  }
+
+  @override
+  Future<RaporModel> updateRapor({
+    required int id,
+    int? siswaId,
+    int? semester,
+    String? catatanWali,
+    int? sakit,
+    int? izin,
+    int? tanpaKeterangan,
+  }) async {
+    final response = await _dio.put(
+      '/akademik/rapor/$id',
+      data: <String, dynamic>{
+        'mst_siswa_id': ?siswaId,
+        'semester': ?semester,
+        'catatan_wali': ?catatanWali,
+        'sakit': ?sakit,
+        'izin': ?izin,
+        'tanpa_keterangan': ?tanpaKeterangan,
+      },
+    );
+    return _parseRapor(response.data, 'Respons perubahan rapor tidak valid');
+  }
+
+  @override
+  Future<bool> deleteRapor(int id) async {
+    await _dio.delete('/akademik/rapor/$id');
+    return true;
   }
 
   @override

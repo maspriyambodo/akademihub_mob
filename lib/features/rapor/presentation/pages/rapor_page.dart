@@ -10,6 +10,7 @@ import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../domain/entities/rapor_entity.dart';
 import '../bloc/rapor_bloc.dart';
 import 'rapor_detail_page.dart';
+import 'rapor_form_page.dart';
 
 class RaporPage extends StatelessWidget {
   const RaporPage({super.key});
@@ -36,6 +37,7 @@ class _RaporViewState extends State<_RaporView> {
 
   String _role = '';
   bool _canExport = false;
+  bool _canCreate = false;
 
   @override
   void initState() {
@@ -47,16 +49,23 @@ class _RaporViewState extends State<_RaporView> {
       if (authState is! AuthAuthenticated) return;
 
       final user = authState.user;
-      final role = (user.role ?? 'admin').toLowerCase();
+      final role = user.role ?? 'unknown';
       final profileId = user.profile?['id'] as int?;
 
       setState(() {
         _role = role;
         _canExport = user.hasPermission('rapor.export');
+        _canCreate = user.hasPermission('rapor.create');
       });
 
       context.read<RaporBloc>().add(
-        RaporLoadRequested(role: role, profileId: profileId),
+        RaporLoadRequested(
+          role: role,
+          profileId: profileId,
+          canCreate: user.hasPermission('rapor.create'),
+          canUpdate: user.hasPermission('rapor.update'),
+          canDelete: user.hasPermission('rapor.delete'),
+        ),
       );
     });
   }
@@ -84,6 +93,64 @@ class _RaporViewState extends State<_RaporView> {
     );
   }
 
+  Future<void> _openForm({
+    RaporEntity? rapor,
+    List<RaporEntity> pilihan = const [],
+  }) async {
+    final result = await Navigator.of(context).push<RaporFormResult>(
+      MaterialPageRoute(
+        builder: (_) => RaporFormPage(awal: rapor, pilihan: pilihan),
+      ),
+    );
+    if (!mounted || result == null) return;
+    final bloc = context.read<RaporBloc>();
+    if (rapor == null) {
+      bloc.add(
+        RaporCreateRequested(
+          siswaId: result.siswaId!,
+          semester: result.semester!,
+          catatanWali: result.catatanWali,
+          sakit: result.sakit,
+          izin: result.izin,
+          tanpaKeterangan: result.tanpaKeterangan,
+        ),
+      );
+    } else {
+      bloc.add(
+        RaporUpdateRequested(
+          id: rapor.id,
+          catatanWali: result.catatanWali,
+          sakit: result.sakit,
+          izin: result.izin,
+          tanpaKeterangan: result.tanpaKeterangan,
+        ),
+      );
+    }
+  }
+
+  Future<void> _delete(RaporEntity rapor) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Hapus rapor?'),
+        content: Text('Rapor ${rapor.labelPeriode} akan dihapus permanen.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      context.read<RaporBloc>().add(RaporDeleteRequested(rapor.id));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Role siswa hanya melihat rapornya sendiri → kolom pencarian tidak perlu.
@@ -91,6 +158,16 @@ class _RaporViewState extends State<_RaporView> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Rapor'), centerTitle: true),
+      floatingActionButton: !_canCreate
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: () {
+                final state = context.read<RaporBloc>().state;
+                if (state is RaporLoaded) _openForm(pilihan: state.items);
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('Rapor Baru'),
+            ),
       body: Column(
         children: [
           if (showSearch)
@@ -103,7 +180,27 @@ class _RaporViewState extends State<_RaporView> {
               },
             ),
           Expanded(
-            child: BlocBuilder<RaporBloc, RaporState>(
+            child: BlocConsumer<RaporBloc, RaporState>(
+              listenWhen: (_, state) =>
+                  state is RaporActionSuccess || state is RaporActionFailure,
+              listener: (context, state) {
+                final success = state is RaporActionSuccess;
+                final message = success
+                    ? state.message
+                    : (state as RaporActionFailure).message;
+                ScaffoldMessenger.of(context)
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(
+                    SnackBar(
+                      content: Text(message),
+                      backgroundColor: success
+                          ? AppColors.success
+                          : AppColors.error,
+                    ),
+                  );
+              },
+              buildWhen: (_, state) =>
+                  state is! RaporActionSuccess && state is! RaporActionFailure,
               builder: (context, state) {
                 if (state is RaporInitial || state is RaporLoading) {
                   return const Center(child: CircularProgressIndicator());
@@ -161,6 +258,15 @@ class _RaporViewState extends State<_RaporView> {
                                     rapor: item,
                                     showSiswa: !state.isSiswaMode,
                                     onTap: () => _openDetail(item),
+                                    onEdit: state.canUpdate
+                                        ? () => _openForm(
+                                            rapor: item,
+                                            pilihan: state.items,
+                                          )
+                                        : null,
+                                    onDelete: state.canDelete
+                                        ? () => _delete(item)
+                                        : null,
                                   );
                                 },
                               ),
@@ -230,11 +336,15 @@ class _RaporCard extends StatelessWidget {
   final RaporEntity rapor;
   final bool showSiswa;
   final VoidCallback onTap;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   const _RaporCard({
     required this.rapor,
     required this.showSiswa,
     required this.onTap,
+    this.onEdit,
+    this.onDelete,
   });
 
   @override
@@ -351,11 +461,26 @@ class _RaporCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(
-                Icons.chevron_right,
-                color: AppColors.textHint,
-                size: 22,
-              ),
+              if (onEdit != null || onDelete != null)
+                PopupMenuButton<String>(
+                  onSelected: (value) =>
+                      value == 'edit' ? onEdit?.call() : onDelete?.call(),
+                  itemBuilder: (_) => [
+                    if (onEdit != null)
+                      const PopupMenuItem(value: 'edit', child: Text('Ubah')),
+                    if (onDelete != null)
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: Text('Hapus'),
+                      ),
+                  ],
+                )
+              else
+                const Icon(
+                  Icons.chevron_right,
+                  color: AppColors.textHint,
+                  size: 22,
+                ),
             ],
           ),
         ),

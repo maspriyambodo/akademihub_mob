@@ -5,6 +5,7 @@ import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../wali/guardian_child_selector.dart';
 import '../bloc/tmb_bloc.dart';
 import '../widgets/tmb_widgets.dart';
 import 'tmb_hasil_page.dart';
@@ -34,6 +35,8 @@ class _TmbView extends StatefulWidget {
 }
 
 class _TmbViewState extends State<_TmbView> {
+  List<GuardianChild> _children = const [];
+  GuardianChild? _selectedChild;
   @override
   void initState() {
     super.initState();
@@ -43,42 +46,47 @@ class _TmbViewState extends State<_TmbView> {
       if (authState is! AuthAuthenticated) return;
 
       final user = authState.user;
-      final role = _normalizeRole(user.role);
+      final role = user.role ?? 'unknown';
       final profile = user.profile;
       final profileId = (profile?['id'] as num?)?.toInt();
 
-      context.read<TmbBloc>().add(
-        TmbLoadRequested(
-          role: role,
-          siswaId: role == 'siswa' ? profileId : null,
-          kelasId: role == 'siswa' ? _kelasIdSiswa(profile) : null,
-          hasViewTes: user.hasPermission('tes-minat-bakat.view'),
-          canDaftar: user.hasPermission('tes-minat-bakat-peserta.create'),
-          canMulai: user.hasPermission('tes-minat-bakat-peserta.mulai'),
-          canSelesaikan: user.hasPermission(
-            'tes-minat-bakat-peserta.selesaikan',
-          ),
-          canKirimJawaban: user.hasPermission('tes-minat-bakat-jawaban.create'),
-          canViewPeserta: user.hasPermission('tes-minat-bakat-peserta.view'),
-          canViewPertanyaanEndpoint: user.hasPermission(
-            'tes-minat-bakat-pertanyaan.view',
-          ),
-          canViewHasilEndpoint: user.hasPermission(
-            'tes-minat-bakat-hasil.view',
-          ),
-        ),
-      );
+      if (role == 'wali') {
+        _loadChildren(profileId, user);
+        return;
+      }
+      _load(role, profileId, _kelasIdSiswa(profile), user);
     });
   }
 
-  /// Kode role backend UPPERCASE (`SISWA`/`GURU`/`WALI_SISWA`/`GURU_BK`/...).
-  /// `wali` dicek lebih dulu karena `WALI_SISWA` memuat kata `siswa`.
-  String _normalizeRole(String? raw) {
-    final r = (raw ?? '').toLowerCase();
-    if (r.contains('wali')) return 'wali';
-    if (r.contains('guru')) return 'guru';
-    if (r.contains('siswa')) return 'siswa';
-    return 'admin';
+  Future<void> _loadChildren(int? waliId, dynamic user) async {
+    if (waliId == null) return;
+    final children = await sl<GuardianChildService>().getChildren(waliId);
+    if (!mounted || children.isEmpty) return;
+    setState(() {
+      _children = children;
+      _selectedChild = children.first;
+    });
+    _load('wali', children.first.id, children.first.kelasId, user);
+  }
+
+  void _load(String role, int? siswaId, int? kelasId, dynamic user) {
+    context.read<TmbBloc>().add(
+      TmbLoadRequested(
+        role: role,
+        siswaId: siswaId,
+        kelasId: kelasId,
+        hasViewTes: user.hasPermission('tes-minat-bakat.view'),
+        canDaftar: user.hasPermission('tes-minat-bakat-peserta.create'),
+        canMulai: user.hasPermission('tes-minat-bakat-peserta.mulai'),
+        canSelesaikan: user.hasPermission('tes-minat-bakat-peserta.selesaikan'),
+        canKirimJawaban: user.hasPermission('tes-minat-bakat-jawaban.create'),
+        canViewPeserta: user.hasPermission('tes-minat-bakat-peserta.view'),
+        canViewPertanyaanEndpoint: user.hasPermission(
+          'tes-minat-bakat-pertanyaan.view',
+        ),
+        canViewHasilEndpoint: user.hasPermission('tes-minat-bakat-hasil.view'),
+      ),
+    );
   }
 
   int? _kelasIdSiswa(Map<String, dynamic>? profile) {
@@ -200,8 +208,26 @@ class _TmbViewState extends State<_TmbView> {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.read<AuthBloc>().state;
     return Scaffold(
-      appBar: AppBar(title: const Text('Tes Minat Bakat'), centerTitle: true),
+      appBar: AppBar(
+        title: const Text('Tes Minat Bakat'),
+        centerTitle: true,
+        bottom: _selectedChild == null
+            ? null
+            : PreferredSize(
+                preferredSize: const Size.fromHeight(64),
+                child: GuardianChildSelector(
+                  children: _children,
+                  selectedId: _selectedChild!.id,
+                  onChanged: (child) {
+                    if (auth is! AuthAuthenticated) return;
+                    setState(() => _selectedChild = child);
+                    _load('wali', child.id, child.kelasId, auth.user);
+                  },
+                ),
+              ),
+      ),
       body: BlocConsumer<TmbBloc, TmbState>(
         listenWhen: (_, current) =>
             current is TmbActionSuccess || current is TmbActionFailure,

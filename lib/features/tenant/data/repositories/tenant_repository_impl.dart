@@ -33,6 +33,7 @@ class TenantRepositoryImpl implements TenantRepository {
 
   Failure _mapDio(AppException e) {
     if (e is NetworkException) return NetworkFailure(e.message);
+    if (e is ForbiddenException) return ForbiddenFailure(e.message);
     if (e is NotFoundException) return NotFoundFailure(e.message);
     return ServerFailure(e.message);
   }

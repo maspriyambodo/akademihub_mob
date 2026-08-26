@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive.dart';
@@ -327,6 +328,11 @@ class _LoginContent extends StatelessWidget {
                       ),
                     );
                   },
+                ),
+                TextButton(
+                  key: const Key('ppdb-public-link'),
+                  onPressed: () => context.go('/ppdb'),
+                  child: const Text('Info PPDB dan cek status'),
                 ),
               ],
             ),

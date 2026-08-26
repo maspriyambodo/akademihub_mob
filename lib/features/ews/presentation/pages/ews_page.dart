@@ -41,13 +41,12 @@ class _EwsViewState extends State<_EwsView> {
       if (!mounted) return;
       final auth = context.read<AuthBloc>().state;
       if (auth is! AuthAuthenticated) {
-        context.read<EwsBloc>().add(const EwsLoadRequested());
         return;
       }
       final user = auth.user;
       _canView = user.hasPermission(ewsPermView);
       _canManage = user.hasPermission(ewsPermManage);
-      context.read<EwsBloc>().add(const EwsLoadRequested());
+      if (_canView) context.read<EwsBloc>().add(const EwsLoadRequested());
     });
   }
 

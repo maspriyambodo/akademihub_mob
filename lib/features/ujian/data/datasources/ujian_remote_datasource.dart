@@ -161,9 +161,7 @@ class UjianRemoteDataSourceImpl implements UjianRemoteDataSource {
   }) async {
     final response = await _dio.post(
       '/akademik/ujian-user/$sesiId/violation',
-      data: <String, dynamic>{
-        'violation_type': type,
-      },
+      data: <String, dynamic>{'violation_type': type},
     );
     return _extractObject(response.data);
   }

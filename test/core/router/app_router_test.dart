@@ -5,4 +5,19 @@ void main() {
   test('requires siswa.view for student insight', () {
     expect(AppRoutes.permissionsFor('/siswa/42/insight'), ['siswa.view']);
   });
+
+  test('requires organisasi.view for organisasi route', () {
+    expect(AppRoutes.permissionsFor(AppRoutes.organisasi), ['organisasi.view']);
+  });
+
+  test('requires materi.view for materi', () {
+    expect(AppRoutes.permissionsFor(AppRoutes.materi), ['materi.view']);
+  });
+
+  test('requires a verified library read permission', () {
+    expect(AppRoutes.permissionsFor(AppRoutes.perpustakaan), [
+      'buku.view',
+      'peminjaman.view',
+    ]);
+  });
 }

@@ -56,23 +56,12 @@ class _UjianViewState extends State<_UjianView>
     super.dispose();
   }
 
-  /// Kode role backend berbentuk 'SISWA'/'GURU'/'WALI_SISWA'/'ADMIN'.
-  /// 'WALI_SISWA' mengandung substring 'siswa' → cek wali dulu; sedangkan
-  /// 'WALI_KELAS' adalah guru wali kelas → masuk mode guru.
-  String _normalizeRole(String? raw) {
-    final r = (raw ?? '').toLowerCase();
-    if (r.contains('wali') && !r.contains('kelas')) return 'wali';
-    if (r.contains('guru') || r.contains('wali_kelas')) return 'guru';
-    if (r.contains('siswa')) return 'siswa';
-    return 'admin';
-  }
-
   void _dispatchLoad() {
     final authState = context.read<AuthBloc>().state;
     if (authState is! AuthAuthenticated) return;
 
     final user = authState.user;
-    final role = _normalizeRole(user.role);
+    final role = user.role ?? 'unknown';
     final profile = user.profile;
     final profileId = (profile?['id'] as num?)?.toInt();
 

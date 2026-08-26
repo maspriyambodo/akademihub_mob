@@ -20,6 +20,12 @@ class _QuickAction {
 
 const _adminActions = [
   _QuickAction(
+    label: 'Perpustakaan',
+    icon: Icons.local_library_outlined,
+    route: AppRoutes.perpustakaan,
+    color: AppColors.info,
+  ),
+  _QuickAction(
     label: 'Absensi',
     icon: Icons.checklist,
     route: AppRoutes.absensi,
@@ -122,6 +128,12 @@ const _adminActions = [
 
 const _guruActions = [
   _QuickAction(
+    label: 'Perpustakaan',
+    icon: Icons.local_library_outlined,
+    route: AppRoutes.perpustakaan,
+    color: AppColors.info,
+  ),
+  _QuickAction(
     label: 'Jadwal Pelajaran',
     icon: Icons.calendar_today,
     route: AppRoutes.jadwal,
@@ -198,6 +210,12 @@ const _guruActions = [
 ];
 
 const _siswaActions = [
+  _QuickAction(
+    label: 'Perpustakaan',
+    icon: Icons.local_library_outlined,
+    route: AppRoutes.perpustakaan,
+    color: AppColors.info,
+  ),
   _QuickAction(
     label: 'Jadwal Pelajaran',
     icon: Icons.calendar_today,
@@ -285,6 +303,12 @@ const _siswaActions = [
 ];
 
 const _waliActions = [
+  _QuickAction(
+    label: 'Perpustakaan',
+    icon: Icons.local_library_outlined,
+    route: AppRoutes.perpustakaan,
+    color: AppColors.info,
+  ),
   _QuickAction(
     label: 'Absensi Anak',
     icon: Icons.checklist,
@@ -395,17 +419,7 @@ class _DashboardQuickActionsState extends State<DashboardQuickActions> {
           action.route != AppRoutes.profil) {
         return false;
       }
-      final required = switch (action.route) {
-        AppRoutes.ews => const ['ews.view'],
-        AppRoutes.bk => const ['bk-kasus.view'],
-        AppRoutes.kalender => const ['kalender-akademik.view'],
-        AppRoutes.ujian => const ['ujian.view', 'ranking.view'],
-        AppRoutes.tmb => const [
-          'tes-minat-bakat.view',
-          'tes-minat-bakat-peserta.view',
-        ],
-        _ => const <String>[],
-      };
+      final required = AppRoutes.permissionsFor(action.route);
       return required.isEmpty || required.any(widget.permissions.contains);
     }).toList();
     final visibleActions = _showAll ? actions : actions.take(6).toList();

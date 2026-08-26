@@ -33,8 +33,7 @@ abstract class UjianRepository {
   });
 
   /// `GET /kelas` — daftar kelas untuk pemilih kelas guru/admin.
-  /// [waliGuruId] menyaring hanya kelas yang diampu guru tsb sebagai
-  /// wali kelas (sesuai batasan `canAccessKelasId` backend untuk role guru).
+  /// Guru dibatasi ke kelas wali via filter backend `wali_guru_id`.
   Future<Result<List<KelasOptionEntity>>> getKelasOptions({int? waliGuruId});
 
   Future<Result<List<UjianSessionEntity>>> getSesiUjian({int? siswaId});
