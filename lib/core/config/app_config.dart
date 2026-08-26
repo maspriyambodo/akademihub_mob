@@ -13,7 +13,7 @@ class AppConfig {
   static const String _apiBaseUrlAndroidEmulator =
       'http://10.0.2.2:8002/api/$apiVersion';
   static const String _apiBaseUrlProd =
-      'https://api.akademihub.id/api/$apiVersion';
+      'https://app-api.akademihub.id/api/$apiVersion';
   static const String approvedApiDomain = 'akademihub.id';
 
   static String get apiBaseUrl {

@@ -96,7 +96,7 @@ File: `lib/core/config/app_config.dart`
 | Mode | Base URL (default) |
 |------|--------------------|
 | Debug (`kDebugMode`) | `http://10.0.2.2:8002/api/v1` |
-| Release | `https://api.akademihub.id/api/v1` |
+| Release | `https://app-api.akademihub.id/api/v1` |
 
 Catatan:
 
