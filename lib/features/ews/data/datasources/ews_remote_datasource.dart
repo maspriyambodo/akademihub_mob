@@ -56,7 +56,7 @@ class EwsRemoteDataSourceImpl implements EwsRemoteDataSource {
 
   @override
   Future<EwsAlertModel> getAlertDetail(int id) async {
-    final response = await _dio.get('/ews/alerts/$id');
+    final response = await _dio.get('/ews/$id');
     final body = _asMap(response.data);
     final raw = body['data'];
     if (raw is Map) {

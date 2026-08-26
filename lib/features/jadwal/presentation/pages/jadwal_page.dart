@@ -29,7 +29,7 @@ class _JadwalView extends StatefulWidget {
 class _JadwalViewState extends State<_JadwalView> {
   void _loadForUser(AuthAuthenticated state) {
     final user = state.user;
-    final role = (user.role ?? 'admin').toLowerCase();
+    final role = user.role ?? 'unknown';
     final profile = user.profile;
     final profileId = (profile?['id'] as num?)?.toInt();
 

@@ -47,7 +47,7 @@ class _AbsensiViewState extends State<_AbsensiView> {
         final profileId = user.profile?['id'] as int?;
         context.read<AbsensiBloc>().add(
           AbsensiLoadRequested(
-            role: user.role ?? 'admin',
+            role: user.role ?? 'unknown',
             profileId: profileId,
             bulan: _bulan,
             tahun: _tahun,

@@ -141,6 +141,13 @@ class UjianBloc extends Bloc<UjianEvent, UjianState> {
     UjianGenerateRequested event,
     Emitter<UjianState> emit,
   ) async {
+    if (!_canGenerate) {
+      emit(
+        const UjianActionFailure('Anda tidak memiliki izin membuat ranking'),
+      );
+      emit(_buildLoaded());
+      return;
+    }
     final kelasId = _kelasId;
     if (kelasId == null) {
       emit(const UjianActionFailure('Pilih kelas terlebih dahulu'));
@@ -174,6 +181,13 @@ class UjianBloc extends Bloc<UjianEvent, UjianState> {
     UjianExportRequested event,
     Emitter<UjianState> emit,
   ) async {
+    if (!_canExport) {
+      emit(
+        const UjianActionFailure('Anda tidak memiliki izin mengunduh ranking'),
+      );
+      emit(_buildLoaded());
+      return;
+    }
     final kelasId = _kelasId;
     if (kelasId == null) {
       emit(const UjianActionFailure('Pilih kelas terlebih dahulu'));

@@ -20,6 +20,10 @@ class AuthException extends AppException {
   ]);
 }
 
+class ForbiddenException extends AppException {
+  const ForbiddenException([super.message = 'Akses ditolak']);
+}
+
 class ValidationException extends AppException {
   final Map<String, List<String>>? errors;
   const ValidationException(super.message, {this.errors});
@@ -47,15 +51,21 @@ AppException mapDioException(DioException e) {
       if (status == 401) {
         return AuthException(message.toString());
       }
+      if (status == 403) return ForbiddenException(message.toString());
       if (status == 404) return NotFoundException(message.toString());
       if (status == 422) {
-        final errors = data is Map
-            ? data['errors'] as Map<String, dynamic>?
+        final rawErrors = data is Map ? data['errors'] : null;
+        final errors = rawErrors is Map
+            ? rawErrors.map(
+                (key, value) => MapEntry(
+                  key.toString(),
+                  value is List
+                      ? value.map((item) => item.toString()).toList()
+                      : [value.toString()],
+                ),
+              )
             : null;
-        return ValidationException(
-          message.toString(),
-          errors: errors?.map((k, v) => MapEntry(k, List<String>.from(v))),
-        );
+        return ValidationException(message.toString(), errors: errors);
       }
       return ServerException(message.toString(), statusCode: status);
     default:

@@ -10,6 +10,20 @@ abstract class NilaiRemoteDataSource {
     int perPage = 100,
   });
   Future<double?> getRataRataSiswa(int siswaId);
+  Future<NilaiModel> createNilai({
+    required int siswaId,
+    required int ujianId,
+    required double nilai,
+    String? keterangan,
+  });
+  Future<NilaiModel> updateNilai({
+    required int id,
+    int? siswaId,
+    int? ujianId,
+    double? nilai,
+    String? keterangan,
+  });
+  Future<bool> deleteNilai(int id);
 }
 
 class NilaiRemoteDataSourceImpl implements NilaiRemoteDataSource {
@@ -57,6 +71,51 @@ class NilaiRemoteDataSourceImpl implements NilaiRemoteDataSource {
     return NilaiModel.parseNilai(raw);
   }
 
+  @override
+  Future<NilaiModel> createNilai({
+    required int siswaId,
+    required int ujianId,
+    required double nilai,
+    String? keterangan,
+  }) async {
+    final response = await _dio.post(
+      '/akademik/nilai',
+      data: {
+        'mst_siswa_id': siswaId,
+        'trx_ujian_id': ujianId,
+        'nilai': nilai,
+        'keterangan': ?keterangan,
+      },
+    );
+    return NilaiModel.fromJson(_parseObject(response.data));
+  }
+
+  @override
+  Future<NilaiModel> updateNilai({
+    required int id,
+    int? siswaId,
+    int? ujianId,
+    double? nilai,
+    String? keterangan,
+  }) async {
+    final response = await _dio.put(
+      '/akademik/nilai/$id',
+      data: {
+        'mst_siswa_id': ?siswaId,
+        'trx_ujian_id': ?ujianId,
+        'nilai': ?nilai,
+        'keterangan': ?keterangan,
+      },
+    );
+    return NilaiModel.fromJson(_parseObject(response.data));
+  }
+
+  @override
+  Future<bool> deleteNilai(int id) async {
+    await _dio.delete('/akademik/nilai/$id');
+    return true;
+  }
+
   /// `data` bisa berupa List langsung (endpoint koleksi) ATAU Map dengan key
   /// `data` di dalamnya (paginator).
   List<NilaiModel> _parseList(dynamic body) {
@@ -71,5 +130,13 @@ class NilaiRemoteDataSourceImpl implements NilaiRemoteDataSource {
         .whereType<Map<String, dynamic>>()
         .map(NilaiModel.fromJson)
         .toList();
+  }
+
+  Map<String, dynamic> _parseObject(dynamic body) {
+    if (body is Map<String, dynamic> && body['data'] is Map<String, dynamic>) {
+      return body['data'] as Map<String, dynamic>;
+    }
+    if (body is Map) return Map<String, dynamic>.from(body);
+    return const {};
   }
 }

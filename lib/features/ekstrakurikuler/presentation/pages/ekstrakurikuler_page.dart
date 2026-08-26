@@ -6,6 +6,8 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/batas_lebar_konten.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/domain/entities/user_entity.dart';
+import '../../../wali/guardian_child_selector.dart';
 import '../../domain/entities/ekstrakurikuler_entity.dart';
 import '../../domain/entities/pendaftaran_ekskul_entity.dart';
 import '../bloc/ekstrakurikuler_bloc.dart';
@@ -37,6 +39,8 @@ class _EkstrakurikulerView extends StatefulWidget {
 
 class _EkstrakurikulerViewState extends State<_EkstrakurikulerView> {
   final TextEditingController _cariController = TextEditingController();
+  List<GuardianChild> _children = const [];
+  GuardianChild? _selectedChild;
 
   @override
   void initState() {
@@ -47,61 +51,53 @@ class _EkstrakurikulerViewState extends State<_EkstrakurikulerView> {
       if (authState is! AuthAuthenticated) return;
 
       final user = authState.user;
-      final role = _normalizeRole(user.role);
+      final role = user.role ?? 'unknown';
       final profile = user.profile;
       final profileId = (profile?['id'] as num?)?.toInt();
 
-      context.read<EkstrakurikulerBloc>().add(
-        EkstrakurikulerLoadRequested(
-          role: role,
-          siswaId: role == 'siswa'
-              ? profileId
-              : (role == 'wali' ? _cariSiswaIdWali(profile) : null),
-          guruId: role == 'guru' ? profileId : null,
-          canManagePendaftaran: user.hasPermission(
-            'ekstrakurikuler.pendaftaran.manage',
-          ),
-          canViewPendaftaran: user.hasPermission(
-            'ekstrakurikuler.pendaftaran.view',
-          ),
-        ),
-      );
+      if (role == 'wali') {
+        _loadChildren(user.profile?['id']);
+        return;
+      }
+      _load(role, profileId, null, user);
     });
+  }
+
+  Future<void> _loadChildren(Object? waliId) async {
+    final id = waliId is num ? waliId.toInt() : int.tryParse('$waliId');
+    if (id == null) return;
+    final children = await sl<GuardianChildService>().getChildren(id);
+    if (!mounted || children.isEmpty) return;
+    setState(() {
+      _children = children;
+      _selectedChild = children.first;
+    });
+    final auth = context.read<AuthBloc>().state;
+    if (auth is AuthAuthenticated) {
+      _load('wali', children.first.id, null, auth.user);
+    }
+  }
+
+  void _load(String role, int? siswaId, int? guruId, UserEntity user) {
+    context.read<EkstrakurikulerBloc>().add(
+      EkstrakurikulerLoadRequested(
+        role: role,
+        siswaId: siswaId,
+        guruId: guruId,
+        canManagePendaftaran: user.hasPermission(
+          'ekstrakurikuler.pendaftaran.manage',
+        ),
+        canViewPendaftaran: user.hasPermission(
+          'ekstrakurikuler.pendaftaran.view',
+        ),
+      ),
+    );
   }
 
   @override
   void dispose() {
     _cariController.dispose();
     super.dispose();
-  }
-
-  /// Kode role backend berbentuk `SISWA`/`GURU`/`WALI_SISWA`/`ADMIN`.
-  /// `wali` harus dicek lebih dulu karena `WALI_SISWA` memuat kata `siswa`.
-  String _normalizeRole(String? raw) {
-    final r = (raw ?? '').toLowerCase();
-    if (r.contains('wali')) return 'wali';
-    if (r.contains('guru')) return 'guru';
-    if (r.contains('siswa')) return 'siswa';
-    return 'admin';
-  }
-
-  /// Profil wali umumnya hanya berisi `{nama, no_hp}`. Beberapa payload
-  /// menyertakan anak — dicoba beberapa bentuk sebelum menyerah.
-  int? _cariSiswaIdWali(Map<String, dynamic>? profile) {
-    if (profile == null) return null;
-
-    final langsung =
-        (profile['siswa_id'] as num?)?.toInt() ??
-        (profile['mst_siswa_id'] as num?)?.toInt();
-    if (langsung != null) return langsung;
-
-    final siswa = profile['siswa'];
-    if (siswa is Map) return (siswa['id'] as num?)?.toInt();
-    if (siswa is List && siswa.isNotEmpty) {
-      final pertama = siswa.first;
-      if (pertama is Map) return (pertama['id'] as num?)?.toInt();
-    }
-    return null;
   }
 
   void _bukaDetail(
@@ -162,16 +158,36 @@ class _EkstrakurikulerViewState extends State<_EkstrakurikulerView> {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.read<AuthBloc>().state;
+    final isWali = auth is AuthAuthenticated && auth.user.role == 'wali';
     return DefaultTabController(
       length: 2,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Ekstrakurikuler'),
-          bottom: const TabBar(
-            tabs: [
-              Tab(text: 'Semua Ekskul'),
-              Tab(text: 'Ekskul Saya'),
-            ],
+          bottom: PreferredSize(
+            preferredSize: Size.fromHeight(
+              isWali && _selectedChild != null ? 112 : 48,
+            ),
+            child: Column(
+              children: [
+                if (isWali && _selectedChild != null)
+                  GuardianChildSelector(
+                    children: _children,
+                    selectedId: _selectedChild!.id,
+                    onChanged: (child) {
+                      setState(() => _selectedChild = child);
+                      _load('wali', child.id, null, auth.user);
+                    },
+                  ),
+                const TabBar(
+                  tabs: [
+                    Tab(text: 'Semua Ekskul'),
+                    Tab(text: 'Ekskul Saya'),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
         body: BlocConsumer<EkstrakurikulerBloc, EkstrakurikulerState>(

@@ -43,6 +43,7 @@ class KeuanganBloc extends Bloc<KeuanganEvent, KeuanganState> {
   int? _kelasId;
   int? _siswaId;
   int? _tarifSppId;
+  bool _canBayar = false;
   String _search = '';
   int _tahun = DateTime.now().year;
 
@@ -69,20 +70,19 @@ class KeuanganBloc extends Bloc<KeuanganEvent, KeuanganState> {
     on<KeuanganBayarMultipleRequested>(_onBayarMultiple);
   }
 
-  // Kode role di `sys_roles` berbentuk UPPERCASE (`WALI_SISWA` mengandung
-  // substring `SISWA`), jadi wali HARUS dicek lebih dulu.
-  bool get _isWali => _role.contains('wali');
-  bool get _isSiswa => !_isWali && _role.contains('siswa');
+  bool get _isWali => _role == 'wali';
+  bool get _isSiswa => _role == 'siswa';
   bool get _modePribadi => _isWali || _isSiswa;
 
   Future<void> _onLoad(
     KeuanganLoadRequested event,
     Emitter<KeuanganState> emit,
   ) async {
-    _role = event.role.toLowerCase();
+    _role = event.role;
     _profileId = event.profileId;
     _kelasId = event.kelasId;
-    _siswaId = _isWali ? null : event.profileId;
+    _canBayar = event.canBayar;
+    _siswaId = event.profileId;
     _tarifSppId = null;
     _search = '';
     _laporanCache = null;
@@ -135,7 +135,7 @@ class KeuanganBloc extends Bloc<KeuanganEvent, KeuanganState> {
   }
 
   Future<void> _fetchPribadi(Emitter<KeuanganState> emit) async {
-    var siswaId = _isSiswa ? _profileId : null;
+    var siswaId = _profileId;
     List<PembayaranSppEntity> pembayaran;
 
     if (siswaId != null) {
@@ -146,14 +146,8 @@ class KeuanganBloc extends Bloc<KeuanganEvent, KeuanganState> {
       }
       pembayaran = hasil.requireData;
     } else {
-      // Wali: andalkan endpoint index yang sudah difilter backend per sesi.
-      final hasil = await getPembayaranList();
-      if (hasil.isFailure) {
-        emit(KeuanganError(hasil.requireFailure.message));
-        return;
-      }
-      pembayaran = hasil.requireData;
-      siswaId = _cariSiswaId(pembayaran);
+      emit(const KeuanganError('ID siswa belum dipilih'));
+      return;
     }
 
     _siswaId = siswaId;
@@ -173,9 +167,9 @@ class KeuanganBloc extends Bloc<KeuanganEvent, KeuanganState> {
     tarifSppId ??= _cariTarifSppId(pembayaran);
     _tarifSppId = tarifSppId;
 
-    // Rekap tunggakan — WAJIB punya siswaId + tarifSppId + tahun.
+    // Rekap tunggakan memerlukan tarif SPP.
     var tunggakan = const <TunggakanEntity>[];
-    if (siswaId != null && tarifSppId != null) {
+    if (tarifSppId != null) {
       final hasilTunggakan = await getTunggakan(
         siswaId: siswaId,
         tarifSppId: tarifSppId,
@@ -189,11 +183,6 @@ class KeuanganBloc extends Bloc<KeuanganEvent, KeuanganState> {
           '${hasilTunggakan.requireFailure.message}',
         );
       }
-    } else if (siswaId == null) {
-      catatanBuffer.add(
-        'Data siswa tidak dapat ditentukan dari sesi ini, '
-        'rekap tunggakan tidak ditampilkan.',
-      );
     } else {
       catatanBuffer.add(
         'Tarif SPP kelas belum diketahui, rekap tunggakan dan denda '
@@ -203,13 +192,11 @@ class KeuanganBloc extends Bloc<KeuanganEvent, KeuanganState> {
 
     // Status pembayaran per tahun ajaran (backend hanya memakai 4 digit awal).
     StatusPembayaranEntity? status;
-    if (siswaId != null) {
-      final hasilStatus = await getStatusPembayaran(
-        siswaId,
-        tahunAjaran: '$_tahun/${_tahun + 1}',
-      );
-      if (hasilStatus.isSuccess) status = hasilStatus.requireData;
-    }
+    final hasilStatus = await getStatusPembayaran(
+      siswaId,
+      tahunAjaran: '$_tahun/${_tahun + 1}',
+    );
+    if (hasilStatus.isSuccess) status = hasilStatus.requireData;
 
     emit(
       KeuanganLoaded(
@@ -272,6 +259,16 @@ class KeuanganBloc extends Bloc<KeuanganEvent, KeuanganState> {
   ) async {
     final current = state;
     if (current is! KeuanganLoaded) return;
+    if (!_canBayar) {
+      emit(
+        current.copyWith(
+          aksiStatus: KeuanganAksiStatus.failure,
+          aksiMessage: 'Anda tidak memiliki izin melakukan pembayaran',
+          clearAksiUrl: true,
+        ),
+      );
+      return;
+    }
     if (current.aksiStatus == KeuanganAksiStatus.loading) return;
 
     final siswaId = current.siswaId ?? _siswaId;
@@ -327,6 +324,26 @@ class KeuanganBloc extends Bloc<KeuanganEvent, KeuanganState> {
   ) async {
     final current = state;
     if (current is! KeuanganLoaded) return;
+    if (_modePribadi) {
+      emit(
+        current.copyWith(
+          aksiStatus: KeuanganAksiStatus.failure,
+          aksiMessage: 'Gunakan pembayaran online untuk melunasi tagihan',
+          clearAksiUrl: true,
+        ),
+      );
+      return;
+    }
+    if (!_canBayar) {
+      emit(
+        current.copyWith(
+          aksiStatus: KeuanganAksiStatus.failure,
+          aksiMessage: 'Anda tidak memiliki izin mencatat pembayaran',
+          clearAksiUrl: true,
+        ),
+      );
+      return;
+    }
     if (current.aksiStatus == KeuanganAksiStatus.loading) return;
     if (event.bulan.isEmpty) return;
 
@@ -378,13 +395,6 @@ class KeuanganBloc extends Bloc<KeuanganEvent, KeuanganState> {
   }
 
   // ── Util ──────────────────────────────────────────────────────────────────
-
-  int? _cariSiswaId(List<PembayaranSppEntity> items) {
-    for (final item in items) {
-      if (item.siswaId != null) return item.siswaId;
-    }
-    return null;
-  }
 
   int? _cariTarifSppId(List<PembayaranSppEntity> items) {
     // Utamakan record pada tahun yang sedang dilihat.

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../../../../core/api/api_client.dart';
 import '../../../../core/config/app_config.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/error/failures.dart';
@@ -14,11 +15,13 @@ class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource _remoteDataSource;
   final TokenStorage _tokenStorage;
   final TenantStorage _tenantStorage;
+  final ApiClient _apiClient;
 
-  const AuthRepositoryImpl(
+  AuthRepositoryImpl(
     this._remoteDataSource,
     this._tokenStorage,
     this._tenantStorage,
+    this._apiClient,
   );
 
   @override
@@ -31,7 +34,7 @@ class AuthRepositoryImpl implements AuthRepository {
       await _tokenStorage.saveTokens(
         accessToken: token,
         refreshToken: refreshToken,
-        origin: AppConfig.extractOrigin(AppConfig.apiBaseUrl),
+        origin: AppConfig.extractOrigin(_apiClient.dio.options.baseUrl),
       );
       return success(_userModelToEntity(user));
     } on DioException catch (e) {
@@ -82,6 +85,7 @@ class AuthRepositoryImpl implements AuthRepository {
   Failure _mapException(AppException e) {
     if (e is NetworkException) return NetworkFailure(e.message);
     if (e is AuthException) return AuthFailure(e.message);
+    if (e is ForbiddenException) return ForbiddenFailure(e.message);
     if (e is ValidationException) {
       return ValidationFailure(e.message, errors: e.errors);
     }

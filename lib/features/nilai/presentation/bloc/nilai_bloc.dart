@@ -4,6 +4,9 @@ import '../../domain/entities/nilai_entity.dart';
 import '../../domain/entities/nilai_summary_entity.dart';
 import '../../domain/usecases/get_nilai_siswa_usecase.dart';
 import '../../domain/usecases/get_nilai_general_usecase.dart';
+import '../../domain/usecases/create_nilai_usecase.dart';
+import '../../domain/usecases/update_nilai_usecase.dart';
+import '../../domain/usecases/delete_nilai_usecase.dart';
 
 part 'nilai_event.dart';
 part 'nilai_state.dart';
@@ -13,6 +16,9 @@ class NilaiBloc extends Bloc<NilaiEvent, NilaiState> {
   final GetNilaiGeneralUseCase getNilaiGeneral;
   final GetNilaiUjianUseCase getNilaiUjian;
   final GetRataRataNilaiUseCase getRataRataNilai;
+  final CreateNilaiUseCase createNilai;
+  final UpdateNilaiUseCase updateNilai;
+  final DeleteNilaiUseCase deleteNilai;
 
   // ── Cache internal (data mentah sebelum difilter) ──────────────────────────
   List<NilaiEntity> _all = [];
@@ -30,12 +36,18 @@ class NilaiBloc extends Bloc<NilaiEvent, NilaiState> {
     required this.getNilaiGeneral,
     required this.getNilaiUjian,
     required this.getRataRataNilai,
+    required this.createNilai,
+    required this.updateNilai,
+    required this.deleteNilai,
   }) : super(NilaiInitial()) {
     on<NilaiLoadRequested>(_onLoad);
     on<NilaiRefreshRequested>(_onRefresh);
     on<NilaiSearchChanged>(_onSearchChanged);
     on<NilaiSemesterChanged>(_onSemesterChanged);
     on<NilaiUjianSelected>(_onUjianSelected);
+    on<NilaiCreateRequested>(_onCreate);
+    on<NilaiUpdateRequested>(_onUpdate);
+    on<NilaiDeleteRequested>(_onDelete);
   }
 
   Future<void> _onLoad(
@@ -94,6 +106,56 @@ class NilaiBloc extends Bloc<NilaiEvent, NilaiState> {
     } else {
       emit(NilaiError(result.requireFailure.message));
     }
+  }
+
+  Future<void> _onCreate(
+    NilaiCreateRequested event,
+    Emitter<NilaiState> emit,
+  ) async {
+    final result = await createNilai(
+      siswaId: event.siswaId,
+      ujianId: event.ujianId,
+      nilai: event.nilai,
+      keterangan: event.keterangan,
+    );
+    await _completeMutation(result.isSuccess, result.isSuccess ? null : result.requireFailure.message, 'Nilai ditambahkan', emit);
+  }
+
+  Future<void> _onUpdate(
+    NilaiUpdateRequested event,
+    Emitter<NilaiState> emit,
+  ) async {
+    final result = await updateNilai(
+      id: event.id,
+      nilai: event.nilai,
+      keterangan: event.keterangan,
+    );
+    await _completeMutation(result.isSuccess, result.isSuccess ? null : result.requireFailure.message, 'Nilai diperbarui', emit);
+  }
+
+  Future<void> _onDelete(
+    NilaiDeleteRequested event,
+    Emitter<NilaiState> emit,
+  ) async {
+    final result = await deleteNilai(event.id);
+    await _completeMutation(result.isSuccess, result.isSuccess ? null : result.requireFailure.message, 'Nilai dihapus', emit);
+  }
+
+  Future<void> _completeMutation(
+    bool success,
+    String? failure,
+    String message,
+    Emitter<NilaiState> emit,
+  ) async {
+    if (!success) {
+      emit(NilaiActionFailure(failure!));
+      return;
+    }
+    emit(NilaiActionSuccess(message));
+    _all = [];
+    _ujianItems = [];
+    _rataRataServer = null;
+    await _fetchAndEmit(emit);
   }
 
   // ── Fetch ───────────────────────────────────────────────────────────────────

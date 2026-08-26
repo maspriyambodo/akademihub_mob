@@ -89,7 +89,10 @@ void main() {
         'completed': UjianSessionStatus.selesai,
       };
       for (final entry in map.entries) {
-        final model = UjianSessionModel.fromJson({'status': 1, 'status_code': entry.key});
+        final model = UjianSessionModel.fromJson({
+          'status': 1,
+          'status_code': entry.key,
+        });
         expect(model.toEntity().status, entry.value);
       }
     });
@@ -107,26 +110,31 @@ void main() {
       expect(model.nilaiProvisional, 85.5);
     });
 
-    testWidgets('3. UI awaiting_grading shows read-only banner without start/submit buttons', (tester) async {
-      final session = UjianSessionModel.fromJson({
-        'id': 1,
-        'status': 4,
-        'status_code': 'awaiting_grading',
-        'nilai_provisional': 75.0,
-      }).toEntity();
+    testWidgets(
+      '3. UI awaiting_grading shows read-only banner without start/submit buttons',
+      (tester) async {
+        final session = UjianSessionModel.fromJson({
+          'id': 1,
+          'status': 4,
+          'status_code': 'awaiting_grading',
+          'nilai_provisional': 75.0,
+        }).toEntity();
 
-      await tester.pumpWidget(MaterialApp(
-        home: UjianSessionPage(session: session),
-      ));
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          MaterialApp(home: UjianSessionPage(session: session)),
+        );
+        await tester.pumpAndSettle();
 
-      expect(find.byKey(const Key('awaiting-grading')), findsOneWidget);
-      expect(find.text('Menunggu Koreksi Guru'), findsOneWidget);
-      expect(find.text('Mulai Ujian'), findsNothing);
-      expect(find.byKey(const Key('finalize-exam')), findsNothing);
-    });
+        expect(find.byKey(const Key('awaiting-grading')), findsOneWidget);
+        expect(find.text('Menunggu Koreksi Guru'), findsOneWidget);
+        expect(find.text('Mulai Ujian'), findsNothing);
+        expect(find.byKey(const Key('finalize-exam')), findsNothing);
+      },
+    );
 
-    testWidgets('4. Deadline disables inputs and reloads session', (tester) async {
+    testWidgets('4. Deadline disables inputs and reloads session', (
+      tester,
+    ) async {
       final expired = DateTime.now().subtract(const Duration(minutes: 5));
       final session = UjianSessionModel.fromJson({
         'id': 1,
@@ -135,9 +143,9 @@ void main() {
         'timed_out_at': expired.toIso8601String(),
       }).toEntity();
 
-      await tester.pumpWidget(MaterialApp(
-        home: UjianSessionPage(session: session),
-      ));
+      await tester.pumpWidget(
+        MaterialApp(home: UjianSessionPage(session: session)),
+      );
       await tester.pumpAndSettle();
 
       expect(find.byKey(const Key('timeout-banner')), findsOneWidget);
@@ -157,11 +165,19 @@ void main() {
           return ResponseBody.fromString(
             '{"success":true,"data":{"access_token":"new-access-token","refresh_token":"new-refresh-token"}}',
             200,
-            headers: {Headers.contentTypeHeader: [Headers.jsonContentType]},
+            headers: {
+              Headers.contentTypeHeader: [Headers.jsonContentType],
+            },
           );
         }
         if (options.headers['Authorization'] == 'Bearer new-access-token') {
-          return ResponseBody.fromString('{"success":true,"data":"ok"}', 200, headers: {Headers.contentTypeHeader: [Headers.jsonContentType]});
+          return ResponseBody.fromString(
+            '{"success":true,"data":"ok"}',
+            200,
+            headers: {
+              Headers.contentTypeHeader: [Headers.jsonContentType],
+            },
+          );
         }
         return ResponseBody.fromString('{"error":"unauthorized"}', 401);
       });
@@ -189,7 +205,10 @@ void main() {
         return ResponseBody.fromString('{"error":"unauthorized"}', 401);
       });
 
-      await expectLater(apiClient.dio.get('/profile'), throwsA(isA<DioException>()));
+      await expectLater(
+        apiClient.dio.get('/profile'),
+        throwsA(isA<DioException>()),
+      );
 
       expect(refreshCount, 1);
       expect(await storage.read(key: AppConfig.tokenKey), isNull);
@@ -201,149 +220,197 @@ void main() {
       void onCheckoutClosed() {
         isPaidLocally = false;
       }
+
       onCheckoutClosed();
       expect(isPaidLocally, isFalse);
     });
 
-    test('8. Route configuration contains no PPDB permissions or endpoints', () {
-      expect(AppRoutes.permissionsFor('/ppdb'), isEmpty);
-    });
+    test(
+      '8. Route configuration contains no PPDB permissions or endpoints',
+      () {
+        expect(AppRoutes.permissionsFor('/ppdb'), isEmpty);
+      },
+    );
 
-    test('9. Login, register, refresh, and logout requests do not trigger automatic refresh', () async {
-      final storage = _FakeStorage({
-        AppConfig.tokenKey: 'token',
-        AppConfig.refreshTokenKey: 'refresh',
-      });
-      final apiClient = ApiClient(storage);
+    test(
+      '9. Login, register, refresh, and logout requests do not trigger automatic refresh',
+      () async {
+        final storage = _FakeStorage({
+          AppConfig.tokenKey: 'token',
+          AppConfig.refreshTokenKey: 'refresh',
+        });
+        final apiClient = ApiClient(storage);
 
-      int refreshCount = 0;
-      apiClient.dio.httpClientAdapter = _MockAdapter((options) {
-        if (options.extra['is_retry'] == true && options.path.contains('/auth/refresh')) {
-          refreshCount++;
-        }
-        return ResponseBody.fromString('{"error":"unauthorized"}', 401);
-      });
+        int refreshCount = 0;
+        apiClient.dio.httpClientAdapter = _MockAdapter((options) {
+          if (options.extra['is_retry'] == true &&
+              options.path.contains('/auth/refresh')) {
+            refreshCount++;
+          }
+          return ResponseBody.fromString('{"error":"unauthorized"}', 401);
+        });
 
-      for (final path in ['/auth/login', '/auth/register', '/auth/refresh', '/auth/logout']) {
-        await expectLater(apiClient.dio.post(path), throwsA(isA<DioException>()));
-      }
-
-      expect(refreshCount, 0);
-    });
-
-    test('10. Retry receiving 401 again stops, clears token storage, and does not loop', () async {
-      final storage = _FakeStorage({
-        AppConfig.tokenKey: 'old-access-token',
-        AppConfig.refreshTokenKey: 'old-refresh-token',
-      });
-      final apiClient = ApiClient(storage);
-
-      int refreshCount = 0;
-      apiClient.dio.httpClientAdapter = _MockAdapter((options) {
-        if (options.path.contains('/auth/refresh')) {
-          refreshCount++;
-          return ResponseBody.fromString(
-            '{"success":true,"data":{"access_token":"bad-access","refresh_token":"bad-refresh"}}',
-            200,
-            headers: {Headers.contentTypeHeader: [Headers.jsonContentType]},
+        for (final path in [
+          '/auth/login',
+          '/auth/register',
+          '/auth/refresh',
+          '/auth/logout',
+        ]) {
+          await expectLater(
+            apiClient.dio.post(path),
+            throwsA(isA<DioException>()),
           );
         }
-        return ResponseBody.fromString('{"error":"unauthorized"}', 401);
-      });
 
-      await expectLater(apiClient.dio.get('/profile'), throwsA(isA<DioException>()));
+        expect(refreshCount, 0);
+      },
+    );
 
-      expect(refreshCount, 1);
-      expect(await storage.read(key: AppConfig.tokenKey), isNull);
-    });
+    test(
+      '10. Retry receiving 401 again stops, clears token storage, and does not loop',
+      () async {
+        final storage = _FakeStorage({
+          AppConfig.tokenKey: 'old-access-token',
+          AppConfig.refreshTokenKey: 'old-refresh-token',
+        });
+        final apiClient = ApiClient(storage);
 
-    testWidgets('11. Countdown uses controlled server offset and device clock changes do not reopen input', (tester) async {
-      final pastTime = DateTime.now().subtract(const Duration(minutes: 10));
-      final session = UjianSessionModel.fromJson({
-        'id': 1,
-        'status': 2,
-        'status_code': 'in_progress',
-        'timed_out_at': pastTime.toIso8601String(),
-      }).toEntity();
+        int refreshCount = 0;
+        apiClient.dio.httpClientAdapter = _MockAdapter((options) {
+          if (options.path.contains('/auth/refresh')) {
+            refreshCount++;
+            return ResponseBody.fromString(
+              '{"success":true,"data":{"access_token":"bad-access","refresh_token":"bad-refresh"}}',
+              200,
+              headers: {
+                Headers.contentTypeHeader: [Headers.jsonContentType],
+              },
+            );
+          }
+          return ResponseBody.fromString('{"error":"unauthorized"}', 401);
+        });
 
-      await tester.pumpWidget(MaterialApp(
-        home: UjianSessionPage(session: session),
-      ));
-      await tester.pumpAndSettle();
-      expect(find.byKey(const Key('timeout-banner')), findsOneWidget);
-    });
+        await expectLater(
+          apiClient.dio.get('/profile'),
+          throwsA(isA<DioException>()),
+        );
 
-    test('12. Self check-in uses canonical endpoint without client parameters', () async {
-      final dio = Dio(BaseOptions(baseUrl: 'https://school.test/api/v1'));
-      final ds = AbsensiRemoteDataSourceImpl(dio);
-      RequestOptions? captured;
+        expect(refreshCount, 1);
+        expect(await storage.read(key: AppConfig.tokenKey), isNull);
+      },
+    );
 
-      dio.interceptors.add(InterceptorsWrapper(
-        onRequest: (options, handler) {
-          captured = options;
-          handler.resolve(Response(
-            requestOptions: options,
-            statusCode: 200,
-            data: {'success': true, 'data': {'id': 1, 'status': 1}},
-          ));
-        },
-      ));
+    testWidgets(
+      '11. Countdown uses controlled server offset and device clock changes do not reopen input',
+      (tester) async {
+        final pastTime = DateTime.now().subtract(const Duration(minutes: 10));
+        final session = UjianSessionModel.fromJson({
+          'id': 1,
+          'status': 2,
+          'status_code': 'in_progress',
+          'timed_out_at': pastTime.toIso8601String(),
+        }).toEntity();
 
-      await ds.checkIn();
-      expect(captured?.method, 'POST');
-      expect(captured?.path, '/akademik/absensi-siswa/check-in');
-    });
+        await tester.pumpWidget(
+          MaterialApp(home: UjianSessionPage(session: session)),
+        );
+        await tester.pumpAndSettle();
+        expect(find.byKey(const Key('timeout-banner')), findsOneWidget);
+      },
+    );
 
-    testWidgets('13. Teacher dashboard displays total_mapel from Go fixture', (tester) async {
+    test(
+      '12. Self check-in uses canonical endpoint without client parameters',
+      () async {
+        final dio = Dio(BaseOptions(baseUrl: 'https://school.test/api/v1'));
+        final ds = AbsensiRemoteDataSourceImpl(dio);
+        RequestOptions? captured;
+
+        dio.interceptors.add(
+          InterceptorsWrapper(
+            onRequest: (options, handler) {
+              captured = options;
+              handler.resolve(
+                Response(
+                  requestOptions: options,
+                  statusCode: 200,
+                  data: {
+                    'success': true,
+                    'data': {'id': 1, 'status': 1},
+                  },
+                ),
+              );
+            },
+          ),
+        );
+
+        await ds.checkIn();
+        expect(captured?.method, 'POST');
+        expect(captured?.path, '/akademik/absensi-siswa/check-in');
+      },
+    );
+
+    testWidgets('13. Teacher dashboard displays total_mapel from Go fixture', (
+      tester,
+    ) async {
       final data = const DashboardEntity(
         role: 'guru',
         profile: {'nama': 'Guru Test'},
         summary: {'total_mapel': 7},
       );
 
-      await tester.pumpWidget(MaterialApp(
-        home: Scaffold(
-          body: SingleChildScrollView(
-            child: GuruDashboardWidget(data: data, permissions: const []),
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: GuruDashboardWidget(data: data, permissions: const []),
+            ),
           ),
         ),
-      ));
+      );
 
       expect(find.text('Mata Pelajaran'), findsOneWidget);
       expect(find.text('7'), findsOneWidget);
     });
 
-    testWidgets('14. Mobile dashboard ignores PPDB payload without rendering PPDB UI', (tester) async {
-      final data = DashboardModel.fromJson({
-        'role': 'admin',
-        'summary_cards': {
-          'total_siswa_aktif': 100,
-          'ppdb': {'total_pendaftar': 25},
-        },
-      }).toEntity();
+    testWidgets(
+      '14. Mobile dashboard ignores PPDB payload without rendering PPDB UI',
+      (tester) async {
+        final data = DashboardModel.fromJson({
+          'role': 'admin',
+          'summary_cards': {
+            'total_siswa_aktif': 100,
+            'ppdb': {'total_pendaftar': 25},
+          },
+        }).toEntity();
 
-      await tester.pumpWidget(MaterialApp(
-        home: Scaffold(
-          body: SingleChildScrollView(
-            child: AdminDashboardWidget(data: data, permissions: const []),
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: AdminDashboardWidget(data: data, permissions: const []),
+              ),
+            ),
           ),
-        ),
-      ));
+        );
 
-      expect(find.text('Total Siswa Aktif'), findsOneWidget);
-      expect(find.textContaining('PPDB', findRichText: true), findsNothing);
-    });
+        expect(find.text('Total Siswa Aktif'), findsOneWidget);
+        expect(find.textContaining('PPDB', findRichText: true), findsNothing);
+      },
+    );
 
-    test('15. EWS detail outside page 1 is fetched via GET /ews/alerts/{id}', () async {
+    test('15. EWS detail outside page 1 is fetched via GET /ews/{id}', () async {
       final dio = Dio();
       final ds = EwsRemoteDataSourceImpl(dio);
 
       dio.httpClientAdapter = _MockAdapter((options) {
-        if (options.path == '/ews/alerts/999' && options.method == 'GET') {
+        if (options.path == '/ews/999' && options.method == 'GET') {
           return ResponseBody.fromString(
             '{"success":true,"data":{"id":999,"mst_siswa_id":5,"kategori":"nilai","level":3,"pesan":"Nilai drop","is_resolved":false}}',
             200,
-            headers: {Headers.contentTypeHeader: [Headers.jsonContentType]},
+            headers: {
+              Headers.contentTypeHeader: [Headers.jsonContentType],
+            },
           );
         }
         return ResponseBody.fromString('Not found', 404);
@@ -354,25 +421,31 @@ void main() {
       expect(detail.level, 3);
     });
 
-    test('16. 403 Forbidden response is handled without token refresh retry', () async {
-      final storage = _FakeStorage({
-        AppConfig.tokenKey: 'valid-token',
-        AppConfig.refreshTokenKey: 'valid-refresh',
-      });
-      final apiClient = ApiClient(storage);
+    test(
+      '16. 403 Forbidden response is handled without token refresh retry',
+      () async {
+        final storage = _FakeStorage({
+          AppConfig.tokenKey: 'valid-token',
+          AppConfig.refreshTokenKey: 'valid-refresh',
+        });
+        final apiClient = ApiClient(storage);
 
-      int refreshCount = 0;
-      apiClient.dio.httpClientAdapter = _MockAdapter((options) {
-        if (options.path.contains('/auth/refresh')) {
-          refreshCount++;
-        }
-        return ResponseBody.fromString('{"error":"Forbidden"}', 403);
-      });
+        int refreshCount = 0;
+        apiClient.dio.httpClientAdapter = _MockAdapter((options) {
+          if (options.path.contains('/auth/refresh')) {
+            refreshCount++;
+          }
+          return ResponseBody.fromString('{"error":"Forbidden"}', 403);
+        });
 
-      await expectLater(apiClient.dio.get('/ews/alerts/888'), throwsA(isA<DioException>()));
+        await expectLater(
+          apiClient.dio.get('/ews/alerts/888'),
+          throwsA(isA<DioException>()),
+        );
 
-      expect(refreshCount, 0);
-      expect(await storage.read(key: AppConfig.tokenKey), 'valid-token');
-    });
+        expect(refreshCount, 0);
+        expect(await storage.read(key: AppConfig.tokenKey), 'valid-token');
+      },
+    );
   });
 }

@@ -56,6 +56,69 @@ class TugasRepositoryImpl implements TugasRepository {
   }
 
   @override
+  Future<Result<TugasEntity>> createTugas({
+    required int guruMapelId,
+    required int kelasId,
+    required String judul,
+    required String tenggatWaktu,
+    String? deskripsi,
+    String? fileLampiran,
+    int? status,
+  }) async {
+    try {
+      final model = await _remote.createTugas(
+        guruMapelId: guruMapelId,
+        kelasId: kelasId,
+        judul: judul,
+        tenggatWaktu: tenggatWaktu,
+        deskripsi: deskripsi,
+        fileLampiran: fileLampiran,
+        status: status,
+      );
+      return success(model.toEntity());
+    } on DioException catch (e) {
+      return fail(_map(mapDioException(e)));
+    }
+  }
+
+  @override
+  Future<Result<TugasEntity>> updateTugas({
+    required int id,
+    int? guruMapelId,
+    int? kelasId,
+    String? judul,
+    String? deskripsi,
+    String? fileLampiran,
+    String? tenggatWaktu,
+    int? status,
+  }) async {
+    try {
+      final model = await _remote.updateTugas(
+        id: id,
+        guruMapelId: guruMapelId,
+        kelasId: kelasId,
+        judul: judul,
+        deskripsi: deskripsi,
+        fileLampiran: fileLampiran,
+        tenggatWaktu: tenggatWaktu,
+        status: status,
+      );
+      return success(model.toEntity());
+    } on DioException catch (e) {
+      return fail(_map(mapDioException(e)));
+    }
+  }
+
+  @override
+  Future<Result<bool>> deleteTugas(int id) async {
+    try {
+      return success(await _remote.deleteTugas(id));
+    } on DioException catch (e) {
+      return fail(_map(mapDioException(e)));
+    }
+  }
+
+  @override
   Future<Result<List<TugasSiswaEntity>>> getPengumpulanList() async {
     try {
       final models = await _remote.getPengumpulanList();
@@ -130,6 +193,7 @@ class TugasRepositoryImpl implements TugasRepository {
   Failure _map(AppException e) {
     if (e is NetworkException) return NetworkFailure(e.message);
     if (e is AuthException) return AuthFailure(e.message);
+    if (e is ForbiddenException) return ForbiddenFailure(e.message);
     if (e is ValidationException) {
       return ValidationFailure(e.message, errors: e.errors);
     }

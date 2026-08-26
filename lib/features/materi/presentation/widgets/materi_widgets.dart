@@ -137,12 +137,16 @@ class MateriCard extends StatelessWidget {
 
   /// Tampilkan badge status Aktif/Draft (guru & admin).
   final bool tampilkanStatus;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   const MateriCard({
     super.key,
     required this.materi,
     required this.onTap,
     this.tampilkanStatus = false,
+    this.onEdit,
+    this.onDelete,
   });
 
   @override
@@ -217,6 +221,25 @@ class MateriCard extends StatelessWidget {
                       ),
                     ),
                   ],
+                  if (onEdit != null || onDelete != null)
+                    PopupMenuButton<String>(
+                      tooltip: 'Aksi materi',
+                      onSelected: (action) => action == 'edit'
+                          ? onEdit?.call()
+                          : onDelete?.call(),
+                      itemBuilder: (_) => [
+                        if (onEdit != null)
+                          const PopupMenuItem(
+                            value: 'edit',
+                            child: Text('Ubah'),
+                          ),
+                        if (onDelete != null)
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: Text('Hapus'),
+                          ),
+                      ],
+                    ),
                 ],
               ),
               if (materi.deskripsi != null &&

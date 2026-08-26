@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dio/dio.dart';
+import '../../../../core/api/api_client.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/tugas_bloc.dart';
 import '../widgets/tugas_widgets.dart';
+import '../../domain/entities/tugas_entity.dart';
 import 'tugas_detail_page.dart';
 import 'pengumpulan_tugas_page.dart';
 import '../../../materi/presentation/pages/akademik_publikasi_form_page.dart';
@@ -39,7 +42,7 @@ class _TugasViewState extends State<_TugasView> {
       if (authState is! AuthAuthenticated) return;
 
       final user = authState.user;
-      final role = _normalizeRole(user.role);
+      final role = user.role ?? 'unknown';
       final profile = user.profile;
       final profileId = (profile?['id'] as num?)?.toInt();
 
@@ -59,18 +62,10 @@ class _TugasViewState extends State<_TugasView> {
           kelasId: kelasId,
           guruId: role == 'guru' ? profileId : null,
           guruMapelId: role == 'guru' ? guruMapelId : null,
+          canSubmit: user.hasPermission('tugas-siswa.create'),
         ),
       );
     });
-  }
-
-  /// Kode role backend bisa berupa 'SISWA'/'GURU'/'WALI_SISWA'/'admin'.
-  String _normalizeRole(String? raw) {
-    final r = (raw ?? '').toLowerCase();
-    if (r.contains('wali')) return 'wali';
-    if (r.contains('guru')) return 'guru';
-    if (r.contains('siswa')) return 'siswa';
-    return 'admin';
   }
 
   void _openDetail(BuildContext context, TugasLoaded state, int index) {
@@ -101,6 +96,24 @@ class _TugasViewState extends State<_TugasView> {
     return auth is AuthAuthenticated && auth.user.hasPermission('tugas.create');
   }
 
+  bool _milikGuruSaatIni(BuildContext context, TugasEntity tugas) {
+    final auth = context.read<AuthBloc>().state;
+    final guruId = auth is AuthAuthenticated
+        ? (auth.user.profile?['id'] as num?)?.toInt()
+        : null;
+    return guruId != null && tugas.guruId == guruId;
+  }
+
+  bool _bolehUbah(BuildContext context, TugasEntity tugas) {
+    final auth = context.read<AuthBloc>().state;
+    return auth is AuthAuthenticated && auth.user.hasPermission('tugas.update') && _milikGuruSaatIni(context, tugas);
+  }
+
+  bool _bolehHapus(BuildContext context, TugasEntity tugas) {
+    final auth = context.read<AuthBloc>().state;
+    return auth is AuthAuthenticated && auth.user.hasPermission('tugas.delete') && _milikGuruSaatIni(context, tugas);
+  }
+
   Future<void> _tambahTugas() async {
     final dibuat = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
@@ -110,6 +123,50 @@ class _TugasViewState extends State<_TugasView> {
     );
     if (dibuat == true && mounted) {
       context.read<TugasBloc>().add(const TugasRefreshRequested());
+    }
+  }
+
+  Future<void> _ubahTugas(TugasEntity tugas) async {
+    final disimpan = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => AkademikPublikasiFormPage(
+          type: AkademikPublikasiType.tugas,
+          publicationId: tugas.id,
+          guruMapelId: tugas.guruMapelId,
+          kelasId: tugas.kelasId,
+          judul: tugas.judul,
+          deskripsi: tugas.deskripsi,
+          filePath: tugas.fileLampiran,
+          tenggat: tugas.tenggatWaktuDate,
+        ),
+      ),
+    );
+    if (disimpan == true && mounted) context.read<TugasBloc>().add(const TugasRefreshRequested());
+  }
+
+  Future<void> _hapusTugas(TugasEntity tugas) async {
+    final hapus = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Hapus tugas?'),
+        content: Text('"${tugas.judul}" akan dihapus permanen.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Hapus')),
+        ],
+      ),
+    );
+    if (hapus != true || !mounted) return;
+    try {
+      await sl<ApiClient>().dio.delete('/akademik/tugas/${tugas.id}');
+      if (!mounted) return;
+      context.read<TugasBloc>().add(const TugasRefreshRequested());
+    } on DioException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.response?.data is Map ? error.response!.data['message']?.toString() ?? 'Gagal menghapus tugas' : 'Gagal menghapus tugas')),
+        );
+      }
     }
   }
 
@@ -196,6 +253,12 @@ class _TugasViewState extends State<_TugasView> {
                                       state.isSiswaMode || state.isWaliMode,
                                   onTap: () =>
                                       _openDetail(context, state, index),
+                                  onEdit: _bolehUbah(context, state.items[index].tugas)
+                                      ? () => _ubahTugas(state.items[index].tugas)
+                                      : null,
+                                  onDelete: _bolehHapus(context, state.items[index].tugas)
+                                      ? () => _hapusTugas(state.items[index].tugas)
+                                      : null,
                                 ),
                               ),
                       ),

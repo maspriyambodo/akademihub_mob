@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/entities/rapor_entity.dart';
 import '../../domain/usecases/get_rapor_list_usecase.dart';
+import '../../domain/usecases/manage_rapor_usecases.dart';
 
 part 'rapor_event.dart';
 part 'rapor_state.dart';
@@ -16,17 +17,32 @@ part 'rapor_state.dart';
 class RaporBloc extends Bloc<RaporEvent, RaporState> {
   final GetRaporListUseCase getRaporList;
   final GetRaporBySiswaUseCase getRaporBySiswa;
+  final CreateRaporUseCase createRapor;
+  final UpdateRaporUseCase updateRapor;
+  final DeleteRaporUseCase deleteRapor;
 
   List<RaporEntity> _all = const [];
   String _role = '';
   int? _profileId;
   String _search = '';
+  bool _canCreate = false;
+  bool _canUpdate = false;
+  bool _canDelete = false;
+  bool _mutating = false;
 
-  RaporBloc({required this.getRaporList, required this.getRaporBySiswa})
-    : super(RaporInitial()) {
+  RaporBloc({
+    required this.getRaporList,
+    required this.getRaporBySiswa,
+    required this.createRapor,
+    required this.updateRapor,
+    required this.deleteRapor,
+  }) : super(RaporInitial()) {
     on<RaporLoadRequested>(_onLoad);
     on<RaporSearchChanged>(_onSearchChanged);
     on<RaporRefreshRequested>(_onRefresh);
+    on<RaporCreateRequested>(_onCreate);
+    on<RaporUpdateRequested>(_onUpdate);
+    on<RaporDeleteRequested>(_onDelete);
   }
 
   bool get _isSiswaMode => _role == 'siswa' && _profileId != null;
@@ -37,6 +53,9 @@ class RaporBloc extends Bloc<RaporEvent, RaporState> {
   ) async {
     _role = event.role.toLowerCase();
     _profileId = event.profileId;
+    _canCreate = event.canCreate;
+    _canUpdate = event.canUpdate;
+    _canDelete = event.canDelete;
     _search = '';
     emit(RaporLoading());
     await _fetchAndEmit(emit);
@@ -65,6 +84,78 @@ class RaporBloc extends Bloc<RaporEvent, RaporState> {
     _all = const [];
     emit(RaporLoading());
     await _fetchAndEmit(emit);
+  }
+
+  Future<void> _onCreate(
+    RaporCreateRequested event,
+    Emitter<RaporState> emit,
+  ) async {
+    if (!_canCreate) {
+      return _actionFailure(emit, 'Anda tidak memiliki izin membuat rapor');
+    }
+    if (_mutating) return;
+    _mutating = true;
+    final result = await createRapor(
+      siswaId: event.siswaId,
+      semester: event.semester,
+      catatanWali: event.catatanWali,
+      sakit: event.sakit,
+      izin: event.izin,
+      tanpaKeterangan: event.tanpaKeterangan,
+    );
+    _mutating = false;
+    if (result.isFailure) {
+      return _actionFailure(emit, result.requireFailure.message);
+    }
+    emit(const RaporActionSuccess('Rapor berhasil dibuat'));
+    await _fetchAndEmit(emit);
+  }
+
+  Future<void> _onUpdate(
+    RaporUpdateRequested event,
+    Emitter<RaporState> emit,
+  ) async {
+    if (!_canUpdate) {
+      return _actionFailure(emit, 'Anda tidak memiliki izin mengubah rapor');
+    }
+    if (_mutating) return;
+    _mutating = true;
+    final result = await updateRapor(
+      id: event.id,
+      catatanWali: event.catatanWali,
+      sakit: event.sakit,
+      izin: event.izin,
+      tanpaKeterangan: event.tanpaKeterangan,
+    );
+    _mutating = false;
+    if (result.isFailure) {
+      return _actionFailure(emit, result.requireFailure.message);
+    }
+    emit(const RaporActionSuccess('Rapor berhasil diperbarui'));
+    await _fetchAndEmit(emit);
+  }
+
+  Future<void> _onDelete(
+    RaporDeleteRequested event,
+    Emitter<RaporState> emit,
+  ) async {
+    if (!_canDelete) {
+      return _actionFailure(emit, 'Anda tidak memiliki izin menghapus rapor');
+    }
+    if (_mutating) return;
+    _mutating = true;
+    final result = await deleteRapor(event.id);
+    _mutating = false;
+    if (result.isFailure) {
+      return _actionFailure(emit, result.requireFailure.message);
+    }
+    emit(const RaporActionSuccess('Rapor berhasil dihapus'));
+    await _fetchAndEmit(emit);
+  }
+
+  void _actionFailure(Emitter<RaporState> emit, String message) {
+    emit(RaporActionFailure(message));
+    emit(_buildLoaded());
   }
 
   Future<void> _fetchAndEmit(Emitter<RaporState> emit) async {
@@ -115,6 +206,9 @@ class RaporBloc extends Bloc<RaporEvent, RaporState> {
       role: _role,
       search: _search,
       isSiswaMode: _role == 'siswa',
+      canCreate: _canCreate,
+      canUpdate: _canUpdate,
+      canDelete: _canDelete,
     );
   }
 }

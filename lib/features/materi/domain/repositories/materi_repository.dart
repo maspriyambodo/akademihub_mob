@@ -17,6 +17,27 @@ abstract class MateriRepository {
   /// Materi terpopuler berdasarkan jumlah akses.
   Future<Result<List<MateriPopulerEntity>>> getMateriPopuler({int limit});
 
+  Future<Result<MateriEntity>> createMateri({
+    required int guruMapelId,
+    required String judul,
+    String? deskripsi,
+    String? fileMateri,
+    String? linkVideo,
+    int? status,
+  });
+
+  Future<Result<MateriEntity>> updateMateri({
+    required int id,
+    int? guruMapelId,
+    String? judul,
+    String? deskripsi,
+    String? fileMateri,
+    String? linkVideo,
+    int? status,
+  });
+
+  Future<Result<bool>> deleteMateri(int id);
+
   /// Seluruh log akses untuk satu materi (dipakai statistik guru/admin).
   Future<Result<List<LogAksesMateriEntity>>> getLogAksesByMateri(int materiId);
 

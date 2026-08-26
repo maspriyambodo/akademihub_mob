@@ -23,11 +23,12 @@ class TugasBloc extends Bloc<TugasEvent, TugasState> {
 
   // ── Cache internal ─────────────────────────────────────────────────────────
   List<TugasItemEntity> _all = const [];
-  String _role = 'admin';
+  String _role = 'unknown';
   int? _siswaId;
   int? _kelasId;
   int? _guruId;
   int? _guruMapelId;
+  bool _canSubmit = false;
   TugasFilter _filter = TugasFilter.semua;
 
   TugasBloc({
@@ -53,6 +54,7 @@ class TugasBloc extends Bloc<TugasEvent, TugasState> {
     _kelasId = event.kelasId;
     _guruId = event.guruId;
     _guruMapelId = event.guruMapelId;
+    _canSubmit = event.canSubmit;
     emit(TugasLoading());
     await _fetchAndEmit(emit);
   }
@@ -75,6 +77,13 @@ class TugasBloc extends Bloc<TugasEvent, TugasState> {
     Emitter<TugasState> emit,
   ) async {
     final siswaId = _siswaId;
+    if (_role != 'siswa' || !_canSubmit) {
+      emit(
+        const TugasActionFailure('Anda tidak memiliki izin mengumpulkan tugas'),
+      );
+      emit(_buildLoaded());
+      return;
+    }
     if (siswaId == null) {
       emit(const TugasActionFailure('ID siswa tidak tersedia'));
       emit(_buildLoaded());
@@ -117,8 +126,11 @@ class TugasBloc extends Bloc<TugasEvent, TugasState> {
       case 'guru':
         await _fetchGuru(emit);
         break;
-      default:
+      case 'admin':
         await _fetchUmum(emit);
+        break;
+      default:
+        emit(const TugasError('Peran pengguna tidak dikenali'));
     }
   }
 

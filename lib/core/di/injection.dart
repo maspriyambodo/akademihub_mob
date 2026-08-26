@@ -17,6 +17,8 @@ import '../../features/auth/domain/usecases/login_usecase.dart';
 import '../../features/auth/domain/usecases/logout_usecase.dart';
 import '../../features/auth/domain/usecases/get_current_user_usecase.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
+import '../../features/wali/guardian_child_selector.dart';
+import '../../features/organisasi/data/organisasi_remote_datasource.dart';
 import '../../features/absensi/data/datasources/absensi_remote_datasource.dart';
 import '../../features/absensi/data/repositories/absensi_repository_impl.dart';
 import '../../features/absensi/domain/repositories/absensi_repository.dart';
@@ -39,6 +41,9 @@ import '../../features/nilai/data/repositories/nilai_repository_impl.dart';
 import '../../features/nilai/domain/repositories/nilai_repository.dart';
 import '../../features/nilai/domain/usecases/get_nilai_siswa_usecase.dart';
 import '../../features/nilai/domain/usecases/get_nilai_general_usecase.dart';
+import '../../features/nilai/domain/usecases/create_nilai_usecase.dart';
+import '../../features/nilai/domain/usecases/update_nilai_usecase.dart';
+import '../../features/nilai/domain/usecases/delete_nilai_usecase.dart';
 import '../../features/nilai/presentation/bloc/nilai_bloc.dart';
 import '../../features/rapor/data/datasources/rapor_remote_datasource.dart';
 import '../../features/rapor/data/repositories/rapor_repository_impl.dart';
@@ -46,6 +51,7 @@ import '../../features/rapor/domain/repositories/rapor_repository.dart';
 import '../../features/rapor/domain/usecases/get_rapor_list_usecase.dart';
 import '../../features/rapor/domain/usecases/get_rapor_detail_usecase.dart';
 import '../../features/rapor/domain/usecases/export_rapor_usecase.dart';
+import '../../features/rapor/domain/usecases/manage_rapor_usecases.dart';
 import '../../features/rapor/presentation/bloc/rapor_bloc.dart';
 import '../../features/rapor/presentation/bloc/rapor_detail_bloc.dart';
 import '../../features/notifications/data/datasources/notifications_remote_datasource.dart';
@@ -63,6 +69,7 @@ import '../../features/tugas/domain/usecases/get_tugas_usecase.dart';
 import '../../features/tugas/domain/usecases/get_pengumpulan_usecase.dart';
 import '../../features/tugas/domain/usecases/kumpulkan_tugas_usecase.dart';
 import '../../features/tugas/domain/usecases/nilai_tugas_usecase.dart';
+import '../../features/tugas/domain/usecases/manage_tugas_usecases.dart';
 import '../../features/tugas/presentation/bloc/tugas_bloc.dart';
 import '../../features/tugas/presentation/bloc/pengumpulan_bloc.dart';
 import '../../features/keuangan/data/datasources/keuangan_remote_datasource.dart';
@@ -88,6 +95,9 @@ import '../../features/materi/data/repositories/materi_repository_impl.dart';
 import '../../features/materi/domain/repositories/materi_repository.dart';
 import '../../features/materi/domain/usecases/get_materi_usecase.dart';
 import '../../features/materi/domain/usecases/log_akses_materi_usecase.dart';
+import '../../features/materi/domain/usecases/create_materi_usecase.dart';
+import '../../features/materi/domain/usecases/update_materi_usecase.dart';
+import '../../features/materi/domain/usecases/delete_materi_usecase.dart';
 import '../../features/materi/presentation/bloc/materi_bloc.dart';
 import '../../features/materi/presentation/bloc/materi_detail_bloc.dart';
 import '../../features/forum/data/datasources/forum_remote_datasource.dart';
@@ -193,6 +203,10 @@ Future<void> configureDependencies() async {
   final apiClient = ApiClient(secureStorage)
     ..applyTenant(tenantStorage.getSavedTenant());
   sl.registerSingleton(apiClient);
+  sl.registerLazySingleton(() => GuardianChildService(sl<ApiClient>().dio));
+  sl.registerLazySingleton(
+    () => OrganisasiRemoteDataSource(sl<ApiClient>().dio),
+  );
   sl.registerLazySingleton(() => TokenStorage(sl()));
   sl.registerSingleton(tenantStorage);
   sl.registerLazySingleton(() => PushNotificationService(sl<ApiClient>().dio));
@@ -219,7 +233,7 @@ Future<void> configureDependencies() async {
     () => AuthRemoteDataSourceImpl(sl<ApiClient>().dio),
   );
   sl.registerLazySingleton<AuthRepository>(
-    () => AuthRepositoryImpl(sl(), sl(), sl()),
+    () => AuthRepositoryImpl(sl(), sl(), sl(), sl()),
   );
   sl.registerLazySingleton(() => LoginUseCase(sl()));
   sl.registerLazySingleton(() => LogoutUseCase(sl()));
@@ -289,12 +303,18 @@ Future<void> configureDependencies() async {
   sl.registerLazySingleton(() => GetNilaiGeneralUseCase(sl()));
   sl.registerLazySingleton(() => GetNilaiUjianUseCase(sl()));
   sl.registerLazySingleton(() => GetRataRataNilaiUseCase(sl()));
+  sl.registerLazySingleton(() => CreateNilaiUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateNilaiUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteNilaiUseCase(sl()));
   sl.registerFactory(
     () => NilaiBloc(
       getNilaiSiswa: sl(),
       getNilaiGeneral: sl(),
       getNilaiUjian: sl(),
       getRataRataNilai: sl(),
+      createNilai: sl(),
+      updateNilai: sl(),
+      deleteNilai: sl(),
     ),
   );
 
@@ -307,8 +327,17 @@ Future<void> configureDependencies() async {
   sl.registerLazySingleton(() => GetRaporBySiswaUseCase(sl()));
   sl.registerLazySingleton(() => GetRaporDetailUseCase(sl()));
   sl.registerLazySingleton(() => ExportRaporUseCase(sl()));
+  sl.registerLazySingleton(() => CreateRaporUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateRaporUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteRaporUseCase(sl()));
   sl.registerFactory(
-    () => RaporBloc(getRaporList: sl(), getRaporBySiswa: sl()),
+    () => RaporBloc(
+      getRaporList: sl(),
+      getRaporBySiswa: sl(),
+      createRapor: sl(),
+      updateRapor: sl(),
+      deleteRapor: sl(),
+    ),
   );
   sl.registerFactory(
     () => RaporDetailBloc(getRaporDetail: sl(), exportRapor: sl()),
@@ -348,6 +377,9 @@ Future<void> configureDependencies() async {
   sl.registerLazySingleton(() => GetPengumpulanBySiswaUseCase(sl()));
   sl.registerLazySingleton(() => KumpulkanTugasUseCase(sl()));
   sl.registerLazySingleton(() => NilaiTugasUseCase(sl()));
+  sl.registerLazySingleton(() => CreateTugasUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateTugasUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteTugasUseCase(sl()));
   sl.registerFactory(
     () => TugasBloc(
       getTugasList: sl(),
@@ -435,6 +467,9 @@ Future<void> configureDependencies() async {
   sl.registerLazySingleton(() => GetMateriDetailUseCase(sl()));
   sl.registerLazySingleton(() => GetMateriByGuruMapelUseCase(sl()));
   sl.registerLazySingleton(() => GetMateriPopulerUseCase(sl()));
+  sl.registerLazySingleton(() => CreateMateriUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateMateriUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteMateriUseCase(sl()));
   sl.registerLazySingleton(() => GetStatistikMateriUseCase(sl()));
   sl.registerLazySingleton(() => GetLogAksesBySiswaUseCase(sl()));
   sl.registerLazySingleton(() => CatatAksesMateriUseCase(sl()));

@@ -52,6 +52,7 @@ class JadwalRepositoryImpl implements JadwalRepository {
   Failure _map(AppException e) {
     if (e is NetworkException) return NetworkFailure(e.message);
     if (e is AuthException) return AuthFailure(e.message);
+    if (e is ForbiddenException) return ForbiddenFailure(e.message);
     return ServerFailure(e.message);
   }
 }

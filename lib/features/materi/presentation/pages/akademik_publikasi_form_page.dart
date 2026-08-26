@@ -1,17 +1,39 @@
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/api/api_client.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/utils/responsive.dart';
+import '../../../scoped_selectors/data/datasources/scoped_selector_remote_datasource.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
 
 enum AkademikPublikasiType { materi, tugas }
 
 class AkademikPublikasiFormPage extends StatefulWidget {
   final AkademikPublikasiType type;
+  final int? publicationId;
+  final int? guruMapelId;
+  final int? kelasId;
+  final String? judul;
+  final String? deskripsi;
+  final String? filePath;
+  final String? video;
+  final DateTime? tenggat;
 
-  const AkademikPublikasiFormPage({super.key, required this.type});
+  const AkademikPublikasiFormPage({
+    super.key,
+    required this.type,
+    this.publicationId,
+    this.guruMapelId,
+    this.kelasId,
+    this.judul,
+    this.deskripsi,
+    this.filePath,
+    this.video,
+    this.tenggat,
+  });
 
   @override
   State<AkademikPublikasiFormPage> createState() =>
@@ -24,6 +46,8 @@ class _AkademikPublikasiFormPageState extends State<AkademikPublikasiFormPage> {
   final _deskripsi = TextEditingController();
   final _video = TextEditingController();
   final _api = sl<ApiClient>().dio;
+  late final ScopedSelectorRemoteDataSource _selectors =
+      ScopedSelectorRemoteDataSourceImpl(_api);
   List<_Pilihan> _guruMapel = const [];
   List<_Pilihan> _kelas = const [];
   int? _guruMapelId;
@@ -36,10 +60,18 @@ class _AkademikPublikasiFormPageState extends State<AkademikPublikasiFormPage> {
 
   bool get _isTugas => widget.type == AkademikPublikasiType.tugas;
   String get _label => _isTugas ? 'Tugas' : 'Materi';
+  bool get _isEdit => widget.publicationId != null;
 
   @override
   void initState() {
     super.initState();
+    _guruMapelId = widget.guruMapelId;
+    _kelasId = widget.kelasId;
+    _judul.text = widget.judul ?? '';
+    _deskripsi.text = widget.deskripsi ?? '';
+    _filePath = widget.filePath;
+    _video.text = widget.video ?? '';
+    _tenggat = widget.tenggat;
     _loadOptions();
   }
 
@@ -53,15 +85,24 @@ class _AkademikPublikasiFormPageState extends State<AkademikPublikasiFormPage> {
 
   Future<void> _loadOptions() async {
     try {
-      final responses = await Future.wait([
-        _api.get('/guru-mapel/saya'),
-        if (_isTugas)
-          _api.get('/kelas', queryParameters: const {'per_page': 'all'}),
-      ]);
+      final auth = context.read<AuthBloc>().state;
+      final guruId = auth is AuthAuthenticated && auth.user.isGuru
+          ? (auth.user.profile?['id'] as num?)?.toInt()
+          : null;
+      final guruMapelFuture = _selectors.getGuruMapelSaya();
+      final kelasFuture = _isTugas
+          ? _selectors.getKelasAccessible(waliGuruId: guruId)
+          : null;
+      final guruMapel = await guruMapelFuture;
+      final kelas = kelasFuture == null ? const [] : await kelasFuture;
       if (!mounted) return;
       setState(() {
-        _guruMapel = _parseGuruMapel(responses.first.data);
-        _kelas = _isTugas ? _parseKelas(responses[1].data) : const [];
+        _guruMapel = guruMapel
+            .map((option) => _Pilihan(option.id, option.mapelNama))
+            .toList();
+        _kelas = kelas
+            .map((option) => _Pilihan(option.id, option.nama))
+            .toList();
         _loading = false;
       });
     } on DioException catch (error) {
@@ -72,36 +113,6 @@ class _AkademikPublikasiFormPageState extends State<AkademikPublikasiFormPage> {
         });
       }
     }
-  }
-
-  List<_Pilihan> _parseGuruMapel(dynamic body) {
-    return _rows(body).map((row) {
-      final mapel = row['mapel'] as Map?;
-      final mapelNama = mapel?['nama']?.toString() ?? 'Mata pelajaran';
-      return _Pilihan((row['id'] as num).toInt(), mapelNama);
-    }).toList();
-  }
-
-  List<_Pilihan> _parseKelas(dynamic body) => _rows(body)
-      .map(
-        (row) => _Pilihan(
-          (row['id'] as num).toInt(),
-          row['nama_kelas']?.toString() ?? 'Kelas',
-        ),
-      )
-      .toList();
-
-  List<Map<String, dynamic>> _rows(dynamic body) {
-    if (body is! Map) return const [];
-    final raw = body['data'];
-    final rows = raw is List
-        ? raw
-        : raw is Map
-        ? raw['data']
-        : null;
-    return rows is List
-        ? rows.whereType<Map>().map(Map<String, dynamic>.from).toList()
-        : const [];
   }
 
   Future<void> _pilihFile() async {
@@ -174,7 +185,12 @@ class _AkademikPublikasiFormPageState extends State<AkademikPublikasiFormPage> {
       },
     }..removeWhere((_, value) => value == null || value == '');
     try {
-      await _api.post('/akademik/${_isTugas ? 'tugas' : 'materi'}', data: body);
+      final endpoint = '/akademik/${_isTugas ? 'tugas' : 'materi'}';
+      if (_isEdit) {
+        await _api.put('$endpoint/${widget.publicationId}', data: body);
+      } else {
+        await _api.post(endpoint, data: body);
+      }
       if (mounted) {
         Navigator.of(context).pop(true);
       }
@@ -200,7 +216,10 @@ class _AkademikPublikasiFormPageState extends State<AkademikPublikasiFormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Tambah $_label'), centerTitle: true),
+      appBar: AppBar(
+        title: Text('${_isEdit ? 'Ubah' : 'Tambah'} $_label'),
+        centerTitle: true,
+      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : SafeArea(
@@ -362,7 +381,7 @@ class _AkademikPublikasiFormPageState extends State<AkademikPublikasiFormPage> {
                             child: Text(
                               _sending
                                   ? 'Menyimpan...'
-                                  : 'Publikasikan $_label',
+                                  : '${_isEdit ? 'Simpan' : 'Publikasikan'} $_label',
                             ),
                           ),
                         ],

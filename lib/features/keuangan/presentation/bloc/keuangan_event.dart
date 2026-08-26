@@ -12,15 +12,17 @@ class KeuanganLoadRequested extends KeuanganEvent {
   final String role;
   final int? profileId;
   final int? kelasId;
+  final bool canBayar;
 
   const KeuanganLoadRequested({
     required this.role,
     this.profileId,
     this.kelasId,
+    this.canBayar = false,
   });
 
   @override
-  List<Object?> get props => [role, profileId, kelasId];
+  List<Object?> get props => [role, profileId, kelasId, canBayar];
 }
 
 class KeuanganRefreshRequested extends KeuanganEvent {

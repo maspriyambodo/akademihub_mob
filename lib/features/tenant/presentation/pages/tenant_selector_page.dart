@@ -94,18 +94,18 @@ class _TenantSelectorPageState extends State<TenantSelectorPage> {
                           ),
                           SizedBox(height: layarPendek ? 14 : 20),
                           Text(
-                            'AkademiHub',
+                            'Temukan sekolah Anda',
                             textAlign: TextAlign.center,
                             style: Theme.of(context).textTheme.titleLarge
                                 ?.copyWith(
                                   fontSize: Responsive.fontSize(context, 26),
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.primary,
+                                  color: AppColors.textPrimary,
                                 ),
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            'Masukkan kode atau subdomain sekolah Anda',
+                            'Masukkan kode sekolah untuk melanjutkan ke ruang belajar yang tepat.',
                             style: Theme.of(context).textTheme.bodyMedium,
                             textAlign: TextAlign.center,
                           ),
@@ -121,7 +121,7 @@ class _TenantSelectorPageState extends State<TenantSelectorPage> {
                                   autocorrect: false,
                                   keyboardType: TextInputType.url,
                                   decoration: const InputDecoration(
-                                    labelText: 'Kode / Subdomain Sekolah',
+                                    labelText: 'Kode sekolah',
                                     hintText: 'contoh: smkn1bdg',
                                     prefixIcon: Icon(Icons.domain),
                                     suffixText: '.akademihub.id',
@@ -150,7 +150,7 @@ class _TenantSelectorPageState extends State<TenantSelectorPage> {
                                     icon: const Icon(
                                       Icons.check_circle_outline,
                                     ),
-                                    label: const Text('Masuk ke Sekolah Ini'),
+                                    label: const Text('Lanjut ke sekolah'),
                                   ),
                                   const SizedBox(height: 8),
                                   TextButton(
@@ -177,7 +177,7 @@ class _TenantSelectorPageState extends State<TenantSelectorPage> {
                                             ),
                                           )
                                         : const Text(
-                                            'Cari Sekolah',
+                                            'Temukan sekolah',
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                             style: TextStyle(

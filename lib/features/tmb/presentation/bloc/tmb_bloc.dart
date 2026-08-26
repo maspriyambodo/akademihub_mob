@@ -24,7 +24,7 @@ class TmbBloc extends Bloc<TmbEvent, TmbState> {
   final GetTmbPesertaBySiswaUseCase getPesertaBySiswa;
   final DaftarTmbPesertaUseCase daftarPeserta;
 
-  String _role = 'admin';
+  String _role = 'unknown';
   int? _siswaId;
   int? _kelasId;
   bool _hasViewTes = false;

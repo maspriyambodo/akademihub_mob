@@ -15,6 +15,29 @@ abstract class TugasRepository {
   /// Tugas milik satu guru-mapel (dipakai guru bila id guru-mapel diketahui).
   Future<Result<List<TugasEntity>>> getTugasByGuruMapel(int guruMapelId);
 
+  Future<Result<TugasEntity>> createTugas({
+    required int guruMapelId,
+    required int kelasId,
+    required String judul,
+    required String tenggatWaktu,
+    String? deskripsi,
+    String? fileLampiran,
+    int? status,
+  });
+
+  Future<Result<TugasEntity>> updateTugas({
+    required int id,
+    int? guruMapelId,
+    int? kelasId,
+    String? judul,
+    String? deskripsi,
+    String? fileLampiran,
+    String? tenggatWaktu,
+    int? status,
+  });
+
+  Future<Result<bool>> deleteTugas(int id);
+
   /// Daftar pengumpulan umum (otomatis difilter backend sesuai role).
   Future<Result<List<TugasSiswaEntity>>> getPengumpulanList();
 

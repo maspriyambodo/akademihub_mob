@@ -8,6 +8,7 @@ import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../wali/guardian_child_selector.dart';
 import '../../domain/entities/pembayaran_spp_entity.dart';
 import '../../domain/entities/tunggakan_entity.dart';
 import '../bloc/keuangan_aksi_status.dart';
@@ -43,6 +44,8 @@ class _KeuanganViewState extends State<_KeuanganView>
 
   String _role = '';
   bool _canBayar = false;
+  List<GuardianChild> _children = const [];
+  GuardianChild? _selectedChild;
 
   @override
   void initState() {
@@ -55,8 +58,12 @@ class _KeuanganViewState extends State<_KeuanganView>
       if (authState is! AuthAuthenticated) return;
 
       final user = authState.user;
-      final role = (user.role ?? 'admin').toLowerCase();
+      final role = user.role ?? 'unknown';
       final profileId = _keId(user.profile?['id']);
+      if (role == 'wali') {
+        _loadChildren(profileId, user);
+        return;
+      }
 
       // Untuk siswa, id kelas ada di `profile['kelas']['id']`
       // (fallback `mst_kelas_id` / `kelas_id`). Dipakai untuk mencari
@@ -80,9 +87,34 @@ class _KeuanganViewState extends State<_KeuanganView>
           role: role,
           profileId: profileId,
           kelasId: kelasId,
+          canBayar: _canBayar,
         ),
       );
     });
+  }
+
+  Future<void> _loadChildren(int? waliId, dynamic user) async {
+    if (waliId == null) return;
+    final children = await sl<GuardianChildService>().getChildren(waliId);
+    if (!mounted || children.isEmpty) return;
+    setState(() {
+      _children = children;
+      _selectedChild = children.first;
+      _role = 'wali';
+      _canBayar = user.hasPermission('pembayaran-spp.bayar');
+    });
+    _loadChild(children.first, user);
+  }
+
+  void _loadChild(GuardianChild child, dynamic user) {
+    context.read<KeuanganBloc>().add(
+      KeuanganLoadRequested(
+        role: 'wali',
+        profileId: child.id,
+        kelasId: child.kelasId,
+        canBayar: user.hasPermission('pembayaran-spp.bayar'),
+      ),
+    );
   }
 
   @override
@@ -140,10 +172,7 @@ class _KeuanganViewState extends State<_KeuanganView>
     return null;
   }
 
-  /// Mode pribadi untuk siswa & wali. Kode role `WALI_SISWA` mengandung
-  /// substring "siswa", jadi `wali` selalu dicek lebih dulu — di sini keduanya
-  /// menghasilkan tampilan yang sama sehingga cukup satu pemeriksaan gabungan.
-  bool get _modePribadi => _role.contains('wali') || _role.contains('siswa');
+  bool get _modePribadi => _role == 'wali' || _role == 'siswa';
 
   void _bukaDetail(PembayaranSppEntity item) {
     Navigator.of(context).push(
@@ -184,40 +213,30 @@ class _KeuanganViewState extends State<_KeuanganView>
     );
   }
 
-  Future<void> _konfirmasiLunasiSemua(List<int> bulan, int tahun) async {
-    final bloc = context.read<KeuanganBloc>();
-    final setuju = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Lunasi Semua Tunggakan'),
-        content: Text(
-          'Catat ${bulan.length} bulan tunggakan tahun $tahun sebagai LUNAS '
-          '(metode Tunai)?\n\nAksi ini tidak dapat dibatalkan dari aplikasi.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Batal'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Lunasi'),
-          ),
-        ],
-      ),
-    );
-
-    if (setuju == true) {
-      bloc.add(KeuanganBayarMultipleRequested(bulan: bulan, tahun: tahun));
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final tampilkanPencarian = _role.isNotEmpty && !_modePribadi;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Keuangan / SPP'), centerTitle: true),
+      appBar: AppBar(
+        title: const Text('Keuangan / SPP'),
+        centerTitle: true,
+        bottom: _selectedChild == null
+            ? null
+            : PreferredSize(
+                preferredSize: const Size.fromHeight(64),
+                child: GuardianChildSelector(
+                  children: _children,
+                  selectedId: _selectedChild!.id,
+                  onChanged: (child) {
+                    final auth = context.read<AuthBloc>().state;
+                    if (auth is! AuthAuthenticated) return;
+                    setState(() => _selectedChild = child);
+                    _loadChild(child, auth.user);
+                  },
+                ),
+              ),
+      ),
       body: Column(
         children: [
           if (tampilkanPencarian)
@@ -282,10 +301,6 @@ class _KeuanganViewState extends State<_KeuanganView>
                                     tahun: tahun,
                                   ),
                                 ),
-                            onLunasiSemua: () => _konfirmasiLunasiSemua(
-                              state.bulanMenunggak,
-                              state.tahun,
-                            ),
                             onGantiTahun: (tahun) => context
                                 .read<KeuanganBloc>()
                                 .add(KeuanganTahunChanged(tahun)),
@@ -310,7 +325,6 @@ class _TampilanPribadi extends StatelessWidget {
   final bool canBayar;
   final void Function(PembayaranSppEntity) onDetail;
   final void Function(int bulan, int tahun) onBayarOnline;
-  final VoidCallback onLunasiSemua;
   final ValueChanged<int> onGantiTahun;
 
   const _TampilanPribadi({
@@ -318,7 +332,6 @@ class _TampilanPribadi extends StatelessWidget {
     required this.canBayar,
     required this.onDetail,
     required this.onBayarOnline,
-    required this.onLunasiSemua,
     required this.onGantiTahun,
   });
 
@@ -359,19 +372,6 @@ class _TampilanPribadi extends StatelessWidget {
                       warna: AppColors.error,
                     ),
                   ),
-                  if (canBayar && state.bulanMenunggak.isNotEmpty)
-                    Flexible(
-                      child: TextButton.icon(
-                        onPressed: sedangProses ? null : onLunasiSemua,
-                        icon: const Icon(Icons.done_all, size: 16),
-                        label: const Text(
-                          'Lunasi semua',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontSize: 12),
-                        ),
-                      ),
-                    ),
                 ],
               ),
               const SizedBox(height: 4),

@@ -13,6 +13,7 @@ class PengumpulanBloc extends Bloc<PengumpulanEvent, PengumpulanState> {
   final NilaiTugasUseCase nilaiTugas;
 
   int? _tugasId;
+  bool _canNilai = false;
   List<TugasSiswaEntity> _items = const [];
 
   PengumpulanBloc({
@@ -29,6 +30,7 @@ class PengumpulanBloc extends Bloc<PengumpulanEvent, PengumpulanState> {
     Emitter<PengumpulanState> emit,
   ) async {
     _tugasId = event.tugasId;
+    _canNilai = event.canNilai;
     emit(PengumpulanLoading());
     await _fetchAndEmit(emit);
   }
@@ -45,6 +47,15 @@ class PengumpulanBloc extends Bloc<PengumpulanEvent, PengumpulanState> {
     PengumpulanNilaiRequested event,
     Emitter<PengumpulanState> emit,
   ) async {
+    if (!_canNilai) {
+      emit(
+        const PengumpulanActionFailure(
+          'Anda tidak memiliki izin memberi nilai',
+        ),
+      );
+      emit(_buildLoaded());
+      return;
+    }
     final result = await nilaiTugas(
       pengumpulanId: event.pengumpulanId,
       nilai: event.nilai,

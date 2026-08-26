@@ -7,6 +7,26 @@ abstract class TugasRemoteDataSource {
   Future<TugasModel> getTugasDetail(int id);
   Future<List<TugasModel>> getTugasByKelas(int kelasId);
   Future<List<TugasModel>> getTugasByGuruMapel(int guruMapelId);
+  Future<TugasModel> createTugas({
+    required int guruMapelId,
+    required int kelasId,
+    required String judul,
+    required String tenggatWaktu,
+    String? deskripsi,
+    String? fileLampiran,
+    int? status,
+  });
+  Future<TugasModel> updateTugas({
+    required int id,
+    int? guruMapelId,
+    int? kelasId,
+    String? judul,
+    String? deskripsi,
+    String? fileLampiran,
+    String? tenggatWaktu,
+    int? status,
+  });
+  Future<bool> deleteTugas(int id);
 
   Future<List<TugasSiswaModel>> getPengumpulanList();
   Future<List<TugasSiswaModel>> getPengumpulanByTugas(int tugasId);
@@ -86,6 +106,63 @@ class TugasRemoteDataSourceImpl implements TugasRemoteDataSource {
     return _extractList(
       response.data,
     ).map((e) => TugasModel.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  @override
+  Future<TugasModel> createTugas({
+    required int guruMapelId,
+    required int kelasId,
+    required String judul,
+    required String tenggatWaktu,
+    String? deskripsi,
+    String? fileLampiran,
+    int? status,
+  }) async {
+    final response = await _dio.post(
+      '/akademik/tugas',
+      data: <String, dynamic>{
+        'mst_guru_mapel_id': guruMapelId,
+        'mst_kelas_id': kelasId,
+        'judul': judul,
+        'tenggat_waktu': tenggatWaktu,
+        'deskripsi': ?deskripsi,
+        'file_lampiran': ?fileLampiran,
+        'status': ?status,
+      },
+    );
+    return TugasModel.fromJson(_extractObject(response.data));
+  }
+
+  @override
+  Future<TugasModel> updateTugas({
+    required int id,
+    int? guruMapelId,
+    int? kelasId,
+    String? judul,
+    String? deskripsi,
+    String? fileLampiran,
+    String? tenggatWaktu,
+    int? status,
+  }) async {
+    final response = await _dio.put(
+      '/akademik/tugas/$id',
+      data: <String, dynamic>{
+        'mst_guru_mapel_id': ?guruMapelId,
+        'mst_kelas_id': ?kelasId,
+        'judul': ?judul,
+        'deskripsi': ?deskripsi,
+        'file_lampiran': ?fileLampiran,
+        'tenggat_waktu': ?tenggatWaktu,
+        'status': ?status,
+      },
+    );
+    return TugasModel.fromJson(_extractObject(response.data));
+  }
+
+  @override
+  Future<bool> deleteTugas(int id) async {
+    await _dio.delete('/akademik/tugas/$id');
+    return true;
   }
 
   // ── Pengumpulan (tugas-siswa) ──────────────────────────────────────────────

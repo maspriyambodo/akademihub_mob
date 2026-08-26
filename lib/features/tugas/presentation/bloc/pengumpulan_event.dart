@@ -8,10 +8,12 @@ abstract class PengumpulanEvent extends Equatable {
 
 class PengumpulanLoadRequested extends PengumpulanEvent {
   final int tugasId;
-  const PengumpulanLoadRequested(this.tugasId);
+  final bool canNilai;
+
+  const PengumpulanLoadRequested(this.tugasId, {this.canNilai = false});
 
   @override
-  List<Object?> get props => [tugasId];
+  List<Object?> get props => [tugasId, canNilai];
 }
 
 class PengumpulanRefreshRequested extends PengumpulanEvent {

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dio/dio.dart';
 
+import '../../../../core/api/api_client.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive.dart';
@@ -105,6 +107,28 @@ class _MateriViewState extends State<_MateriView> {
         auth.user.hasPermission('materi.create');
   }
 
+  bool _milikGuruSaatIni(BuildContext context, MateriEntity materi) {
+    final auth = context.read<AuthBloc>().state;
+    final guruId = auth is AuthAuthenticated
+        ? (auth.user.profile?['id'] as num?)?.toInt()
+        : null;
+    return guruId != null && materi.guruId == guruId;
+  }
+
+  bool _bolehUbah(BuildContext context, MateriEntity materi) {
+    final auth = context.read<AuthBloc>().state;
+    return auth is AuthAuthenticated &&
+        auth.user.hasPermission('materi.update') &&
+        _milikGuruSaatIni(context, materi);
+  }
+
+  bool _bolehHapus(BuildContext context, MateriEntity materi) {
+    final auth = context.read<AuthBloc>().state;
+    return auth is AuthAuthenticated &&
+        auth.user.hasPermission('materi.delete') &&
+        _milikGuruSaatIni(context, materi);
+  }
+
   Future<void> _tambahMateri() async {
     final dibuat = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
@@ -114,6 +138,57 @@ class _MateriViewState extends State<_MateriView> {
     );
     if (dibuat == true && mounted) {
       context.read<MateriBloc>().add(const MateriRefreshRequested());
+    }
+  }
+
+  Future<void> _ubahMateri(MateriEntity materi) async {
+    final disimpan = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => AkademikPublikasiFormPage(
+          type: AkademikPublikasiType.materi,
+          publicationId: materi.id,
+          guruMapelId: materi.guruMapelId,
+          judul: materi.judul,
+          deskripsi: materi.deskripsi,
+          filePath: materi.fileMateri,
+          video: materi.linkVideo,
+        ),
+      ),
+    );
+    if (disimpan == true && mounted) {
+      context.read<MateriBloc>().add(const MateriRefreshRequested());
+    }
+  }
+
+  Future<void> _hapusMateri(MateriEntity materi) async {
+    final hapus = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Hapus materi?'),
+        content: Text('"${materi.judul}" akan dihapus permanen.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+    if (hapus != true || !mounted) return;
+    try {
+      await sl<ApiClient>().dio.delete('/akademik/materi/${materi.id}');
+      if (!mounted) return;
+      context.read<MateriBloc>().add(const MateriRefreshRequested());
+    } on DioException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.response?.data is Map ? error.response!.data['message']?.toString() ?? 'Gagal menghapus materi' : 'Gagal menghapus materi')),
+        );
+      }
     }
   }
 
@@ -153,7 +228,7 @@ class _MateriViewState extends State<_MateriView> {
                         const MateriRefreshRequested(),
                       );
                     },
-                    child: state.items.isEmpty
+                          child: state.items.isEmpty
                         ? ListView(
                             physics: const AlwaysScrollableScrollPhysics(),
                             children: [
@@ -171,6 +246,10 @@ class _MateriViewState extends State<_MateriView> {
                         : _MateriList(
                             state: state,
                             onTap: (m) => _bukaDetail(context, state, m),
+                            onEdit: (m) => _ubahMateri(m),
+                            onDelete: (m) => _hapusMateri(m),
+                            canEdit: (m) => _bolehUbah(context, m),
+                            canDelete: (m) => _bolehHapus(context, m),
                           ),
                   ),
                 ),
@@ -202,8 +281,19 @@ class _MateriViewState extends State<_MateriView> {
 class _MateriList extends StatelessWidget {
   final MateriLoaded state;
   final void Function(MateriEntity) onTap;
+  final void Function(MateriEntity) onEdit;
+  final void Function(MateriEntity) onDelete;
+  final bool Function(MateriEntity) canEdit;
+  final bool Function(MateriEntity) canDelete;
 
-  const _MateriList({required this.state, required this.onTap});
+  const _MateriList({
+    required this.state,
+    required this.onTap,
+    required this.onEdit,
+    required this.onDelete,
+    required this.canEdit,
+    required this.canDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -245,6 +335,8 @@ class _MateriList extends StatelessWidget {
                 materi: m,
                 tampilkanStatus: state.bolehLihatStatistik,
                 onTap: () => onTap(m),
+                onEdit: canEdit(m) ? () => onEdit(m) : null,
+                onDelete: canDelete(m) ? () => onDelete(m) : null,
               );
             }
             return MateriGroupHeader(

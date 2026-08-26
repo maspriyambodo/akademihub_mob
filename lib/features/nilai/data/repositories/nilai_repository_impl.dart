@@ -59,9 +59,61 @@ class NilaiRepositoryImpl implements NilaiRepository {
     }
   }
 
+  @override
+  Future<Result<NilaiEntity>> createNilai({
+    required int siswaId,
+    required int ujianId,
+    required double nilai,
+    String? keterangan,
+  }) async {
+    try {
+      final model = await _remote.createNilai(
+        siswaId: siswaId,
+        ujianId: ujianId,
+        nilai: nilai,
+        keterangan: keterangan,
+      );
+      return success(model.toEntity());
+    } on DioException catch (e) {
+      return fail(_map(mapDioException(e)));
+    }
+  }
+
+  @override
+  Future<Result<NilaiEntity>> updateNilai({
+    required int id,
+    int? siswaId,
+    int? ujianId,
+    double? nilai,
+    String? keterangan,
+  }) async {
+    try {
+      final model = await _remote.updateNilai(
+        id: id,
+        siswaId: siswaId,
+        ujianId: ujianId,
+        nilai: nilai,
+        keterangan: keterangan,
+      );
+      return success(model.toEntity());
+    } on DioException catch (e) {
+      return fail(_map(mapDioException(e)));
+    }
+  }
+
+  @override
+  Future<Result<bool>> deleteNilai(int id) async {
+    try {
+      return success(await _remote.deleteNilai(id));
+    } on DioException catch (e) {
+      return fail(_map(mapDioException(e)));
+    }
+  }
+
   Failure _map(AppException e) {
     if (e is NetworkException) return NetworkFailure(e.message);
     if (e is AuthException) return AuthFailure(e.message);
+    if (e is ForbiddenException) return ForbiddenFailure(e.message);
     return ServerFailure(e.message);
   }
 }

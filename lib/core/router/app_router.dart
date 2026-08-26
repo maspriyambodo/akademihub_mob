@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../api/api_client.dart';
 import '../di/injection.dart';
 import '../widgets/main_shell.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
@@ -24,6 +25,9 @@ import '../../features/ujian/presentation/pages/ujian_page.dart';
 import '../../features/tmb/presentation/pages/tmb_page.dart';
 import '../../features/ews/presentation/pages/ews_page.dart';
 import '../../features/siswa_insight/presentation/pages/siswa_insight_page.dart';
+import '../../features/perpustakaan/presentation/pages/perpustakaan_page.dart';
+import '../../features/organisasi/presentation/pages/organisasi_page.dart';
+import '../../features/ppdb/presentation/pages/ppdb_public_page.dart';
 
 class AppRoutes {
   static const String splash = '/';
@@ -45,6 +49,9 @@ class AppRoutes {
   static const String ujian = '/ujian';
   static const String tmb = '/tmb';
   static const String ews = '/ews';
+  static const String perpustakaan = '/perpustakaan';
+  static const String organisasi = '/organisasi';
+  static const String ppdb = '/ppdb';
   static const List<String> ewsAliases = [
     '/early-warning',
     '/early-warning-system',
@@ -56,16 +63,21 @@ class AppRoutes {
     jadwal => const ['jadwal-pelajaran.view'],
     nilai => const ['nilai.view'],
     tugas => const ['tugas.view', 'tugas-siswa.view'],
+    materi => const ['materi.view'],
     kalender => const ['kalender-akademik.view'],
     bk => const ['bk-kasus.view'],
     ujian => const ['ujian.view', 'ranking.view'],
     tmb => const ['tes-minat-bakat.view', 'tes-minat-bakat-peserta.view'],
     ews => const ['ews.view'],
+    perpustakaan => const ['buku.view', 'peminjaman.view'],
+    organisasi => const ['organisasi.view'],
     _ when path.startsWith('/siswa/') && path.endsWith('/insight') => const [
       'siswa.view',
     ],
     _ => const [],
   };
+
+  static bool isPublicPath(String path) => path == ppdb;
 }
 
 final router = GoRouter(
@@ -73,6 +85,8 @@ final router = GoRouter(
   redirect: (context, state) {
     final authState = context.read<AuthBloc>().state;
     final path = state.uri.path;
+
+    if (AppRoutes.isPublicPath(path)) return null;
 
     // Initial hanya terjadi saat bootstrap. Loading login harus tetap di login.
     if (authState is AuthInitial) {
@@ -106,6 +120,10 @@ final router = GoRouter(
   routes: [
     GoRoute(path: AppRoutes.splash, builder: (_, _) => const _SplashPage()),
     GoRoute(path: AppRoutes.login, builder: (_, _) => const LoginPage()),
+    GoRoute(
+      path: AppRoutes.ppdb,
+      builder: (_, _) => PpdbPublicPage(dio: sl<ApiClient>().dio),
+    ),
     for (final alias in AppRoutes.ewsAliases)
       GoRoute(path: alias, redirect: (_, _) => AppRoutes.ews),
     ShellRoute(
@@ -146,6 +164,14 @@ final router = GoRouter(
         GoRoute(path: AppRoutes.ujian, builder: (_, _) => const UjianPage()),
         GoRoute(path: AppRoutes.tmb, builder: (_, _) => const TmbPage()),
         GoRoute(path: AppRoutes.ews, builder: (_, _) => const EwsPage()),
+        GoRoute(
+          path: AppRoutes.perpustakaan,
+          builder: (_, _) => const PerpustakaanPage(),
+        ),
+        GoRoute(
+          path: AppRoutes.organisasi,
+          builder: (_, _) => const OrganisasiPage(),
+        ),
       ],
     ),
     GoRoute(
