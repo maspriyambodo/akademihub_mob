@@ -236,6 +236,8 @@ class _LoadedView extends StatelessWidget {
   Widget build(BuildContext context) {
     final items = state.isGuruMode ? state.guruItems : state.siswaItems;
     final hPad = Responsive.pagePadding(context).left;
+    final now = DateTime.now();
+    final isCurrentMonth = state.bulan == now.month && state.tahun == now.year;
 
     return Center(
       child: ConstrainedBox(
@@ -246,7 +248,7 @@ class _LoadedView extends StatelessWidget {
           onRefresh: onRefresh,
           child: CustomScrollView(
             slivers: [
-              if (isSiswa)
+              if (isSiswa && isCurrentMonth)
                 SliverToBoxAdapter(
                   child: _CheckInPanel(items: state.siswaItems),
                 ),
