@@ -40,3 +40,7 @@ class AbsensiRefreshRequested extends AbsensiEvent {
 class AbsensiCheckInRequested extends AbsensiEvent {
   const AbsensiCheckInRequested();
 }
+
+class AbsensiCheckOutRequested extends AbsensiEvent {
+  const AbsensiCheckOutRequested();
+}

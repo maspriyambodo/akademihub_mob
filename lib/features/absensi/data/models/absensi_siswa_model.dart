@@ -8,6 +8,8 @@ class AbsensiSiswaModel {
   final String tanggal;
   final String statusAbsensi;
   final String? keterangan;
+  final String? jamMasuk;
+  final String? jamPulang;
 
   const AbsensiSiswaModel({
     required this.id,
@@ -17,6 +19,8 @@ class AbsensiSiswaModel {
     required this.tanggal,
     required this.statusAbsensi,
     this.keterangan,
+    this.jamMasuk,
+    this.jamPulang,
   });
 
   factory AbsensiSiswaModel.fromJson(Map<String, dynamic> json) {
@@ -29,6 +33,8 @@ class AbsensiSiswaModel {
       tanggal: json['tanggal'] as String? ?? '',
       statusAbsensi: json['status_absensi'] as String? ?? '',
       keterangan: json['keterangan'] as String?,
+      jamMasuk: json['jam_masuk'] as String?,
+      jamPulang: json['jam_pulang'] as String?,
     );
   }
 
@@ -40,5 +46,7 @@ class AbsensiSiswaModel {
     tanggal: tanggal,
     statusAbsensi: statusAbsensi,
     keterangan: keterangan,
+    jamMasuk: jamMasuk,
+    jamPulang: jamPulang,
   );
 }

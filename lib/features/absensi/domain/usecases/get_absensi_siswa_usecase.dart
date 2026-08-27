@@ -1,6 +1,7 @@
 import '../../../../core/error/result.dart';
 import '../entities/absensi_siswa_entity.dart';
 import '../repositories/absensi_repository.dart';
+import '../entities/attendance_location.dart';
 
 class GetAbsensiSiswaListUseCase {
   final AbsensiRepository _repository;
@@ -14,7 +15,16 @@ class CheckInAbsensiUseCase {
   final AbsensiRepository _repository;
   const CheckInAbsensiUseCase(this._repository);
 
-  Future<Result<void>> call() => _repository.checkIn();
+  Future<Result<void>> call(AttendanceLocation location) =>
+      _repository.checkIn(location);
+}
+
+class CheckOutAbsensiUseCase {
+  final AbsensiRepository _repository;
+  const CheckOutAbsensiUseCase(this._repository);
+
+  Future<Result<void>> call(AttendanceLocation location) =>
+      _repository.checkOut(location);
 }
 
 class GetAbsensiSiswaGeneralUseCase {

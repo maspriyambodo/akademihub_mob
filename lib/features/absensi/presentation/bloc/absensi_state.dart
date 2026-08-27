@@ -10,6 +10,14 @@ class AbsensiInitial extends AbsensiState {}
 
 class AbsensiLoading extends AbsensiState {}
 
+class AbsensiActionInProgress extends AbsensiState {
+  final AbsensiLoaded previous;
+  const AbsensiActionInProgress(this.previous);
+
+  @override
+  List<Object?> get props => [previous];
+}
+
 class AbsensiLoaded extends AbsensiState {
   final AbsensiSummaryEntity summary;
   final List<AbsensiSiswaEntity> siswaItems;

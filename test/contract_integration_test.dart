@@ -2,6 +2,7 @@ import 'package:akademihub_mob/core/api/api_client.dart';
 import 'package:akademihub_mob/core/config/app_config.dart';
 import 'package:akademihub_mob/core/router/app_router.dart';
 import 'package:akademihub_mob/features/absensi/data/datasources/absensi_remote_datasource.dart';
+import 'package:akademihub_mob/features/absensi/domain/entities/attendance_location.dart';
 import 'package:akademihub_mob/features/dashboard/data/models/dashboard_model.dart';
 import 'package:akademihub_mob/features/dashboard/domain/entities/dashboard_entity.dart';
 import 'package:akademihub_mob/features/dashboard/presentation/widgets/admin_dashboard_widget.dart';
@@ -345,7 +346,14 @@ void main() {
           ),
         );
 
-        await ds.checkIn();
+        await ds.checkIn(
+          AttendanceLocation(
+            latitude: -6.2,
+            longitude: 106.8,
+            accuracyMeter: 10,
+            capturedAt: DateTime.utc(2026, 8, 16),
+          ),
+        );
         expect(captured?.method, 'POST');
         expect(captured?.path, '/akademik/absensi-siswa/check-in');
       },

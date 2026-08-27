@@ -13,6 +13,8 @@ class AbsensiSiswaEntity extends Equatable {
   final String statusAbsensi;
 
   final String? keterangan;
+  final String? jamMasuk;
+  final String? jamPulang;
 
   const AbsensiSiswaEntity({
     required this.id,
@@ -22,6 +24,8 @@ class AbsensiSiswaEntity extends Equatable {
     required this.tanggal,
     required this.statusAbsensi,
     this.keterangan,
+    this.jamMasuk,
+    this.jamPulang,
   });
 
   DateTime? get tanggalDate => DateTime.tryParse(tanggal);

@@ -6,6 +6,7 @@ import '../datasources/absensi_remote_datasource.dart';
 import '../../domain/entities/absensi_siswa_entity.dart';
 import '../../domain/entities/absensi_guru_entity.dart';
 import '../../domain/repositories/absensi_repository.dart';
+import '../../domain/entities/attendance_location.dart';
 
 class AbsensiRepositoryImpl implements AbsensiRepository {
   final AbsensiRemoteDataSource _remote;
@@ -13,9 +14,19 @@ class AbsensiRepositoryImpl implements AbsensiRepository {
   const AbsensiRepositoryImpl(this._remote);
 
   @override
-  Future<Result<void>> checkIn() async {
+  Future<Result<void>> checkIn(AttendanceLocation location) async {
     try {
-      await _remote.checkIn();
+      await _remote.checkIn(location);
+      return success(null);
+    } on DioException catch (e) {
+      return fail(_map(mapDioException(e)));
+    }
+  }
+
+  @override
+  Future<Result<void>> checkOut(AttendanceLocation location) async {
+    try {
+      await _remote.checkOut(location);
       return success(null);
     } on DioException catch (e) {
       return fail(_map(mapDioException(e)));

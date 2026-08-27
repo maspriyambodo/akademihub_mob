@@ -20,6 +20,7 @@ import '../../features/absensi/domain/repositories/absensi_repository.dart';
 import '../../features/absensi/domain/usecases/get_absensi_siswa_usecase.dart';
 import '../../features/absensi/domain/usecases/get_absensi_guru_usecase.dart';
 import '../../features/absensi/presentation/bloc/absensi_bloc.dart';
+import '../../features/absensi/data/services/attendance_location_service.dart';
 import '../../features/dashboard/data/datasources/dashboard_remote_datasource.dart';
 import '../../features/dashboard/data/repositories/dashboard_repository_impl.dart';
 import '../../features/dashboard/domain/repositories/dashboard_repository.dart';
@@ -233,6 +234,8 @@ Future<void> configureDependencies() async {
   );
   sl.registerLazySingleton(() => GetAbsensiSiswaListUseCase(sl()));
   sl.registerLazySingleton(() => CheckInAbsensiUseCase(sl()));
+  sl.registerLazySingleton(() => CheckOutAbsensiUseCase(sl()));
+  sl.registerLazySingleton(() => AttendanceLocationService());
   sl.registerLazySingleton(() => GetAbsensiSiswaGeneralUseCase(sl()));
   sl.registerLazySingleton(() => GetAbsensiGuruListUseCase(sl()));
   sl.registerFactory(
@@ -241,6 +244,8 @@ Future<void> configureDependencies() async {
       getSiswaGeneral: sl(),
       getGuruList: sl(),
       checkIn: sl(),
+      checkOut: sl(),
+      locationService: sl(),
     ),
   );
 

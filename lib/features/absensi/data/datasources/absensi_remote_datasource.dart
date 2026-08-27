@@ -1,9 +1,11 @@
 import 'package:dio/dio.dart';
 import '../models/absensi_siswa_model.dart';
 import '../models/absensi_guru_model.dart';
+import '../../domain/entities/attendance_location.dart';
 
 abstract class AbsensiRemoteDataSource {
-  Future<void> checkIn();
+  Future<void> checkIn(AttendanceLocation location);
+  Future<void> checkOut(AttendanceLocation location);
   Future<List<AbsensiSiswaModel>> getAbsensiSiswaList(int siswaId);
   Future<List<AbsensiGuruModel>> getAbsensiGuruList(int guruId);
   Future<List<AbsensiSiswaModel>> getAbsensiSiswaGeneral({
@@ -18,8 +20,19 @@ class AbsensiRemoteDataSourceImpl implements AbsensiRemoteDataSource {
   const AbsensiRemoteDataSourceImpl(this._dio);
 
   @override
-  Future<void> checkIn() async {
-    await _dio.post('/akademik/absensi-siswa/check-in');
+  Future<void> checkIn(AttendanceLocation location) async {
+    await _dio.post(
+      '/akademik/absensi-siswa/check-in',
+      data: location.toJson(),
+    );
+  }
+
+  @override
+  Future<void> checkOut(AttendanceLocation location) async {
+    await _dio.post(
+      '/akademik/absensi-siswa/check-out',
+      data: location.toJson(),
+    );
   }
 
   @override

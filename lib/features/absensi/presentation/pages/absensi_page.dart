@@ -123,10 +123,16 @@ class _AbsensiViewState extends State<_AbsensiView> {
                     ),
                   );
                 }
-                if (state is AbsensiLoaded) {
+                final loaded = state is AbsensiActionInProgress
+                    ? state.previous
+                    : state is AbsensiLoaded
+                    ? state
+                    : null;
+                if (loaded != null) {
                   return _LoadedView(
-                    state: state,
+                    state: loaded,
                     isSiswa: isSiswa,
+                    actionInProgress: state is AbsensiActionInProgress,
                     onRefresh: () async {
                       context.read<AbsensiBloc>().add(
                         const AbsensiRefreshRequested(),
@@ -225,11 +231,13 @@ class _LoadedView extends StatelessWidget {
   final AbsensiLoaded state;
   final bool isSiswa;
   final Future<void> Function() onRefresh;
+  final bool actionInProgress;
 
   const _LoadedView({
     required this.state,
     required this.isSiswa,
     required this.onRefresh,
+    this.actionInProgress = false,
   });
 
   @override
@@ -250,7 +258,10 @@ class _LoadedView extends StatelessWidget {
             slivers: [
               if (isSiswa && isCurrentMonth)
                 SliverToBoxAdapter(
-                  child: _CheckInPanel(items: state.siswaItems),
+                  child: _CheckInPanel(
+                    items: state.siswaItems,
+                    actionInProgress: actionInProgress,
+                  ),
                 ),
               // Summary cards
               SliverToBoxAdapter(child: _SummaryRow(summary: state.summary)),
@@ -305,8 +316,9 @@ class _LoadedView extends StatelessWidget {
 
 class _CheckInPanel extends StatelessWidget {
   final List<AbsensiSiswaEntity> items;
+  final bool actionInProgress;
 
-  const _CheckInPanel({required this.items});
+  const _CheckInPanel({required this.items, required this.actionInProgress});
 
   @override
   Widget build(BuildContext context) {
@@ -318,8 +330,14 @@ class _CheckInPanel extends StatelessWidget {
           date.month == now.month &&
           date.day == now.day;
     }).firstOrNull;
-    final checkedIn = today != null;
+    final checkedIn = today?.jamMasuk != null;
+    final checkedOut = today?.jamPulang != null;
     final color = checkedIn ? AppColors.success : AppColors.primary;
+    final label = checkedOut
+        ? 'Absensi hari ini selesai'
+        : checkedIn
+        ? 'Check-in ${today!.jamMasuk}'
+        : 'Belum check-in hari ini';
 
     return Container(
       margin: EdgeInsets.fromLTRB(
@@ -344,17 +362,17 @@ class _CheckInPanel extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              checkedIn
-                  ? 'Kehadiran hari ini sudah tercatat'
-                  : 'Belum absen hari ini',
+              label,
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
           FilledButton(
-            onPressed: checkedIn
+            onPressed: actionInProgress || checkedOut
                 ? null
                 : () => context.read<AbsensiBloc>().add(
-                    const AbsensiCheckInRequested(),
+                    checkedIn
+                        ? const AbsensiCheckOutRequested()
+                        : const AbsensiCheckInRequested(),
                   ),
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.primary,
@@ -362,7 +380,18 @@ class _CheckInPanel extends StatelessWidget {
               minimumSize: const Size(0, 44),
               padding: const EdgeInsets.symmetric(horizontal: 14),
             ),
-            child: Text(checkedIn ? 'Tercatat' : 'Absen sekarang'),
+            child: actionInProgress
+                ? const SizedBox.square(
+                    dimension: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(
+                    checkedOut
+                        ? 'Selesai'
+                        : checkedIn
+                        ? 'Check-out'
+                        : 'Check-in',
+                  ),
           ),
         ],
       ),

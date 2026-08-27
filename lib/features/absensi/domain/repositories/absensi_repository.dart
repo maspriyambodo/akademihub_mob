@@ -1,9 +1,11 @@
 import '../../../../core/error/result.dart';
 import '../entities/absensi_siswa_entity.dart';
 import '../entities/absensi_guru_entity.dart';
+import '../entities/attendance_location.dart';
 
 abstract class AbsensiRepository {
-  Future<Result<void>> checkIn();
+  Future<Result<void>> checkIn(AttendanceLocation location);
+  Future<Result<void>> checkOut(AttendanceLocation location);
 
   /// Ambil semua absensi siswa berdasarkan siswaId (data lengkap, filter bulan dilakukan client-side)
   Future<Result<List<AbsensiSiswaEntity>>> getAbsensiSiswaList(int siswaId);

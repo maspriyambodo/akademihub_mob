@@ -5,6 +5,7 @@ import '../../domain/entities/absensi_guru_entity.dart';
 import '../../domain/entities/absensi_summary_entity.dart';
 import '../../domain/usecases/get_absensi_siswa_usecase.dart';
 import '../../domain/usecases/get_absensi_guru_usecase.dart';
+import '../../data/services/attendance_location_service.dart';
 
 part 'absensi_event.dart';
 part 'absensi_state.dart';
@@ -14,6 +15,9 @@ class AbsensiBloc extends Bloc<AbsensiEvent, AbsensiState> {
   final GetAbsensiSiswaGeneralUseCase getSiswaGeneral;
   final GetAbsensiGuruListUseCase getGuruList;
   final CheckInAbsensiUseCase checkIn;
+  final CheckOutAbsensiUseCase checkOut;
+  final AttendanceLocationService locationService;
+  bool _actionInProgress = false;
 
   // Internal cache (all records, not yet month-filtered)
   List<AbsensiSiswaEntity> _allSiswaItems = [];
@@ -26,24 +30,69 @@ class AbsensiBloc extends Bloc<AbsensiEvent, AbsensiState> {
     required this.getSiswaGeneral,
     required this.getGuruList,
     required this.checkIn,
+    required this.checkOut,
+    required this.locationService,
   }) : super(AbsensiInitial()) {
     on<AbsensiLoadRequested>(_onLoad);
     on<AbsensiMonthChanged>(_onMonthChanged);
     on<AbsensiRefreshRequested>(_onRefresh);
     on<AbsensiCheckInRequested>(_onCheckIn);
+    on<AbsensiCheckOutRequested>(_onCheckOut);
   }
 
   Future<void> _onCheckIn(
     AbsensiCheckInRequested event,
     Emitter<AbsensiState> emit,
   ) async {
-    if (_role != 'siswa') return;
-    final result = await checkIn();
-    if (!result.isSuccess) {
-      emit(AbsensiError(result.requireFailure.message));
-      return;
+    if (_role != 'siswa' || _actionInProgress) return;
+    _actionInProgress = true;
+    emit(AbsensiActionInProgress(_buildLoadedForCurrentMonth()));
+    try {
+      final location = await locationService.capture();
+      final result = await checkIn(location);
+      if (!result.isSuccess) {
+        emit(AbsensiError(result.requireFailure.message));
+        return;
+      }
+      await _fetchAndEmit(DateTime.now().month, DateTime.now().year, emit);
+    } catch (error) {
+      emit(AbsensiError(_locationError(error)));
+    } finally {
+      _actionInProgress = false;
     }
-    await _fetchAndEmit(DateTime.now().month, DateTime.now().year, emit);
+  }
+
+  Future<void> _onCheckOut(
+    AbsensiCheckOutRequested event,
+    Emitter<AbsensiState> emit,
+  ) async {
+    if (_role != 'siswa' || _actionInProgress) return;
+    _actionInProgress = true;
+    emit(AbsensiActionInProgress(_buildLoadedForCurrentMonth()));
+    try {
+      final location = await locationService.capture();
+      final result = await checkOut(location);
+      if (!result.isSuccess) {
+        emit(AbsensiError(result.requireFailure.message));
+        return;
+      }
+      await _fetchAndEmit(DateTime.now().month, DateTime.now().year, emit);
+    } catch (error) {
+      emit(AbsensiError(_locationError(error)));
+    } finally {
+      _actionInProgress = false;
+    }
+  }
+
+  AbsensiLoaded _buildLoadedForCurrentMonth() {
+    final current = state;
+    if (current is AbsensiLoaded) return current;
+    return _buildLoaded(DateTime.now().month, DateTime.now().year);
+  }
+
+  String _locationError(Object error) {
+    if (error is StateError) return error.message;
+    return 'Lokasi tidak dapat diperoleh. Coba lagi di area terbuka.';
   }
 
   Future<void> _onLoad(

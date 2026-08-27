@@ -7,6 +7,8 @@ import 'package:akademihub_mob/features/absensi/domain/usecases/get_absensi_guru
 import 'package:akademihub_mob/features/absensi/domain/usecases/get_absensi_siswa_usecase.dart';
 import 'package:akademihub_mob/features/absensi/presentation/bloc/absensi_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:akademihub_mob/features/absensi/data/services/attendance_location_service.dart';
+import 'package:akademihub_mob/features/absensi/domain/entities/attendance_location.dart';
 
 void main() {
   test('admin memuat ulang endpoint rentang saat bulan berubah', () async {
@@ -16,6 +18,8 @@ void main() {
       getSiswaGeneral: GetAbsensiSiswaGeneralUseCase(repository),
       getGuruList: GetAbsensiGuruListUseCase(repository),
       checkIn: CheckInAbsensiUseCase(repository),
+      checkOut: CheckOutAbsensiUseCase(repository),
+      locationService: _FakeLocationService(),
     );
 
     bloc.add(const AbsensiLoadRequested(role: 'admin', bulan: 7, tahun: 2026));
@@ -39,6 +43,8 @@ void main() {
       getSiswaGeneral: GetAbsensiSiswaGeneralUseCase(repository),
       getGuruList: GetAbsensiGuruListUseCase(repository),
       checkIn: CheckInAbsensiUseCase(repository),
+      checkOut: CheckOutAbsensiUseCase(repository),
+      locationService: _FakeLocationService(),
     );
 
     bloc.add(const AbsensiLoadRequested(role: 'wali', bulan: 7, tahun: 2026));
@@ -61,6 +67,8 @@ void main() {
       getSiswaGeneral: GetAbsensiSiswaGeneralUseCase(repository),
       getGuruList: GetAbsensiGuruListUseCase(repository),
       checkIn: CheckInAbsensiUseCase(repository),
+      checkOut: CheckOutAbsensiUseCase(repository),
+      locationService: _FakeLocationService(),
     );
 
     bloc.add(
@@ -90,6 +98,8 @@ void main() {
       getSiswaGeneral: GetAbsensiSiswaGeneralUseCase(repository),
       getGuruList: GetAbsensiGuruListUseCase(repository),
       checkIn: CheckInAbsensiUseCase(repository),
+      checkOut: CheckOutAbsensiUseCase(repository),
+      locationService: _FakeLocationService(),
     );
 
     bloc.add(
@@ -119,11 +129,15 @@ class _FakeAbsensiRepository implements AbsensiRepository {
   Failure? checkInFailure;
 
   @override
-  Future<result.Result<void>> checkIn() async {
+  Future<result.Result<void>> checkIn(AttendanceLocation location) async {
     checkInCalls++;
     if (checkInFailure != null) return result.fail(checkInFailure!);
     return result.success(null);
   }
+
+  @override
+  Future<result.Result<void>> checkOut(AttendanceLocation location) async =>
+      result.success(null);
 
   @override
   Future<result.Result<List<AbsensiGuruEntity>>> getAbsensiGuruList(
@@ -152,4 +166,14 @@ class _FakeAbsensiRepository implements AbsensiRepository {
       ),
     ]);
   }
+}
+
+class _FakeLocationService extends AttendanceLocationService {
+  @override
+  Future<AttendanceLocation> capture() async => AttendanceLocation(
+    latitude: -6.2,
+    longitude: 106.8,
+    accuracyMeter: 10,
+    capturedAt: DateTime.now(),
+  );
 }
