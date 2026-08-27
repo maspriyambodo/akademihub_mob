@@ -141,7 +141,9 @@ class _TugasViewState extends State<_TugasView> {
         ),
       ),
     );
-    if (disimpan == true && mounted) context.read<TugasBloc>().add(const TugasRefreshRequested());
+    if (disimpan == true && mounted) {
+      context.read<TugasBloc>().add(const TugasRefreshRequested());
+    }
   }
 
   Future<void> _hapusTugas(TugasEntity tugas) async {
