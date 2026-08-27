@@ -322,21 +322,17 @@ class _CheckInPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
-    final today = items.where((item) {
-      final date = item.tanggalDate;
-      return date != null &&
-          date.year == now.year &&
-          date.month == now.month &&
-          date.day == now.day;
-    }).firstOrNull;
+    // Data terakhir berasal dari tanggal sekolah yang dihitung backend.
+    final today = items.isEmpty
+        ? null
+        : items.reduce((a, b) => a.tanggal.compareTo(b.tanggal) >= 0 ? a : b);
     final checkedIn = today?.jamMasuk != null;
     final checkedOut = today?.jamPulang != null;
     final color = checkedIn ? AppColors.success : AppColors.primary;
     final label = checkedOut
         ? 'Absensi hari ini selesai'
         : checkedIn
-        ? 'Check-in ${today!.jamMasuk}'
+        ? '${today?.shiftNama ?? 'Shift'} • Check-in ${today!.jamMasuk}'
         : 'Belum check-in hari ini';
 
     return Container(

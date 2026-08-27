@@ -15,6 +15,10 @@ class AbsensiSiswaEntity extends Equatable {
   final String? keterangan;
   final String? jamMasuk;
   final String? jamPulang;
+  final String? jadwalJamPulang;
+  final String? shiftNama;
+  final bool terlambat;
+  final int menitTerlambat;
 
   const AbsensiSiswaEntity({
     required this.id,
@@ -26,10 +30,14 @@ class AbsensiSiswaEntity extends Equatable {
     this.keterangan,
     this.jamMasuk,
     this.jamPulang,
+    this.jadwalJamPulang,
+    this.shiftNama,
+    this.terlambat = false,
+    this.menitTerlambat = 0,
   });
 
   DateTime? get tanggalDate => DateTime.tryParse(tanggal);
 
   @override
-  List<Object?> get props => [id];
+  List<Object?> get props => [id, jamMasuk, jamPulang];
 }

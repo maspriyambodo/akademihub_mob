@@ -27,6 +27,11 @@ class AttendanceLocationService {
         timeLimit: Duration(seconds: 15),
       ),
     );
+    if (position.accuracy < 0 || position.accuracy > 100) {
+      throw StateError(
+        'Akurasi lokasi lebih dari 100 meter. Coba lagi di area terbuka.',
+      );
+    }
     return AttendanceLocation(
       latitude: position.latitude,
       longitude: position.longitude,

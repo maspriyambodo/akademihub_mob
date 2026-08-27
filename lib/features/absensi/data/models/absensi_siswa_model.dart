@@ -10,6 +10,10 @@ class AbsensiSiswaModel {
   final String? keterangan;
   final String? jamMasuk;
   final String? jamPulang;
+  final String? jadwalJamPulang;
+  final String? shiftNama;
+  final bool terlambat;
+  final int menitTerlambat;
 
   const AbsensiSiswaModel({
     required this.id,
@@ -21,10 +25,15 @@ class AbsensiSiswaModel {
     this.keterangan,
     this.jamMasuk,
     this.jamPulang,
+    this.jadwalJamPulang,
+    this.shiftNama,
+    this.terlambat = false,
+    this.menitTerlambat = 0,
   });
 
   factory AbsensiSiswaModel.fromJson(Map<String, dynamic> json) {
     final siswa = json['siswa'] as Map<String, dynamic>?;
+    final shift = json['shift'] as Map<String, dynamic>?;
     return AbsensiSiswaModel(
       id: (json['id'] as num).toInt(),
       siswaId: siswa != null ? (siswa['id'] as num?)?.toInt() : null,
@@ -35,6 +44,10 @@ class AbsensiSiswaModel {
       keterangan: json['keterangan'] as String?,
       jamMasuk: json['jam_masuk'] as String?,
       jamPulang: json['jam_pulang'] as String?,
+      jadwalJamPulang: json['jadwal_jam_pulang'] as String?,
+      shiftNama: shift?['nama'] as String?,
+      terlambat: json['terlambat'] as bool? ?? false,
+      menitTerlambat: (json['menit_terlambat'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -48,5 +61,9 @@ class AbsensiSiswaModel {
     keterangan: keterangan,
     jamMasuk: jamMasuk,
     jamPulang: jamPulang,
+    jadwalJamPulang: jadwalJamPulang,
+    shiftNama: shiftNama,
+    terlambat: terlambat,
+    menitTerlambat: menitTerlambat,
   );
 }
