@@ -56,14 +56,12 @@ class _MainShellState extends State<MainShell> {
         }
       },
       builder: (context, state) {
-        final permissions = state is AuthAuthenticated
-            ? state.user.permissions
-            : const <String>[];
+        if (state is! AuthAuthenticated) return const SizedBox.shrink();
         final tabs = _tabs.where((tab) {
           return AppRoutes.canAccess(
             tab.route,
-            authenticated: state is AuthAuthenticated,
-            permissions: permissions,
+            authenticated: true,
+            permissions: state.user.permissions,
           );
         }).toList();
         final location = GoRouterState.of(context).uri.path;
