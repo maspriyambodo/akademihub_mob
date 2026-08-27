@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../api/api_client.dart';
 import '../notifications/push_notification_service.dart';
 import '../storage/token_storage.dart';
+import '../storage/answer_outbox.dart';
 import '../../features/auth/data/datasources/auth_remote_datasource.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
@@ -195,6 +196,7 @@ Future<void> configureDependencies() async {
   // ── Core ──────────────────────────────────────────────────────────────────
   final apiClient = ApiClient(secureStorage);
   sl.registerSingleton(apiClient);
+  sl.registerSingleton(await AnswerOutbox.open(secureStorage));
   sl.registerLazySingleton(() => GuardianChildService(sl<ApiClient>().dio));
   sl.registerLazySingleton(
     () => OrganisasiRemoteDataSource(sl<ApiClient>().dio),

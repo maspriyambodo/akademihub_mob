@@ -143,7 +143,7 @@ class _BrandPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints(minHeight: 560),
+      height: 560,
       padding: const EdgeInsets.fromLTRB(48, 48, 48, 56),
       decoration: BoxDecoration(
         color: AppColors.primaryDark,
