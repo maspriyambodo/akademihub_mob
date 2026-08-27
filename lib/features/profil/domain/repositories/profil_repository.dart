@@ -6,17 +6,12 @@ import '../entities/sekolah_entity.dart';
 abstract class ProfilRepository {
   /// Ambil info sekolah dari API. Butuh permission `sekolah.view`.
   ///
-  /// Urutan percobaan: [id] → [uuid] → daftar `/sekolah` yang dicocokkan
-  /// dengan [nama] (nama tenant yang tersimpan di perangkat).
+  /// Urutan percobaan: [id] → [uuid] → daftar `/sekolah`.
   Future<Result<SekolahEntity>> getSekolahAktif({
     int? id,
     String? uuid,
     String? nama,
   });
-
-  /// Info sekolah dari tenant yang tersimpan di perangkat (tanpa jaringan).
-  /// Dipakai sebagai fallback untuk role tanpa permission `sekolah.view`.
-  Future<Result<SekolahEntity?>> getSekolahTersimpan();
 
   /// Daftar perangkat login user. Butuh permission `users.view`.
   Future<Result<List<PerangkatEntity>>> getPerangkatUser(int userId);

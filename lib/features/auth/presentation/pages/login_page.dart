@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive.dart';
@@ -20,7 +19,7 @@ class _LoginPageState extends State<LoginPage>
   static const _motionCurve = Cubic(0.32, 0.72, 0, 1);
 
   final _formKey = GlobalKey<FormState>();
-  final _emailCtrl = TextEditingController();
+  final _identifierCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   bool _obscurePassword = true;
   late final AnimationController _entranceController;
@@ -49,7 +48,7 @@ class _LoginPageState extends State<LoginPage>
   @override
   void dispose() {
     _entranceController.dispose();
-    _emailCtrl.dispose();
+    _identifierCtrl.dispose();
     _passwordCtrl.dispose();
     super.dispose();
   }
@@ -58,7 +57,7 @@ class _LoginPageState extends State<LoginPage>
     if (!_formKey.currentState!.validate()) return;
     context.read<AuthBloc>().add(
       AuthLoginRequested(
-        email: _emailCtrl.text.trim(),
+        identifier: _identifierCtrl.text.trim(),
         password: _passwordCtrl.text,
       ),
     );
@@ -87,7 +86,7 @@ class _LoginPageState extends State<LoginPage>
               final isSplit = constraints.maxWidth >= 840;
               final form = _LoginContent(
                 formKey: _formKey,
-                emailController: _emailCtrl,
+                identifierController: _identifierCtrl,
                 passwordController: _passwordCtrl,
                 obscurePassword: _obscurePassword,
                 shortScreen: shortScreen,
@@ -197,7 +196,7 @@ class _BrandPanel extends StatelessWidget {
 
 class _LoginContent extends StatelessWidget {
   final GlobalKey<FormState> formKey;
-  final TextEditingController emailController;
+  final TextEditingController identifierController;
   final TextEditingController passwordController;
   final bool obscurePassword;
   final bool shortScreen;
@@ -206,7 +205,7 @@ class _LoginContent extends StatelessWidget {
 
   const _LoginContent({
     required this.formKey,
-    required this.emailController,
+    required this.identifierController,
     required this.passwordController,
     required this.obscurePassword,
     required this.shortScreen,
@@ -240,20 +239,21 @@ class _LoginContent extends StatelessWidget {
             child: Column(
               children: [
                 TextFormField(
-                  controller: emailController,
-                  keyboardType: TextInputType.emailAddress,
+                  controller: identifierController,
+                  keyboardType: TextInputType.text,
                   textInputAction: TextInputAction.next,
-                  autofillHints: const [AutofillHints.email],
+                  autofillHints: const [AutofillHints.username],
                   decoration: const InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: Icon(CupertinoIcons.envelope, size: 20),
+                    labelText: 'Email atau username',
+                    prefixIcon: Icon(CupertinoIcons.person, size: 20),
                   ),
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Email wajib diisi';
+                    final identifier = value?.trim() ?? '';
+                    if (identifier.isEmpty) {
+                      return 'Email atau username wajib diisi';
                     }
-                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                      return 'Format email tidak valid';
+                    if (identifier.length > 100) {
+                      return 'Email atau username maksimal 100 karakter';
                     }
                     return null;
                   },
@@ -328,11 +328,6 @@ class _LoginContent extends StatelessWidget {
                       ),
                     );
                   },
-                ),
-                TextButton(
-                  key: const Key('ppdb-public-link'),
-                  onPressed: () => context.go('/ppdb'),
-                  child: const Text('Info PPDB dan cek status'),
                 ),
               ],
             ),

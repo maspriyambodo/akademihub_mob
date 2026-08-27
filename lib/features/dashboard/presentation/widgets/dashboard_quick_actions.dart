@@ -419,8 +419,11 @@ class _DashboardQuickActionsState extends State<DashboardQuickActions> {
           action.route != AppRoutes.profil) {
         return false;
       }
-      final required = AppRoutes.permissionsFor(action.route);
-      return required.isEmpty || required.any(widget.permissions.contains);
+      return AppRoutes.canAccess(
+        action.route,
+        authenticated: true,
+        permissions: widget.permissions,
+      );
     }).toList();
     final visibleActions = _showAll ? actions : actions.take(6).toList();
 

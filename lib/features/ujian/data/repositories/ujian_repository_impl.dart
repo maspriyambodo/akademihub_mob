@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/error/result.dart';
+import '../../../../core/storage/answer_outbox.dart';
 import '../../domain/entities/kelas_option_entity.dart';
 import '../../domain/entities/ranking_entity.dart';
 import '../../domain/entities/ujian_entity.dart';
@@ -16,8 +17,9 @@ import '../datasources/ujian_remote_datasource.dart';
 
 class UjianRepositoryImpl implements UjianRepository {
   final UjianRemoteDataSource _remote;
+  final AnswerOutbox _outbox;
 
-  const UjianRepositoryImpl(this._remote);
+  const UjianRepositoryImpl(this._remote, this._outbox);
 
   @override
   Future<Result<List<UjianSessionEntity>>> getSesiUjian({int? siswaId}) async {
@@ -45,11 +47,21 @@ class UjianRepositoryImpl implements UjianRepository {
   @override
   Future<Result<List<UjianQuestionEntity>>> getSoal(int sesiId) async {
     try {
-      return success(
-        (await _remote.getSoal(
-          sesiId,
-        )).map((model) => model.toEntity()).toList(),
-      );
+      await _flush(sesiId);
+      final questions = (await _remote.getSoal(
+        sesiId,
+      )).map((model) => model.toEntity()).toList();
+      final pending = {
+        for (final operation in _outbox.pending('cbt', sesiId))
+          operation.questionId: operation,
+      };
+      return success([
+        for (final question in questions)
+          if (pending[question.id] case final operation?)
+            question.copyWith(answer: _localAnswer(operation.payload))
+          else
+            question,
+      ]);
     } on DioException catch (e) {
       return fail(_map(mapDioException(e)));
     } on AppException catch (e) {
@@ -65,6 +77,19 @@ class UjianRepositoryImpl implements UjianRepository {
     String? teks,
     required bool raguRagu,
   }) async {
+    final payload = <String, dynamic>{
+      'trx_ujian_user_id': sesiId,
+      'mst_soal_id': soalId,
+      'mst_soal_opsi_id': opsiId,
+      'jawaban_teks': teks,
+      'ragu_ragu': raguRagu,
+    };
+    final operation = await _outbox.enqueue(
+      module: 'cbt',
+      sessionId: sesiId,
+      questionId: soalId,
+      payload: payload,
+    );
     try {
       final json = await _remote.saveJawaban(
         sesiId: sesiId,
@@ -73,6 +98,7 @@ class UjianRepositoryImpl implements UjianRepository {
         teks: teks,
         raguRagu: raguRagu,
       );
+      await _outbox.acknowledge(operation);
       return success(
         UjianAnswerEntity(
           id: (json['id'] as num?)?.toInt() ?? 0,
@@ -84,7 +110,11 @@ class UjianRepositoryImpl implements UjianRepository {
         ),
       );
     } on DioException catch (e) {
-      return fail(_map(mapDioException(e)));
+      final failure = _map(mapDioException(e));
+      if (failure is NetworkFailure || failure is AuthFailure) {
+        return success(_localAnswer(payload));
+      }
+      return fail(failure);
     } on AppException catch (e) {
       return fail(_map(e));
     }
@@ -115,11 +145,47 @@ class UjianRepositoryImpl implements UjianRepository {
   @override
   Future<Result<UjianSessionEntity>> selesaikanSesi(int sesiId) async {
     try {
-      return success((await _remote.selesaikanSesi(sesiId)).toEntity());
+      await _flush(sesiId);
+      if (_outbox.pending('cbt', sesiId).isNotEmpty) {
+        return fail(
+          const NetworkFailure(
+            'Jawaban belum tersinkron. Hubungkan internet lalu coba lagi.',
+          ),
+        );
+      }
+      final result = (await _remote.selesaikanSesi(sesiId)).toEntity();
+      await _outbox.clearSession('cbt', sesiId);
+      return success(result);
     } on DioException catch (e) {
       return fail(_map(mapDioException(e)));
     } on AppException catch (e) {
       return fail(_map(e));
+    }
+  }
+
+  UjianAnswerEntity _localAnswer(Map<String, dynamic> payload) =>
+      UjianAnswerEntity(
+        id: 0,
+        optionId: (payload['mst_soal_opsi_id'] as num?)?.toInt(),
+        text: payload['jawaban_teks']?.toString(),
+        doubtful: payload['ragu_ragu'] == true,
+      );
+
+  Future<void> _flush(int sesiId) async {
+    for (final operation in _outbox.pending('cbt', sesiId)) {
+      try {
+        final payload = operation.payload;
+        await _remote.saveJawaban(
+          sesiId: sesiId,
+          soalId: operation.questionId,
+          opsiId: (payload['mst_soal_opsi_id'] as num?)?.toInt(),
+          teks: payload['jawaban_teks']?.toString(),
+          raguRagu: payload['ragu_ragu'] == true,
+        );
+        await _outbox.acknowledge(operation);
+      } on Object {
+        return;
+      }
     }
   }
 

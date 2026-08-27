@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'package:akademihub_mob/core/api/api_client.dart';
 import 'package:akademihub_mob/core/config/app_config.dart';
-import 'package:akademihub_mob/core/config/tenant_config.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -78,20 +77,8 @@ class _TestAdapter implements HttpClientAdapter {
 }
 
 void main() {
-  test('applies tenant URL and restores fixed fallback', () {
+  test('uses fixed API gateway', () {
     final client = ApiClient(const FlutterSecureStorage());
-    const tenant = TenantConfig(
-      identifier: 'school',
-      name: 'School',
-      apiBaseUrl: 'https://school.akademihub.id/api/v1/',
-      wsHost: 'school.akademihub.id',
-      wsAppKey: 'key',
-    );
-
-    client.applyTenant(tenant);
-    expect(client.dio.options.baseUrl, 'https://school.akademihub.id/api/v1');
-
-    client.applyTenant(null);
     expect(client.dio.options.baseUrl, AppConfig.apiBaseUrl);
   });
 
@@ -328,20 +315,9 @@ void main() {
       expect(writes, {'POST': 1, 'PUT': 1, 'PATCH': 1, 'DELETE': 1});
     });
 
-    test('matching tenant origin attaches stored token', () async {
-      await storage.write(
-        key: AppConfig.tokenOriginKey,
-        value: 'https://school.akademihub.id',
-      );
-      apiClient.applyTenant(
-        const TenantConfig(
-          identifier: 'school',
-          name: 'School',
-          apiBaseUrl: 'https://school.akademihub.id/api/v1/',
-          wsHost: 'school.akademihub.id',
-          wsAppKey: 'key',
-        ),
-      );
+    test('matching gateway origin attaches stored token', () async {
+      final origin = AppConfig.extractOrigin(AppConfig.apiBaseUrl)!;
+      await storage.write(key: AppConfig.tokenOriginKey, value: origin);
       String? authorization;
       apiClient.dio.httpClientAdapter = _TestAdapter((options) async {
         authorization = options.headers['Authorization'] as String?;

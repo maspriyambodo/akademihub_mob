@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import '../api/api_client.dart';
 import '../di/injection.dart';
 import '../widgets/main_shell.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
@@ -27,7 +26,15 @@ import '../../features/ews/presentation/pages/ews_page.dart';
 import '../../features/siswa_insight/presentation/pages/siswa_insight_page.dart';
 import '../../features/perpustakaan/presentation/pages/perpustakaan_page.dart';
 import '../../features/organisasi/presentation/pages/organisasi_page.dart';
-import '../../features/ppdb/presentation/pages/ppdb_public_page.dart';
+
+enum RouteAccess { public, authenticated, permissionAny }
+
+class RoutePolicy {
+  final RouteAccess access;
+  final List<String> permissions;
+
+  const RoutePolicy(this.access, [this.permissions = const []]);
+}
 
 class AppRoutes {
   static const String splash = '/';
@@ -51,33 +58,80 @@ class AppRoutes {
   static const String ews = '/ews';
   static const String perpustakaan = '/perpustakaan';
   static const String organisasi = '/organisasi';
-  static const String ppdb = '/ppdb';
   static const List<String> ewsAliases = [
     '/early-warning',
     '/early-warning-system',
   ];
   static const String siswaInsight = '/siswa/:id/insight';
 
-  static List<String> permissionsFor(String path) => switch (path) {
-    absensi => const ['absensi-siswa.view', 'absensi-guru.view'],
-    jadwal => const ['jadwal-pelajaran.view'],
-    nilai => const ['nilai.view'],
-    tugas => const ['tugas.view', 'tugas-siswa.view'],
-    materi => const ['materi.view'],
-    kalender => const ['kalender-akademik.view'],
-    bk => const ['bk-kasus.view'],
-    ujian => const ['ujian.view', 'ranking.view'],
-    tmb => const ['tes-minat-bakat.view', 'tes-minat-bakat-peserta.view'],
-    ews => const ['ews.view'],
-    perpustakaan => const ['buku.view', 'peminjaman.view'],
-    organisasi => const ['organisasi.view'],
-    _ when path.startsWith('/siswa/') && path.endsWith('/insight') => const [
-      'siswa.view',
-    ],
-    _ => const [],
+  static RoutePolicy? policyFor(String path) => switch (path) {
+    splash || login => const RoutePolicy(RouteAccess.public),
+    dashboard ||
+    notifications ||
+    profil => const RoutePolicy(RouteAccess.authenticated),
+    rapor ||
+    keuangan ||
+    forum ||
+    ekstrakurikuler => const RoutePolicy(RouteAccess.authenticated),
+    absensi => const RoutePolicy(RouteAccess.permissionAny, [
+      'absensi-siswa.view',
+      'absensi-guru.view',
+    ]),
+    jadwal => const RoutePolicy(RouteAccess.permissionAny, [
+      'jadwal-pelajaran.view',
+    ]),
+    nilai => const RoutePolicy(RouteAccess.permissionAny, ['nilai.view']),
+    tugas => const RoutePolicy(RouteAccess.permissionAny, [
+      'tugas.view',
+      'tugas-siswa.view',
+    ]),
+    materi => const RoutePolicy(RouteAccess.permissionAny, ['materi.view']),
+    kalender => const RoutePolicy(RouteAccess.permissionAny, [
+      'kalender-akademik.view',
+    ]),
+    bk => const RoutePolicy(RouteAccess.permissionAny, ['bk-kasus.view']),
+    ujian => const RoutePolicy(RouteAccess.permissionAny, [
+      'ujian.view',
+      'ranking.view',
+    ]),
+    tmb => const RoutePolicy(RouteAccess.permissionAny, [
+      'tes-minat-bakat.view',
+      'tes-minat-bakat-peserta.view',
+    ]),
+    ews || '/early-warning' || '/early-warning-system' => const RoutePolicy(
+      RouteAccess.permissionAny,
+      ['ews.view'],
+    ),
+    perpustakaan => const RoutePolicy(RouteAccess.permissionAny, [
+      'buku.view',
+      'peminjaman.view',
+    ]),
+    organisasi => const RoutePolicy(RouteAccess.permissionAny, [
+      'organisasi.view',
+    ]),
+    _ when path.startsWith('/siswa/') && path.endsWith('/insight') =>
+      const RoutePolicy(RouteAccess.permissionAny, ['siswa.view']),
+    _ => null,
   };
 
-  static bool isPublicPath(String path) => path == ppdb;
+  static List<String> permissionsFor(String path) =>
+      policyFor(path)?.permissions ?? const [];
+
+  static bool isPublicPath(String path) =>
+      policyFor(path)?.access == RouteAccess.public;
+
+  static bool canAccess(
+    String path, {
+    required bool authenticated,
+    Iterable<String> permissions = const [],
+  }) {
+    final policy = policyFor(path);
+    if (policy == null) return false;
+    if (policy.access == RouteAccess.public) return true;
+    if (!authenticated) return false;
+    if (policy.access == RouteAccess.authenticated) return true;
+    return policy.permissions.any(permissions.contains);
+  }
 }
 
 final router = GoRouter(
@@ -85,8 +139,6 @@ final router = GoRouter(
   redirect: (context, state) {
     final authState = context.read<AuthBloc>().state;
     final path = state.uri.path;
-
-    if (AppRoutes.isPublicPath(path)) return null;
 
     // Initial hanya terjadi saat bootstrap. Loading login harus tetap di login.
     if (authState is AuthInitial) {
@@ -107,9 +159,11 @@ final router = GoRouter(
       if (path == AppRoutes.splash || path == AppRoutes.login) {
         return AppRoutes.dashboard;
       }
-      final required = AppRoutes.permissionsFor(path);
-      if (required.isNotEmpty &&
-          !required.any(authState.user.permissions.contains)) {
+      if (!AppRoutes.canAccess(
+        path,
+        authenticated: true,
+        permissions: authState.user.permissions,
+      )) {
         return AppRoutes.dashboard;
       }
     }
@@ -120,10 +174,6 @@ final router = GoRouter(
   routes: [
     GoRoute(path: AppRoutes.splash, builder: (_, _) => const _SplashPage()),
     GoRoute(path: AppRoutes.login, builder: (_, _) => const LoginPage()),
-    GoRoute(
-      path: AppRoutes.ppdb,
-      builder: (_, _) => PpdbPublicPage(dio: sl<ApiClient>().dio),
-    ),
     for (final alias in AppRoutes.ewsAliases)
       GoRoute(path: alias, redirect: (_, _) => AppRoutes.ews),
     ShellRoute(

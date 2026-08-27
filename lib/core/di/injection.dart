@@ -4,12 +4,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../api/api_client.dart';
 import '../notifications/push_notification_service.dart';
 import '../storage/token_storage.dart';
-import '../storage/tenant_storage.dart';
-import '../../features/tenant/data/datasources/tenant_remote_datasource.dart';
-import '../../features/tenant/data/repositories/tenant_repository_impl.dart';
-import '../../features/tenant/domain/repositories/tenant_repository.dart';
-import '../../features/tenant/domain/usecases/tenant_usecases.dart';
-import '../../features/tenant/presentation/bloc/tenant_bloc.dart';
 import '../../features/auth/data/datasources/auth_remote_datasource.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
@@ -196,37 +190,17 @@ Future<void> configureDependencies() async {
   );
   sl.registerLazySingleton(() => secureStorage);
   final prefs = await SharedPreferences.getInstance();
-  sl.registerLazySingleton<SharedPreferences>(() => prefs);
+  await prefs.remove('active_tenant');
 
   // ── Core ──────────────────────────────────────────────────────────────────
-  final tenantStorage = TenantStorage(prefs);
-  final apiClient = ApiClient(secureStorage)
-    ..applyTenant(tenantStorage.getSavedTenant());
+  final apiClient = ApiClient(secureStorage);
   sl.registerSingleton(apiClient);
   sl.registerLazySingleton(() => GuardianChildService(sl<ApiClient>().dio));
   sl.registerLazySingleton(
     () => OrganisasiRemoteDataSource(sl<ApiClient>().dio),
   );
   sl.registerLazySingleton(() => TokenStorage(sl()));
-  sl.registerSingleton(tenantStorage);
   sl.registerLazySingleton(() => PushNotificationService(sl<ApiClient>().dio));
-
-  // ── Tenant feature ────────────────────────────────────────────────────────
-  sl.registerLazySingleton<TenantRemoteDataSource>(
-    () => TenantRemoteDataSourceImpl(sl<ApiClient>().dio),
-  );
-  sl.registerLazySingleton<TenantRepository>(() => TenantRepositoryImpl(sl()));
-  sl.registerLazySingleton(() => ResolveTenantUseCase(sl()));
-  sl.registerLazySingleton(() => ListTenantsUseCase(sl()));
-  sl.registerFactory(
-    () => TenantBloc(
-      resolveTenant: sl(),
-      listTenants: sl(),
-      tenantStorage: sl(),
-      tokenStorage: sl(),
-      apiClient: sl(),
-    ),
-  );
 
   // ── Auth feature ──────────────────────────────────────────────────────────
   sl.registerLazySingleton<AuthRemoteDataSource>(
@@ -446,13 +420,11 @@ Future<void> configureDependencies() async {
     () => ProfilRepositoryImpl(sl(), sl()),
   );
   sl.registerLazySingleton(() => GetSekolahAktifUseCase(sl()));
-  sl.registerLazySingleton(() => GetSekolahTersimpanUseCase(sl()));
   sl.registerLazySingleton(() => GetPerangkatUserUseCase(sl()));
   sl.registerLazySingleton(() => GetAppInfoUseCase(sl()));
   sl.registerFactory(
     () => ProfilBloc(
       getSekolahAktif: sl(),
-      getSekolahTersimpan: sl(),
       getPerangkatUser: sl(),
       getAppInfo: sl(),
     ),
@@ -606,7 +578,9 @@ Future<void> configureDependencies() async {
   sl.registerLazySingleton<UjianRemoteDataSource>(
     () => UjianRemoteDataSourceImpl(sl<ApiClient>().dio),
   );
-  sl.registerLazySingleton<UjianRepository>(() => UjianRepositoryImpl(sl()));
+  sl.registerLazySingleton<UjianRepository>(
+    () => UjianRepositoryImpl(sl(), sl()),
+  );
   sl.registerLazySingleton(() => GetUjianByKelasUseCase(sl()));
   sl.registerLazySingleton(() => ujian_uc.GetNilaiUjianUseCase(sl()));
   sl.registerLazySingleton(() => GetRankingKelasUseCase(sl()));
@@ -628,7 +602,7 @@ Future<void> configureDependencies() async {
   sl.registerLazySingleton<TmbRemoteDataSource>(
     () => TmbRemoteDataSourceImpl(sl<ApiClient>().dio),
   );
-  sl.registerLazySingleton<TmbRepository>(() => TmbRepositoryImpl(sl()));
+  sl.registerLazySingleton<TmbRepository>(() => TmbRepositoryImpl(sl(), sl()));
   sl.registerLazySingleton(() => GetTmbTesListUseCase(sl()));
   sl.registerLazySingleton(() => GetTmbTesByKelasUseCase(sl()));
   sl.registerLazySingleton(() => GetTmbPertanyaanUseCase(sl()));

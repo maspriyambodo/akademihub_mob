@@ -4,8 +4,8 @@ import '../../../../core/config/app_config.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/error/result.dart';
-import '../../../../core/storage/tenant_storage.dart';
 import '../../../../core/storage/token_storage.dart';
+import '../../../../core/storage/answer_outbox.dart';
 import '../datasources/auth_remote_datasource.dart';
 import '../models/user_model.dart';
 import '../../domain/entities/user_entity.dart';
@@ -14,20 +14,20 @@ import '../../domain/repositories/auth_repository.dart';
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource _remoteDataSource;
   final TokenStorage _tokenStorage;
-  final TenantStorage _tenantStorage;
   final ApiClient _apiClient;
+  final AnswerOutbox _answerOutbox;
 
   AuthRepositoryImpl(
     this._remoteDataSource,
     this._tokenStorage,
-    this._tenantStorage,
     this._apiClient,
+    this._answerOutbox,
   );
 
   @override
-  Future<Result<UserEntity>> login(String email, String password) async {
+  Future<Result<UserEntity>> login(String identifier, String password) async {
     try {
-      final data = await _remoteDataSource.login(email, password);
+      final data = await _remoteDataSource.login(identifier, password);
       final token = data['access_token'] as String;
       final refreshToken = data['refresh_token'] as String?;
       final user = UserModel.fromJson(data['user'] as Map<String, dynamic>);
@@ -51,11 +51,11 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       await _remoteDataSource.logout();
       await _tokenStorage.clearTokens();
-      await _tenantStorage.clearTenant();
+      await _answerOutbox.clear();
       return success(null);
     } on DioException catch (e) {
       await _tokenStorage.clearTokens();
-      await _tenantStorage.clearTenant();
+      await _answerOutbox.clear();
       return fail(_mapException(mapDioException(e)));
     }
   }

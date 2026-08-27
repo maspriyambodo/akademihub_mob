@@ -37,16 +37,6 @@ class SekolahModel {
     );
   }
 
-  /// Dibuat dari tenant yang tersimpan di perangkat (`TenantConfig`).
-  /// Hanya nama & logo yang tersedia — `id`/`npsn`/`alamat` tetap null.
-  const SekolahModel.fromTenant({required this.namaSekolah, this.logoPath})
-    : id = null,
-      uuid = null,
-      npsn = null,
-      alamat = null,
-      subscriptionPlan = null,
-      isActive = true;
-
   SekolahEntity toEntity() => SekolahEntity(
     id: id,
     uuid: uuid,

@@ -268,7 +268,7 @@ void main() {
     await tester.pumpAndSettle();
   });
 
-  testWidgets('closes kiosk when backend reports the violation threshold', (
+  testWidgets('keeps kiosk active until backend auto-submits the exam', (
     tester,
   ) async {
     const kioskChannel = MethodChannel('com.akademihub.app/kiosk');
@@ -301,7 +301,7 @@ void main() {
     await tester.pump();
 
     expect(repository.violationReports, 1);
-    expect(stopKioskCalls, 1);
+    expect(stopKioskCalls, 0);
   });
 }
 

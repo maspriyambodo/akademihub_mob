@@ -20,4 +20,34 @@ void main() {
       'peminjaman.view',
     ]);
   });
+
+  test('permission route allows matching permission and denies others', () {
+    expect(
+      AppRoutes.canAccess(
+        AppRoutes.materi,
+        authenticated: true,
+        permissions: const ['materi.view'],
+      ),
+      isTrue,
+    );
+    expect(AppRoutes.canAccess(AppRoutes.materi, authenticated: true), isFalse);
+  });
+
+  test('authenticated route has explicit policy', () {
+    expect(
+      AppRoutes.policyFor(AppRoutes.profil)?.access,
+      RouteAccess.authenticated,
+    );
+    expect(AppRoutes.canAccess(AppRoutes.profil, authenticated: true), isTrue);
+    expect(
+      AppRoutes.canAccess(AppRoutes.profil, authenticated: false),
+      isFalse,
+    );
+  });
+
+  test('EWS aliases inherit EWS permission', () {
+    for (final alias in AppRoutes.ewsAliases) {
+      expect(AppRoutes.permissionsFor(alias), ['ews.view']);
+    }
+  });
 }

@@ -147,8 +147,7 @@ class _UjianSessionPageState extends State<UjianSessionPage>
       }
 
       final data = res.requireData;
-      final violationCount = (data['violation_count'] as num?)?.toInt() ?? 0;
-      if (data['auto_submitted'] != true && violationCount < 3) return;
+      if (data['auto_submitted'] != true) return;
 
       _examClosed = true;
       await _disableKioskSecurity();

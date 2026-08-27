@@ -9,10 +9,3 @@ class GetSekolahAktifUseCase {
   Future<Result<SekolahEntity>> call({int? id, String? uuid, String? nama}) =>
       _repository.getSekolahAktif(id: id, uuid: uuid, nama: nama);
 }
-
-class GetSekolahTersimpanUseCase {
-  final ProfilRepository _repository;
-  const GetSekolahTersimpanUseCase(this._repository);
-
-  Future<Result<SekolahEntity?>> call() => _repository.getSekolahTersimpan();
-}

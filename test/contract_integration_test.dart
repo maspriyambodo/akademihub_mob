@@ -229,6 +229,7 @@ void main() {
       '8. Route configuration contains no PPDB permissions or endpoints',
       () {
         expect(AppRoutes.permissionsFor('/ppdb'), isEmpty);
+        expect(AppRoutes.policyFor('/ppdb'), isNull);
       },
     );
 

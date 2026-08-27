@@ -60,8 +60,11 @@ class _MainShellState extends State<MainShell> {
             ? state.user.permissions
             : const <String>[];
         final tabs = _tabs.where((tab) {
-          final required = AppRoutes.permissionsFor(tab.route);
-          return required.isEmpty || required.any(permissions.contains);
+          return AppRoutes.canAccess(
+            tab.route,
+            authenticated: state is AuthAuthenticated,
+            permissions: permissions,
+          );
         }).toList();
         final location = GoRouterState.of(context).uri.path;
         final currentIndex = tabs.indexWhere(

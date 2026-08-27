@@ -3,7 +3,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../config/app_config.dart';
-import '../config/tenant_config.dart';
 
 class ApiClient {
   static Duration serverTimeOffset = Duration.zero;
@@ -35,10 +34,6 @@ class ApiClient {
           logPrint: (obj) => debugPrint(obj.toString()),
         ),
     ]);
-  }
-
-  void applyTenant(TenantConfig? tenant) {
-    dio.options.baseUrl = AppConfig.normalizeApiBaseUrl(tenant?.apiBaseUrl);
   }
 }
 

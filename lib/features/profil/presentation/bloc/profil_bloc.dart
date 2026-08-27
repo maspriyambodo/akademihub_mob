@@ -16,7 +16,6 @@ part 'profil_state.dart';
 /// dipanggil ulang ke `/auth/me`.
 class ProfilBloc extends Bloc<ProfilEvent, ProfilState> {
   final GetSekolahAktifUseCase getSekolahAktif;
-  final GetSekolahTersimpanUseCase getSekolahTersimpan;
   final GetPerangkatUserUseCase getPerangkatUser;
   final GetAppInfoUseCase getAppInfo;
 
@@ -27,7 +26,6 @@ class ProfilBloc extends Bloc<ProfilEvent, ProfilState> {
 
   ProfilBloc({
     required this.getSekolahAktif,
-    required this.getSekolahTersimpan,
     required this.getPerangkatUser,
     required this.getAppInfo,
   }) : super(ProfilInitial()) {
@@ -57,25 +55,15 @@ class ProfilBloc extends Bloc<ProfilEvent, ProfilState> {
 
   Future<void> _muat(Emitter<ProfilState> emit) async {
     try {
-      // 1. Tenant tersimpan — selalu dibaca lebih dulu supaya bisa dipakai
-      //    sebagai nama pembanding sekaligus fallback tampilan.
-      final lokalResult = await getSekolahTersimpan();
-      final SekolahEntity? sekolahLokal = lokalResult.isSuccess
-          ? lokalResult.requireData
-          : null;
-
-      SekolahEntity? sekolah = sekolahLokal;
-      var sekolahDariCache = sekolahLokal != null;
+      SekolahEntity? sekolah;
+      var sekolahDariCache = false;
       String? sekolahError;
 
       if (_bisaLihatSekolah) {
-        final result = await getSekolahAktif(nama: sekolahLokal?.namaSekolah);
+        final result = await getSekolahAktif();
         if (result.isSuccess) {
           sekolah = result.requireData;
-          sekolahDariCache = false;
-          sekolahError = null;
-        } else if (sekolahLokal == null) {
-          // Tidak ada fallback sama sekali → tampilkan pesan di kartunya.
+        } else {
           sekolahError = result.requireFailure.message;
         }
       }

@@ -43,10 +43,11 @@ class DashboardStatCard extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               value,
-              style: Theme.of(context)
-                  .extension<AppDataTypography>()!
-                  .value
-                  .copyWith(fontSize: 24, letterSpacing: -0.5),
+              style:
+                  (Theme.of(context).extension<AppDataTypography>()?.value ??
+                          Theme.of(context).textTheme.headlineSmall ??
+                          const TextStyle())
+                      .copyWith(fontSize: 24, letterSpacing: -0.5),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),

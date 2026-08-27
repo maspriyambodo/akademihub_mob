@@ -34,9 +34,6 @@ class ProfilRepositoryImpl implements ProfilRepository {
         return success(model.toEntity());
       }
 
-      // Tanpa id/uuid: backend belum memaparkan `mst_sekolah_id` user di
-      // `/auth/me`, jadi sekolah aktif dicari lewat daftar `/sekolah` lalu
-      // dicocokkan dengan nama tenant yang tersimpan di perangkat.
       final list = await _remote.getSekolahList(search: nama);
       final match = _cariSekolah(list, nama);
       if (match == null) {
@@ -63,12 +60,6 @@ class ProfilRepositoryImpl implements ProfilRepository {
       if (n.contains(target) || target.contains(n)) return item;
     }
     return null;
-  }
-
-  @override
-  Future<Result<SekolahEntity?>> getSekolahTersimpan() async {
-    final model = await _local.getSekolahTersimpan();
-    return success(model?.toEntity());
   }
 
   @override
