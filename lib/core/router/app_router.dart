@@ -58,6 +58,30 @@ class AppRoutes {
   static const String ews = '/ews';
   static const String perpustakaan = '/perpustakaan';
   static const String organisasi = '/organisasi';
+  static const List<String> registeredPaths = [
+    splash,
+    login,
+    dashboard,
+    absensi,
+    jadwal,
+    nilai,
+    tugas,
+    rapor,
+    notifications,
+    keuangan,
+    profil,
+    materi,
+    forum,
+    ekstrakurikuler,
+    kalender,
+    bk,
+    ujian,
+    tmb,
+    ews,
+    perpustakaan,
+    organisasi,
+    siswaInsight,
+  ];
   static const List<String> ewsAliases = [
     '/early-warning',
     '/early-warning-system',
@@ -69,10 +93,14 @@ class AppRoutes {
     dashboard ||
     notifications ||
     profil => const RoutePolicy(RouteAccess.authenticated),
-    rapor ||
-    keuangan ||
-    forum ||
-    ekstrakurikuler => const RoutePolicy(RouteAccess.authenticated),
+    rapor => const RoutePolicy(RouteAccess.permissionAny, ['rapor.view']),
+    keuangan => const RoutePolicy(RouteAccess.permissionAny, [
+      'pembayaran-spp.view',
+    ]),
+    forum => const RoutePolicy(RouteAccess.permissionAny, ['forum.view']),
+    ekstrakurikuler => const RoutePolicy(RouteAccess.permissionAny, [
+      'ekstrakurikuler.view',
+    ]),
     absensi => const RoutePolicy(RouteAccess.permissionAny, [
       'absensi-siswa.view',
       'absensi-guru.view',
