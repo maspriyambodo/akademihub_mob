@@ -16,7 +16,10 @@ class AbsensiSiswaEntity extends Equatable {
   final String? jamMasuk;
   final String? jamPulang;
   final String? jadwalJamPulang;
+  final String? jadwalJamMasuk;
+  final String? shiftKode;
   final String? shiftNama;
+  final String? timezone;
   final bool terlambat;
   final int menitTerlambat;
 
@@ -31,7 +34,10 @@ class AbsensiSiswaEntity extends Equatable {
     this.jamMasuk,
     this.jamPulang,
     this.jadwalJamPulang,
+    this.jadwalJamMasuk,
+    this.shiftKode,
     this.shiftNama,
+    this.timezone,
     this.terlambat = false,
     this.menitTerlambat = 0,
   });

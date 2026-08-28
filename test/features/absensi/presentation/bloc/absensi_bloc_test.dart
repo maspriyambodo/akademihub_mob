@@ -19,7 +19,6 @@ void main() {
       getGuruList: GetAbsensiGuruListUseCase(repository),
       checkIn: CheckInAbsensiUseCase(repository),
       checkOut: CheckOutAbsensiUseCase(repository),
-      getCurrent: GetCurrentAbsensiUseCase(repository),
       locationService: _FakeLocationService(),
     );
 
@@ -45,7 +44,6 @@ void main() {
       getGuruList: GetAbsensiGuruListUseCase(repository),
       checkIn: CheckInAbsensiUseCase(repository),
       checkOut: CheckOutAbsensiUseCase(repository),
-      getCurrent: GetCurrentAbsensiUseCase(repository),
       locationService: _FakeLocationService(),
     );
 
@@ -70,7 +68,6 @@ void main() {
       getGuruList: GetAbsensiGuruListUseCase(repository),
       checkIn: CheckInAbsensiUseCase(repository),
       checkOut: CheckOutAbsensiUseCase(repository),
-      getCurrent: GetCurrentAbsensiUseCase(repository),
       locationService: _FakeLocationService(),
     );
 
@@ -102,7 +99,6 @@ void main() {
       getGuruList: GetAbsensiGuruListUseCase(repository),
       checkIn: CheckInAbsensiUseCase(repository),
       checkOut: CheckOutAbsensiUseCase(repository),
-      getCurrent: GetCurrentAbsensiUseCase(repository),
       locationService: _FakeLocationService(),
     );
 
@@ -133,19 +129,18 @@ class _FakeAbsensiRepository implements AbsensiRepository {
   Failure? checkInFailure;
 
   @override
-  Future<result.Result<void>> checkIn(AttendanceLocation location) async {
+  Future<result.Result<AbsensiSiswaEntity>> checkIn(
+    AttendanceLocation location,
+  ) async {
     checkInCalls++;
     if (checkInFailure != null) return result.fail(checkInFailure!);
-    return result.success(null);
+    return result.success(_attendance(checkInCalls));
   }
 
   @override
-  Future<result.Result<void>> checkOut(AttendanceLocation location) async =>
-      result.success(null);
-
-  @override
-  Future<result.Result<AbsensiSiswaEntity?>> getCurrentAttendance() async =>
-      result.success(null);
+  Future<result.Result<AbsensiSiswaEntity>> checkOut(
+    AttendanceLocation location,
+  ) async => result.success(_attendance(1));
 
   @override
   Future<result.Result<List<AbsensiGuruEntity>>> getAbsensiGuruList(
@@ -166,14 +161,17 @@ class _FakeAbsensiRepository implements AbsensiRepository {
     int siswaId,
   ) async {
     siswaListCalls++;
-    return result.success([
-      AbsensiSiswaEntity(
-        id: siswaListCalls,
-        tanggal: '2026-08-13',
-        statusAbsensi: 'hadir',
-      ),
-    ]);
+    return result.success([_attendance(siswaListCalls)]);
   }
+
+  AbsensiSiswaEntity _attendance(int id) => AbsensiSiswaEntity(
+    id: id,
+    tanggal: '2026-08-13',
+    statusAbsensi: 'Hadir',
+    jamMasuk: '07:00:00',
+    shiftNama: 'Shift Pagi',
+    timezone: 'Asia/Jakarta',
+  );
 }
 
 class _FakeLocationService extends AttendanceLocationService {

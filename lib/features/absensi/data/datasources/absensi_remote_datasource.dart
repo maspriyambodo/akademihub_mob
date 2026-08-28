@@ -4,9 +4,8 @@ import '../models/absensi_guru_model.dart';
 import '../../domain/entities/attendance_location.dart';
 
 abstract class AbsensiRemoteDataSource {
-  Future<void> checkIn(AttendanceLocation location);
-  Future<void> checkOut(AttendanceLocation location);
-  Future<AbsensiSiswaModel?> getCurrentAttendance();
+  Future<AbsensiSiswaModel> checkIn(AttendanceLocation location);
+  Future<AbsensiSiswaModel> checkOut(AttendanceLocation location);
   Future<List<AbsensiSiswaModel>> getAbsensiSiswaList(int siswaId);
   Future<List<AbsensiGuruModel>> getAbsensiGuruList(int guruId);
   Future<List<AbsensiSiswaModel>> getAbsensiSiswaGeneral({
@@ -21,29 +20,21 @@ class AbsensiRemoteDataSourceImpl implements AbsensiRemoteDataSource {
   const AbsensiRemoteDataSourceImpl(this._dio);
 
   @override
-  Future<void> checkIn(AttendanceLocation location) async {
-    await _dio.post(
+  Future<AbsensiSiswaModel> checkIn(AttendanceLocation location) async {
+    final response = await _dio.post(
       '/akademik/absensi-siswa/check-in',
       data: location.toJson(),
     );
+    return _extractAttendance(response.data);
   }
 
   @override
-  Future<void> checkOut(AttendanceLocation location) async {
-    await _dio.post(
+  Future<AbsensiSiswaModel> checkOut(AttendanceLocation location) async {
+    final response = await _dio.post(
       '/akademik/absensi-siswa/check-out',
       data: location.toJson(),
     );
-  }
-
-  @override
-  Future<AbsensiSiswaModel?> getCurrentAttendance() async {
-    final response = await _dio.get('/akademik/absensi-siswa/current');
-    final body = response.data;
-    if (body is! Map || body['data'] == null) return null;
-    return AbsensiSiswaModel.fromJson(
-      Map<String, dynamic>.from(body['data'] as Map),
-    );
+    return _extractAttendance(response.data);
   }
 
   @override
@@ -92,5 +83,14 @@ class AbsensiRemoteDataSourceImpl implements AbsensiRemoteDataSource {
     if (data is List) return data;
     if (data is Map && data['data'] is List) return data['data'] as List;
     return const [];
+  }
+
+  AbsensiSiswaModel _extractAttendance(dynamic body) {
+    if (body is! Map || body['data'] is! Map) {
+      throw const FormatException('Respons absensi tidak valid');
+    }
+    return AbsensiSiswaModel.fromJson(
+      Map<String, dynamic>.from(body['data'] as Map),
+    );
   }
 }

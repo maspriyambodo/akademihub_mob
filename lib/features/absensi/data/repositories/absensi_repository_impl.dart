@@ -14,31 +14,28 @@ class AbsensiRepositoryImpl implements AbsensiRepository {
   const AbsensiRepositoryImpl(this._remote);
 
   @override
-  Future<Result<void>> checkIn(AttendanceLocation location) async {
+  Future<Result<AbsensiSiswaEntity>> checkIn(
+    AttendanceLocation location,
+  ) async {
     try {
-      await _remote.checkIn(location);
-      return success(null);
+      return success((await _remote.checkIn(location)).toEntity());
     } on DioException catch (e) {
       return fail(_map(mapDioException(e)));
+    } on FormatException catch (e) {
+      return fail(ServerFailure(e.message));
     }
   }
 
   @override
-  Future<Result<void>> checkOut(AttendanceLocation location) async {
+  Future<Result<AbsensiSiswaEntity>> checkOut(
+    AttendanceLocation location,
+  ) async {
     try {
-      await _remote.checkOut(location);
-      return success(null);
+      return success((await _remote.checkOut(location)).toEntity());
     } on DioException catch (e) {
       return fail(_map(mapDioException(e)));
-    }
-  }
-
-  @override
-  Future<Result<AbsensiSiswaEntity?>> getCurrentAttendance() async {
-    try {
-      return success((await _remote.getCurrentAttendance())?.toEntity());
-    } on DioException catch (e) {
-      return fail(_map(mapDioException(e)));
+    } on FormatException catch (e) {
+      return fail(ServerFailure(e.message));
     }
   }
 

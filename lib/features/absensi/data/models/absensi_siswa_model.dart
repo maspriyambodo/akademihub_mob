@@ -11,7 +11,10 @@ class AbsensiSiswaModel {
   final String? jamMasuk;
   final String? jamPulang;
   final String? jadwalJamPulang;
+  final String? jadwalJamMasuk;
+  final String? shiftKode;
   final String? shiftNama;
+  final String? timezone;
   final bool terlambat;
   final int menitTerlambat;
 
@@ -26,7 +29,10 @@ class AbsensiSiswaModel {
     this.jamMasuk,
     this.jamPulang,
     this.jadwalJamPulang,
+    this.jadwalJamMasuk,
+    this.shiftKode,
     this.shiftNama,
+    this.timezone,
     this.terlambat = false,
     this.menitTerlambat = 0,
   });
@@ -40,12 +46,15 @@ class AbsensiSiswaModel {
       siswaNama: siswa?['nama'] as String?,
       siswaNis: siswa?['nis'] as String?,
       tanggal: json['tanggal'] as String? ?? '',
-      statusAbsensi: json['status_absensi'] as String? ?? '',
+      statusAbsensi: _status(json),
       keterangan: json['keterangan'] as String?,
       jamMasuk: json['jam_masuk'] as String?,
       jamPulang: json['jam_pulang'] as String?,
       jadwalJamPulang: json['jadwal_jam_pulang'] as String?,
+      jadwalJamMasuk: json['jadwal_jam_masuk'] as String?,
+      shiftKode: shift?['kode'] as String?,
       shiftNama: shift?['nama'] as String?,
+      timezone: json['timezone'] as String?,
       terlambat: json['terlambat'] as bool? ?? false,
       menitTerlambat: (json['menit_terlambat'] as num?)?.toInt() ?? 0,
     );
@@ -62,8 +71,23 @@ class AbsensiSiswaModel {
     jamMasuk: jamMasuk,
     jamPulang: jamPulang,
     jadwalJamPulang: jadwalJamPulang,
+    jadwalJamMasuk: jadwalJamMasuk,
+    shiftKode: shiftKode,
     shiftNama: shiftNama,
+    timezone: timezone,
     terlambat: terlambat,
     menitTerlambat: menitTerlambat,
   );
+
+  static String _status(Map<String, dynamic> json) {
+    final label = json['status_absensi'];
+    if (label is String && label.isNotEmpty) return label;
+    return switch ((json['status'] as num?)?.toInt()) {
+      1 => 'Hadir',
+      2 => 'Izin',
+      3 => 'Sakit',
+      4 => 'Alpha',
+      _ => '',
+    };
+  }
 }

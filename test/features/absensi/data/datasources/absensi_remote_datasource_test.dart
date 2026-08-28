@@ -23,6 +23,12 @@ void main() {
                   'mst_siswa_id': 7,
                   'tanggal': '2026-08-16',
                   'status': 1,
+                  'shift': {'kode': 'PAGI', 'nama': 'Shift Pagi'},
+                  'jam_masuk': '07:00:00',
+                  'jam_pulang': null,
+                  'terlambat': false,
+                  'menit_terlambat': 0,
+                  'timezone': 'Asia/Jakarta',
                 },
               },
             ),
@@ -31,7 +37,7 @@ void main() {
       ),
     );
 
-    await AbsensiRemoteDataSourceImpl(dio).checkIn(
+    final attendance = await AbsensiRemoteDataSourceImpl(dio).checkIn(
       AttendanceLocation(
         latitude: -6.2,
         longitude: 106.8,
@@ -49,6 +55,10 @@ void main() {
       'captured_at': '2026-08-16T00:30:00.000Z',
     });
     expect(captured?.queryParameters, isEmpty);
+    expect(attendance.statusAbsensi, 'Hadir');
+    expect(attendance.shiftKode, 'PAGI');
+    expect(attendance.shiftNama, 'Shift Pagi');
+    expect(attendance.timezone, 'Asia/Jakarta');
   });
 
   test('self check-out memakai endpoint canonical', () async {
@@ -58,7 +68,23 @@ void main() {
       InterceptorsWrapper(
         onRequest: (options, handler) {
           captured = options;
-          handler.resolve(Response(requestOptions: options, statusCode: 200));
+          handler.resolve(
+            Response(
+              requestOptions: options,
+              statusCode: 200,
+              data: {
+                'data': {
+                  'id': 91,
+                  'mst_siswa_id': 7,
+                  'tanggal': '2026-08-16',
+                  'status': 1,
+                  'jam_masuk': '07:00:00',
+                  'jam_pulang': '13:00:00',
+                  'timezone': 'Asia/Jakarta',
+                },
+              },
+            ),
+          );
         },
       ),
     );

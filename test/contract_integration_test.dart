@@ -338,7 +338,15 @@ void main() {
                   statusCode: 200,
                   data: {
                     'success': true,
-                    'data': {'id': 1, 'status': 1},
+                    'data': {
+                      'id': 1,
+                      'mst_siswa_id': 7,
+                      'tanggal': '2026-08-28',
+                      'status': 1,
+                      'jam_masuk': '08:00:00',
+                      'jam_pulang': null,
+                      'timezone': 'Asia/Jakarta',
+                    },
                   },
                 ),
               );

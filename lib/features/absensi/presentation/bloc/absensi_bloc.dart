@@ -16,7 +16,6 @@ class AbsensiBloc extends Bloc<AbsensiEvent, AbsensiState> {
   final GetAbsensiGuruListUseCase getGuruList;
   final CheckInAbsensiUseCase checkIn;
   final CheckOutAbsensiUseCase checkOut;
-  final GetCurrentAbsensiUseCase getCurrent;
   final AttendanceLocationService locationService;
   bool _actionInProgress = false;
 
@@ -33,7 +32,6 @@ class AbsensiBloc extends Bloc<AbsensiEvent, AbsensiState> {
     required this.getGuruList,
     required this.checkIn,
     required this.checkOut,
-    required this.getCurrent,
     required this.locationService,
   }) : super(AbsensiInitial()) {
     on<AbsensiLoadRequested>(_onLoad);
@@ -57,6 +55,7 @@ class AbsensiBloc extends Bloc<AbsensiEvent, AbsensiState> {
         emit(AbsensiError(result.requireFailure.message));
         return;
       }
+      _currentAttendance = result.requireData;
       await _fetchAndEmit(DateTime.now().month, DateTime.now().year, emit);
     } catch (error) {
       emit(AbsensiError(_locationError(error)));
@@ -79,6 +78,7 @@ class AbsensiBloc extends Bloc<AbsensiEvent, AbsensiState> {
         emit(AbsensiError(result.requireFailure.message));
         return;
       }
+      _currentAttendance = result.requireData;
       await _fetchAndEmit(DateTime.now().month, DateTime.now().year, emit);
     } catch (error) {
       emit(AbsensiError(_locationError(error)));
@@ -161,12 +161,6 @@ class AbsensiBloc extends Bloc<AbsensiEvent, AbsensiState> {
       final result = await getSiswaList(_profileId!);
       if (result.isSuccess) {
         _allSiswaItems = result.requireData;
-        final currentResult = await getCurrent();
-        if (!currentResult.isSuccess) {
-          emit(AbsensiError(currentResult.requireFailure.message));
-          return;
-        }
-        _currentAttendance = currentResult.requireData;
         emit(_buildLoaded(bulan, tahun));
       } else {
         emit(AbsensiError(result.requireFailure.message));
