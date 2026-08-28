@@ -8,6 +8,7 @@ import '../bloc/absensi_bloc.dart';
 import '../../domain/entities/absensi_siswa_entity.dart';
 import '../../domain/entities/absensi_guru_entity.dart';
 import '../../domain/entities/absensi_summary_entity.dart';
+import '../../data/services/attendance_location_service.dart';
 
 class AbsensiPage extends StatelessWidget {
   const AbsensiPage({super.key});
@@ -118,6 +119,8 @@ class _AbsensiViewState extends State<_AbsensiView> {
                 if (state is AbsensiError) {
                   return _ErrorView(
                     message: state.message,
+                    settingsTarget: state.settingsTarget,
+                    showContactOfficer: state.showContactOfficer,
                     onRetry: () => context.read<AbsensiBloc>().add(
                       const AbsensiRefreshRequested(),
                     ),
@@ -726,7 +729,14 @@ class _StatusBadge extends StatelessWidget {
 class _ErrorView extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
-  const _ErrorView({required this.message, required this.onRetry});
+  final AttendanceSettingsTarget? settingsTarget;
+  final bool showContactOfficer;
+  const _ErrorView({
+    required this.message,
+    required this.onRetry,
+    this.settingsTarget,
+    this.showContactOfficer = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -744,11 +754,31 @@ class _ErrorView extends StatelessWidget {
               style: const TextStyle(fontSize: 14),
             ),
             const SizedBox(height: 20),
+            if (settingsTarget != null) ...[
+              FilledButton.icon(
+                onPressed: () => openAttendanceSettings(settingsTarget!),
+                icon: const Icon(Icons.settings_outlined),
+                label: Text(
+                  settingsTarget == AttendanceSettingsTarget.app
+                      ? 'Buka Pengaturan Aplikasi'
+                      : 'Buka Pengaturan Lokasi',
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
             ElevatedButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh),
               label: const Text('Coba Lagi'),
             ),
+            if (showContactOfficer) ...[
+              const SizedBox(height: 16),
+              Text(
+                'Tidak dapat mengubah pengaturan? Hubungi petugas sekolah untuk bantuan absensi.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+              ),
+            ],
           ],
         ),
       ),

@@ -58,7 +58,7 @@ class AbsensiBloc extends Bloc<AbsensiEvent, AbsensiState> {
       _currentAttendance = result.requireData;
       await _fetchAndEmit(DateTime.now().month, DateTime.now().year, emit);
     } catch (error) {
-      emit(AbsensiError(_locationError(error)));
+      emit(_locationError(error));
     } finally {
       _actionInProgress = false;
     }
@@ -81,7 +81,7 @@ class AbsensiBloc extends Bloc<AbsensiEvent, AbsensiState> {
       _currentAttendance = result.requireData;
       await _fetchAndEmit(DateTime.now().month, DateTime.now().year, emit);
     } catch (error) {
-      emit(AbsensiError(_locationError(error)));
+      emit(_locationError(error));
     } finally {
       _actionInProgress = false;
     }
@@ -93,9 +93,18 @@ class AbsensiBloc extends Bloc<AbsensiEvent, AbsensiState> {
     return _buildLoaded(DateTime.now().month, DateTime.now().year);
   }
 
-  String _locationError(Object error) {
-    if (error is StateError) return error.message;
-    return 'Lokasi tidak dapat diperoleh. Coba lagi di area terbuka.';
+  AbsensiError _locationError(Object error) {
+    if (error is AttendanceLocationException) {
+      return AbsensiError(
+        error.message,
+        settingsTarget: error.settingsTarget,
+        showContactOfficer:
+            error.settingsTarget == AttendanceSettingsTarget.app,
+      );
+    }
+    return const AbsensiError(
+      'Lokasi tidak dapat diperoleh. Coba lagi di area terbuka.',
+    );
   }
 
   Future<void> _onLoad(

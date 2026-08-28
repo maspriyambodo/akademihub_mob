@@ -120,6 +120,41 @@ void main() {
     expect(repository.siswaListCalls, 1);
     await bloc.close();
   });
+
+  test('izin permanen menawarkan Settings dan alternatif petugas', () async {
+    final repository = _FakeAbsensiRepository();
+    final locationService = _FakeLocationService()
+      ..error = const AttendanceLocationException(
+        'Izin lokasi ditolak permanen.',
+        settingsTarget: AttendanceSettingsTarget.app,
+      );
+    final bloc = AbsensiBloc(
+      getSiswaList: GetAbsensiSiswaListUseCase(repository),
+      getSiswaGeneral: GetAbsensiSiswaGeneralUseCase(repository),
+      getGuruList: GetAbsensiGuruListUseCase(repository),
+      checkIn: CheckInAbsensiUseCase(repository),
+      checkOut: CheckOutAbsensiUseCase(repository),
+      locationService: locationService,
+    );
+
+    bloc.add(
+      const AbsensiLoadRequested(
+        role: 'siswa',
+        profileId: 7,
+        bulan: 8,
+        tahun: 2026,
+      ),
+    );
+    await bloc.stream.firstWhere((state) => state is AbsensiLoaded);
+    bloc.add(const AbsensiCheckInRequested());
+    final state =
+        await bloc.stream.firstWhere((state) => state is AbsensiError)
+            as AbsensiError;
+
+    expect(state.settingsTarget, AttendanceSettingsTarget.app);
+    expect(state.showContactOfficer, isTrue);
+    await bloc.close();
+  });
 }
 
 class _FakeAbsensiRepository implements AbsensiRepository {
@@ -175,11 +210,16 @@ class _FakeAbsensiRepository implements AbsensiRepository {
 }
 
 class _FakeLocationService extends AttendanceLocationService {
+  Object? error;
+
   @override
-  Future<AttendanceLocation> capture() async => AttendanceLocation(
-    latitude: -6.2,
-    longitude: 106.8,
-    accuracyMeter: 10,
-    capturedAt: DateTime.now(),
-  );
+  Future<AttendanceLocation> capture() async {
+    if (error != null) throw error!;
+    return AttendanceLocation(
+      latitude: -6.2,
+      longitude: 106.8,
+      accuracyMeter: 10,
+      capturedAt: DateTime.now(),
+    );
+  }
 }

@@ -53,8 +53,14 @@ class AbsensiLoaded extends AbsensiState {
 
 class AbsensiError extends AbsensiState {
   final String message;
-  const AbsensiError(this.message);
+  final AttendanceSettingsTarget? settingsTarget;
+  final bool showContactOfficer;
+  const AbsensiError(
+    this.message, {
+    this.settingsTarget,
+    this.showContactOfficer = false,
+  });
 
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [message, settingsTarget, showContactOfficer];
 }
