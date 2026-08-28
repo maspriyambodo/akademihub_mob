@@ -27,6 +27,21 @@ class CheckOutAbsensiUseCase {
       _repository.checkOut(location);
 }
 
+class CheckOutAbsensiUseCase {
+  final AbsensiRepository _repository;
+  const CheckOutAbsensiUseCase(this._repository);
+
+  Future<Result<void>> call() => _repository.checkOut();
+}
+
+class GetCurrentAbsensiUseCase {
+  final AbsensiRepository _repository;
+  const GetCurrentAbsensiUseCase(this._repository);
+
+  Future<Result<AbsensiSiswaEntity?>> call() =>
+      _repository.getCurrentAttendance();
+}
+
 class GetAbsensiSiswaGeneralUseCase {
   final AbsensiRepository _repository;
   const GetAbsensiSiswaGeneralUseCase(this._repository);

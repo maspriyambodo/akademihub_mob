@@ -235,6 +235,7 @@ Future<void> configureDependencies() async {
   sl.registerLazySingleton(() => GetAbsensiSiswaListUseCase(sl()));
   sl.registerLazySingleton(() => CheckInAbsensiUseCase(sl()));
   sl.registerLazySingleton(() => CheckOutAbsensiUseCase(sl()));
+  sl.registerLazySingleton(() => GetCurrentAbsensiUseCase(sl()));
   sl.registerLazySingleton(() => AttendanceLocationService());
   sl.registerLazySingleton(() => GetAbsensiSiswaGeneralUseCase(sl()));
   sl.registerLazySingleton(() => GetAbsensiGuruListUseCase(sl()));
@@ -245,6 +246,7 @@ Future<void> configureDependencies() async {
       getGuruList: sl(),
       checkIn: sl(),
       checkOut: sl(),
+      getCurrent: sl(),
       locationService: sl(),
     ),
   );

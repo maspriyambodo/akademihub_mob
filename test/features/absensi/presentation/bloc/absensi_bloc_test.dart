@@ -19,6 +19,7 @@ void main() {
       getGuruList: GetAbsensiGuruListUseCase(repository),
       checkIn: CheckInAbsensiUseCase(repository),
       checkOut: CheckOutAbsensiUseCase(repository),
+      getCurrent: GetCurrentAbsensiUseCase(repository),
       locationService: _FakeLocationService(),
     );
 
@@ -44,6 +45,7 @@ void main() {
       getGuruList: GetAbsensiGuruListUseCase(repository),
       checkIn: CheckInAbsensiUseCase(repository),
       checkOut: CheckOutAbsensiUseCase(repository),
+      getCurrent: GetCurrentAbsensiUseCase(repository),
       locationService: _FakeLocationService(),
     );
 
@@ -68,6 +70,7 @@ void main() {
       getGuruList: GetAbsensiGuruListUseCase(repository),
       checkIn: CheckInAbsensiUseCase(repository),
       checkOut: CheckOutAbsensiUseCase(repository),
+      getCurrent: GetCurrentAbsensiUseCase(repository),
       locationService: _FakeLocationService(),
     );
 
@@ -99,6 +102,7 @@ void main() {
       getGuruList: GetAbsensiGuruListUseCase(repository),
       checkIn: CheckInAbsensiUseCase(repository),
       checkOut: CheckOutAbsensiUseCase(repository),
+      getCurrent: GetCurrentAbsensiUseCase(repository),
       locationService: _FakeLocationService(),
     );
 
@@ -137,6 +141,10 @@ class _FakeAbsensiRepository implements AbsensiRepository {
 
   @override
   Future<result.Result<void>> checkOut(AttendanceLocation location) async =>
+      result.success(null);
+
+  @override
+  Future<result.Result<AbsensiSiswaEntity?>> getCurrentAttendance() async =>
       result.success(null);
 
   @override

@@ -13,5 +13,8 @@ void main() {
     expect(dark.colorScheme.brightness, Brightness.dark);
     expect(light.cardTheme.elevation, 0);
     expect(light.navigationBarTheme.height, 72);
+    expect(light.colorScheme.primary, const Color(0xFF086F68));
+    expect(light.colorScheme.secondary, const Color(0xFFF2A93B));
+    expect(light.scaffoldBackgroundColor, const Color(0xFFF6F7F3));
   });
 }

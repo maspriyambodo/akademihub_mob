@@ -25,6 +25,7 @@ class AbsensiLoaded extends AbsensiState {
   final int bulan;
   final int tahun;
   final String role;
+  final AbsensiSiswaEntity? currentAttendance;
 
   const AbsensiLoaded({
     required this.summary,
@@ -33,6 +34,7 @@ class AbsensiLoaded extends AbsensiState {
     required this.bulan,
     required this.tahun,
     required this.role,
+    this.currentAttendance,
   });
 
   bool get isGuruMode => role == 'guru';
@@ -45,6 +47,7 @@ class AbsensiLoaded extends AbsensiState {
     bulan,
     tahun,
     role,
+    currentAttendance,
   ];
 }
 

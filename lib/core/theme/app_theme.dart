@@ -1,32 +1,31 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Deep ink + muted teal: one brand accent, calmer semantic colors.
-  static const Color primary = Color(0xFF0C5C55);
-  static const Color primaryLight = Color(0xFF287A72);
-  static const Color primaryDark = Color(0xFF083D39);
-  static const Color secondary = Color(0xFF287A72);
-  static const Color accent = Color(0xFF0C5C55);
+  static const Color primary = Color(0xFF086F68);
+  static const Color primaryLight = Color(0xFF3E8ED0);
+  static const Color primaryDark = Color(0xFF064E49);
+  static const Color secondary = Color(0xFFF2A93B);
+  static const Color accent = Color(0xFF5965D8);
 
   // Role accent colors
-  static const Color siswaColor = Color(0xFF287A72);
-  static const Color guruColor = Color(0xFF52745A);
-  static const Color waliColor = Color(0xFF9A633B);
+  static const Color siswaColor = primary;
+  static const Color guruColor = Color(0xFF5965D8);
+  static const Color waliColor = Color(0xFF2E7D4F);
 
   // Semantic colors
-  static const Color success = Color(0xFF39704A);
-  static const Color warning = Color(0xFF9A633B);
-  static const Color error = Color(0xFFB04444);
-  static const Color info = Color(0xFF426B82);
+  static const Color success = Color(0xFF2E7D4F);
+  static const Color warning = Color(0xFFB66A12);
+  static const Color error = Color(0xFFBA3D46);
+  static const Color info = Color(0xFF287CA8);
 
   // Neutral
-  static const Color surface = Color(0xFFF3F5F0);
-  static const Color cardBg = Color(0xFFFCFDF9);
-  static const Color divider = Color(0xFFDCE2DA);
+  static const Color surface = Color(0xFFF6F7F3);
+  static const Color cardBg = Color(0xFFFFFFFF);
+  static const Color divider = Color(0xFFDCE4E0);
   static const Color textPrimary = Color(0xFF17201E);
-  static const Color textSecondary = Color(0xFF5F6C68);
+  static const Color textSecondary = Color(0xFF5E6B67);
   static const Color textHint = Color(0xFF8B9793);
-  static const Color surfaceMuted = Color(0xFFE9EEEA);
+  static const Color surfaceMuted = Color(0xFFECF3F0);
 }
 
 class AppTheme {
@@ -34,7 +33,7 @@ class AppTheme {
     const scheme = ColorScheme.light(
       primary: AppColors.primary,
       onPrimary: Colors.white,
-      primaryContainer: Color(0xFFD5E9E4),
+      primaryContainer: Color(0xFFD7F0EB),
       onPrimaryContainer: AppColors.primaryDark,
       secondary: AppColors.secondary,
       onSecondary: Colors.white,
@@ -50,7 +49,7 @@ class AppTheme {
       scaffoldBackgroundColor: AppColors.surface,
       splashFactory: InkSparkle.splashFactory,
       appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.surface,
+        backgroundColor: Colors.transparent,
         foregroundColor: AppColors.textPrimary,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -118,8 +117,8 @@ class AppTheme {
       iconButtonTheme: IconButtonThemeData(
         style: IconButton.styleFrom(
           foregroundColor: AppColors.textPrimary,
-          focusColor: const Color(0xFFD5E9E4),
-          highlightColor: const Color(0xFFD5E9E4),
+          focusColor: Color(0xFFD7F0EB),
+          highlightColor: Color(0xFFD7F0EB),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -204,7 +203,7 @@ class AppTheme {
       ),
       chipTheme: base.chipTheme.copyWith(
         backgroundColor: AppColors.cardBg,
-        selectedColor: const Color(0xFFD5E9E4),
+        selectedColor: const Color(0xFFD7F0EB),
         side: const BorderSide(color: AppColors.divider),
         labelStyle: const TextStyle(
           color: AppColors.textSecondary,
@@ -249,7 +248,7 @@ class AppTheme {
         elevation: 0,
         backgroundColor: AppColors.cardBg,
         surfaceTintColor: Colors.transparent,
-        indicatorColor: const Color(0xFFD5E9E4),
+        indicatorColor: const Color(0xFFD7F0EB),
         iconTheme: WidgetStateProperty.resolveWith(
           (states) => IconThemeData(
             color: states.contains(WidgetState.selected)
@@ -272,7 +271,7 @@ class AppTheme {
       ),
       navigationRailTheme: const NavigationRailThemeData(
         backgroundColor: AppColors.cardBg,
-        indicatorColor: Color(0xFFD5E9E4),
+        indicatorColor: Color(0xFFD7F0EB),
         selectedIconTheme: IconThemeData(color: AppColors.primary),
         unselectedIconTheme: IconThemeData(color: AppColors.textHint),
         selectedLabelTextStyle: TextStyle(
