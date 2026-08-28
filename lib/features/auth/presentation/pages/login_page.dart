@@ -19,7 +19,7 @@ class _LoginPageState extends State<LoginPage>
   static const _motionCurve = Cubic(0.32, 0.72, 0, 1);
 
   final _formKey = GlobalKey<FormState>();
-  final _identifierCtrl = TextEditingController();
+  final _usernameCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   bool _obscurePassword = true;
   late final AnimationController _entranceController;
@@ -48,7 +48,7 @@ class _LoginPageState extends State<LoginPage>
   @override
   void dispose() {
     _entranceController.dispose();
-    _identifierCtrl.dispose();
+    _usernameCtrl.dispose();
     _passwordCtrl.dispose();
     super.dispose();
   }
@@ -57,7 +57,7 @@ class _LoginPageState extends State<LoginPage>
     if (!_formKey.currentState!.validate()) return;
     context.read<AuthBloc>().add(
       AuthLoginRequested(
-        identifier: _identifierCtrl.text.trim(),
+        username: _usernameCtrl.text.trim(),
         password: _passwordCtrl.text,
       ),
     );
@@ -86,7 +86,7 @@ class _LoginPageState extends State<LoginPage>
               final isSplit = constraints.maxWidth >= 840;
               final form = _LoginContent(
                 formKey: _formKey,
-                identifierController: _identifierCtrl,
+                usernameController: _usernameCtrl,
                 passwordController: _passwordCtrl,
                 obscurePassword: _obscurePassword,
                 shortScreen: shortScreen,
@@ -196,7 +196,7 @@ class _BrandPanel extends StatelessWidget {
 
 class _LoginContent extends StatelessWidget {
   final GlobalKey<FormState> formKey;
-  final TextEditingController identifierController;
+  final TextEditingController usernameController;
   final TextEditingController passwordController;
   final bool obscurePassword;
   final bool shortScreen;
@@ -205,7 +205,7 @@ class _LoginContent extends StatelessWidget {
 
   const _LoginContent({
     required this.formKey,
-    required this.identifierController,
+    required this.usernameController,
     required this.passwordController,
     required this.obscurePassword,
     required this.shortScreen,
@@ -239,21 +239,21 @@ class _LoginContent extends StatelessWidget {
             child: Column(
               children: [
                 TextFormField(
-                  controller: identifierController,
+                  controller: usernameController,
                   keyboardType: TextInputType.text,
                   textInputAction: TextInputAction.next,
                   autofillHints: const [AutofillHints.username],
                   decoration: const InputDecoration(
-                    labelText: 'Email atau username',
+                    labelText: 'Username',
                     prefixIcon: Icon(CupertinoIcons.person, size: 20),
                   ),
                   validator: (value) {
-                    final identifier = value?.trim() ?? '';
-                    if (identifier.isEmpty) {
-                      return 'Email atau username wajib diisi';
+                    final username = value?.trim() ?? '';
+                    if (username.isEmpty) {
+                      return 'Username wajib diisi';
                     }
-                    if (identifier.length > 100) {
-                      return 'Email atau username maksimal 100 karakter';
+                    if (username.length > 100) {
+                      return 'Username maksimal 100 karakter';
                     }
                     return null;
                   },

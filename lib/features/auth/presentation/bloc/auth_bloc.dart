@@ -53,7 +53,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(AuthLoading());
-    final result = await loginUseCase(event.identifier, event.password);
+    final result = await loginUseCase(event.username, event.password);
     if (result.isSuccess) {
       emit(AuthAuthenticated(result.requireData));
       unawaited(pushNotifications.syncToken());

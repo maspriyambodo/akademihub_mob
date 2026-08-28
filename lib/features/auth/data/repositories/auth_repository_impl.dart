@@ -25,9 +25,9 @@ class AuthRepositoryImpl implements AuthRepository {
   );
 
   @override
-  Future<Result<UserEntity>> login(String identifier, String password) async {
+  Future<Result<UserEntity>> login(String username, String password) async {
     try {
-      final data = await _remoteDataSource.login(identifier, password);
+      final data = await _remoteDataSource.login(username, password);
       final token = data['access_token'] as String;
       final refreshToken = data['refresh_token'] as String?;
       final user = UserModel.fromJson(data['user'] as Map<String, dynamic>);

@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import '../models/user_model.dart';
 
 abstract class AuthRemoteDataSource {
-  Future<Map<String, dynamic>> login(String identifier, String password);
+  Future<Map<String, dynamic>> login(String username, String password);
   Future<void> logout();
   Future<UserModel> getCurrentUser();
   Future<void> registerFcmToken(String token);
@@ -14,10 +14,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   const AuthRemoteDataSourceImpl(this._dio);
 
   @override
-  Future<Map<String, dynamic>> login(String identifier, String password) async {
+  Future<Map<String, dynamic>> login(String username, String password) async {
     final response = await _dio.post(
       '/auth/login',
-      data: {'identifier': identifier, 'password': password},
+      data: {'username': username, 'password': password},
     );
     // Backend wraps payload in {"success":true,"data":{...}}
     final body = response.data as Map<String, dynamic>;

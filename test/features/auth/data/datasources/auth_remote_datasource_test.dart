@@ -28,7 +28,7 @@ class _Adapter implements HttpClientAdapter {
 }
 
 void main() {
-  test('login sends only identifier and password', () async {
+  test('login sends only username and password', () async {
     final dio = Dio(BaseOptions(baseUrl: 'https://api.example.test'));
     final adapter = _Adapter();
     dio.httpClientAdapter = adapter;
@@ -38,7 +38,7 @@ void main() {
     expect(adapter.request?.path, '/auth/login');
     expect(adapter.request?.method, 'POST');
     expect(adapter.request?.data, {
-      'identifier': 'guru01',
+      'username': 'guru01',
       'password': 'secret123',
     });
   });
