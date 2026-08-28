@@ -35,3 +35,25 @@ class ValidationFailure extends Failure {
 class NotFoundFailure extends Failure {
   const NotFoundFailure([super.message = 'Data tidak ditemukan']);
 }
+
+class AbsensiFailure extends Failure {
+  final String code;
+  final Map<String, dynamic> details;
+
+  const AbsensiFailure(
+    super.message, {
+    required this.code,
+    this.details = const {},
+  });
+
+  bool get refreshRequired => code == 'check_in_required';
+  bool get retryable => const {
+    'check_in_required',
+    'location_accuracy_too_low',
+    'stale_location',
+  }.contains(code);
+  bool get hideSelfService => code == 'student_only';
+
+  @override
+  List<Object?> get props => [message, code, details];
+}
