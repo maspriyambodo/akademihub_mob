@@ -3,7 +3,9 @@ import 'package:equatable/equatable.dart';
 class UserEntity extends Equatable {
   final int id;
   final String name;
+  final String? username;
   final String email;
+  final TenantEntity? tenant;
 
   /// Kode role utama, misal: "siswa", "guru", "wali", "admin"
   final String? role;
@@ -15,7 +17,9 @@ class UserEntity extends Equatable {
   const UserEntity({
     required this.id,
     required this.name,
+    this.username,
     required this.email,
+    this.tenant,
     this.role,
     this.isActive = true,
     this.permissions = const [],
@@ -33,5 +37,24 @@ class UserEntity extends Equatable {
   bool hasPermission(String permission) => permissions.contains(permission);
 
   @override
-  List<Object?> get props => [id, email, role];
+  List<Object?> get props => [id, username, email, role, tenant];
+}
+
+class TenantEntity extends Equatable {
+  final int id;
+  final String uuid;
+  final String? slug;
+  final String name;
+  final String? logoPath;
+
+  const TenantEntity({
+    required this.id,
+    required this.uuid,
+    this.slug,
+    required this.name,
+    this.logoPath,
+  });
+
+  @override
+  List<Object?> get props => [id, uuid, slug, name, logoPath];
 }

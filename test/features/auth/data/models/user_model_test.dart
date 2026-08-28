@@ -2,6 +2,27 @@ import 'package:akademihub_mob/features/auth/data/models/user_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('parses username and backend-resolved tenant', () {
+    final user = UserModel.fromJson({
+      'id': 1,
+      'name': 'Guru',
+      'username': 'guru01',
+      'email': 'guru@sekolah.com',
+      'tenant': {
+        'id': 12,
+        'uuid': 'school-uuid',
+        'slug': 'sman-1',
+        'name': 'SMAN 1',
+        'logo_path': '/logo.png',
+      },
+    });
+
+    expect(user.username, 'guru01');
+    expect(user.tenant?.id, 12);
+    expect(user.tenant?.name, 'SMAN 1');
+    expect(user.tenant?.logoPath, '/logo.png');
+  });
+
   test('parses permission objects returned by the API', () {
     final user = UserModel.fromJson({
       'id': 99,

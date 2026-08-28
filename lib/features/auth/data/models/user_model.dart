@@ -6,7 +6,9 @@ part 'user_model.g.dart';
 class UserModel {
   final int id;
   final String name;
+  final String? username;
   final String email;
+  final TenantModel? tenant;
 
   /// Kode role utama, misal: "siswa", "guru", "wali", "admin"
   final String? role;
@@ -24,7 +26,9 @@ class UserModel {
   const UserModel({
     required this.id,
     required this.name,
+    this.username,
     required this.email,
+    this.tenant,
     this.role,
     this.isActive = true,
     this.permissions = const [],
@@ -66,6 +70,30 @@ class UserModel {
   }
 
   String get primaryRole => role ?? 'unknown';
+}
+
+@JsonSerializable()
+class TenantModel {
+  final int id;
+  final String uuid;
+  final String? slug;
+  final String name;
+
+  @JsonKey(name: 'logo_path')
+  final String? logoPath;
+
+  const TenantModel({
+    required this.id,
+    required this.uuid,
+    this.slug,
+    required this.name,
+    this.logoPath,
+  });
+
+  factory TenantModel.fromJson(Map<String, dynamic> json) =>
+      _$TenantModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$TenantModelToJson(this);
 }
 
 List<String> _permissionsFromJson(List<dynamic>? permissions) =>

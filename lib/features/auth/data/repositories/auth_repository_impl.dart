@@ -30,7 +30,12 @@ class AuthRepositoryImpl implements AuthRepository {
       final data = await _remoteDataSource.login(username, password);
       final token = data['access_token'] as String;
       final refreshToken = data['refresh_token'] as String?;
-      final user = UserModel.fromJson(data['user'] as Map<String, dynamic>);
+      final userJson = Map<String, dynamic>.from(
+        data['user'] as Map<String, dynamic>,
+      );
+      // Login is the source of truth for the backend-resolved tenant session.
+      userJson['tenant'] = data['tenant'];
+      final user = UserModel.fromJson(userJson);
       await _tokenStorage.saveTokens(
         accessToken: token,
         refreshToken: refreshToken,
@@ -75,7 +80,17 @@ class AuthRepositoryImpl implements AuthRepository {
   UserEntity _userModelToEntity(UserModel model) => UserEntity(
     id: model.id,
     name: model.name,
+    username: model.username,
     email: model.email,
+    tenant: model.tenant == null
+        ? null
+        : TenantEntity(
+            id: model.tenant!.id,
+            uuid: model.tenant!.uuid,
+            slug: model.tenant!.slug,
+            name: model.tenant!.name,
+            logoPath: model.tenant!.logoPath,
+          ),
     role: model.normalizedRole,
     isActive: model.isActive,
     permissions: model.permissions,
