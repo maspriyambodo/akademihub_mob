@@ -297,7 +297,9 @@ class _SiswaInsightAccessDenied extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Insight 360°'), centerTitle: true),
-      body: const Center(child: Text('Anda tidak memiliki akses ke data siswa ini')),
+      body: const Center(
+        child: Text('Anda tidak memiliki akses ke data siswa ini'),
+      ),
     );
   }
 }
@@ -323,7 +325,21 @@ class _SplashPageState extends State<_SplashPage> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Center(
+        child: Semantics(
+          label: 'AkademiHub sedang dimuat',
+          image: true,
+          child: Image.asset(
+            'assets/images/splash_screen.png',
+            width: 192,
+            height: 192,
+            fit: BoxFit.contain,
+          ),
+        ),
+      ),
+    );
   }
 }
 

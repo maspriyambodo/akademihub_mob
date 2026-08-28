@@ -29,99 +29,142 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     final user = (context.watch<AuthBloc>().state as AuthAuthenticated?)?.user;
-    final roleLabel = switch (user?.role) {
-      'siswa' => 'Ruang siswa',
-      'guru' => 'Ruang guru',
-      'wali' => 'Ruang wali',
-      _ => 'Ruang admin',
+    final role = user?.role ?? 'admin';
+    final roleLabel = switch (role) {
+      'siswa' => 'Ruang Siswa',
+      'guru' => 'Ruang Guru',
+      'wali' => 'Ruang Wali',
+      _ => 'Ruang Admin',
+    };
+
+    final roleColor = switch (role) {
+      'siswa' => AppColors.siswaColor,
+      'guru' => AppColors.guruColor,
+      'wali' => AppColors.waliColor,
+      _ => AppColors.adminColor,
     };
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        centerTitle: false,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               roleLabel,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
             ),
             if (user != null)
               Text(
                 'Halo, ${user.name}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
-                  color: AppColors.textSecondary,
+                  color: Colors.white.withAlpha(220),
                 ),
               ),
           ],
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_outlined),
+            icon: const Icon(Icons.notifications_outlined, color: Colors.white),
             tooltip: 'Notifikasi',
             onPressed: () => context.push(AppRoutes.notifications),
           ),
           IconButton(
-            icon: const Icon(Icons.account_circle_outlined),
+            icon: const Icon(
+              Icons.account_circle_outlined,
+              color: Colors.white,
+            ),
             tooltip: 'Profil',
             onPressed: () => context.go(AppRoutes.profil),
           ),
         ],
       ),
-      body: BlocBuilder<DashboardBloc, DashboardState>(
-        builder: (context, state) {
-          if (state is DashboardLoading || state is DashboardInitial) {
-            return const _LoadingSkeleton();
-          }
-
-          if (state is DashboardError) {
-            return _ErrorView(
-              message: state.message,
-              onRetry: () =>
-                  context.read<DashboardBloc>().add(DashboardLoadRequested()),
-            );
-          }
-
-          if (state is DashboardLoaded) {
-            final data = state.data;
-            final pad = Responsive.pagePadding(context);
-            return RefreshIndicator(
-              onRefresh: () async {
-                context.read<DashboardBloc>().add(DashboardRefreshRequested());
-              },
-              child: BatasLebarKonten(
-                child: ListView(
-                  padding: pad,
-                  children: [
-                    if (data.role == 'siswa')
-                      SiswaDashboardWidget(
-                        data: data,
-                        permissions: user?.permissions ?? const [],
-                      )
-                    else if (data.role == 'guru')
-                      GuruDashboardWidget(
-                        data: data,
-                        permissions: user?.permissions ?? const [],
-                      )
-                    else if (data.role == 'wali')
-                      WaliDashboardWidget(
-                        data: data,
-                        permissions: user?.permissions ?? const [],
-                      )
-                    else
-                      AdminDashboardWidget(
-                        data: data,
-                        permissions: user?.permissions ?? const [],
-                      ),
-                  ],
-                ),
+      body: Stack(
+        children: [
+          Container(
+            height: 220,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  roleColor,
+                  Color.alphaBlend(Colors.black.withAlpha(40), roleColor),
+                ],
               ),
-            );
-          }
+              borderRadius: const BorderRadius.vertical(
+                bottom: Radius.circular(32),
+              ),
+            ),
+          ),
+          SafeArea(
+            child: BlocBuilder<DashboardBloc, DashboardState>(
+              builder: (context, state) {
+                if (state is DashboardLoading || state is DashboardInitial) {
+                  return const _LoadingSkeleton();
+                }
 
-          return const SizedBox.shrink();
-        },
+                if (state is DashboardError) {
+                  return _ErrorView(
+                    message: state.message,
+                    onRetry: () => context.read<DashboardBloc>().add(
+                      DashboardLoadRequested(),
+                    ),
+                  );
+                }
+
+                if (state is DashboardLoaded) {
+                  final data = state.data;
+                  final pad = Responsive.pagePadding(context);
+                  return RefreshIndicator(
+                    onRefresh: () async {
+                      context.read<DashboardBloc>().add(
+                        DashboardRefreshRequested(),
+                      );
+                    },
+                    child: BatasLebarKonten(
+                      child: ListView(
+                        padding: pad.copyWith(top: kToolbarHeight + 20),
+                        children: [
+                          if (data.role == 'siswa')
+                            SiswaDashboardWidget(
+                              data: data,
+                              permissions: user?.permissions ?? const [],
+                            )
+                          else if (data.role == 'guru')
+                            GuruDashboardWidget(
+                              data: data,
+                              permissions: user?.permissions ?? const [],
+                            )
+                          else if (data.role == 'wali')
+                            WaliDashboardWidget(
+                              data: data,
+                              permissions: user?.permissions ?? const [],
+                            )
+                          else
+                            AdminDashboardWidget(
+                              data: data,
+                              permissions: user?.permissions ?? const [],
+                            ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -35,7 +35,7 @@ class AkademiHubApp extends StatelessWidget {
         BlocProvider(create: (_) => sl<DashboardBloc>()),
       ],
       child: MaterialApp.router(
-        title: 'AkademiHub',
+        title: 'Akademihub',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,

@@ -2,15 +2,16 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   static const Color primary = Color(0xFF086F68);
-  static const Color primaryLight = Color(0xFF3E8ED0);
+  static const Color primaryLight = Color(0xFF10A396);
   static const Color primaryDark = Color(0xFF064E49);
   static const Color secondary = Color(0xFFF2A93B);
   static const Color accent = Color(0xFF5965D8);
 
   // Role accent colors
-  static const Color siswaColor = primary;
+  static const Color siswaColor = Color(0xFF00AFC1);
   static const Color guruColor = Color(0xFF5965D8);
-  static const Color waliColor = Color(0xFF2E7D4F);
+  static const Color waliColor = Color(0xFFD88918);
+  static const Color adminColor = Color(0xFFD94B65);
 
   // Semantic colors
   static const Color success = Color(0xFF2E7D4F);
@@ -19,9 +20,9 @@ class AppColors {
   static const Color info = Color(0xFF287CA8);
 
   // Neutral
-  static const Color surface = Color(0xFFF6F7F3);
+  static const Color surface = Color(0xFFF8FAFC);
   static const Color cardBg = Color(0xFFFFFFFF);
-  static const Color divider = Color(0xFFDCE4E0);
+  static const Color divider = Color(0xFFE8EEEC);
   static const Color textPrimary = Color(0xFF17201E);
   static const Color textSecondary = Color(0xFF5E6B67);
   static const Color textHint = Color(0xFF8B9793);
@@ -66,9 +67,10 @@ class AppTheme {
       cardTheme: CardThemeData(
         color: AppColors.cardBg,
         surfaceTintColor: Colors.transparent,
-        elevation: 0,
+        elevation: 1,
+        shadowColor: const Color(0x100F172A),
         margin: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -242,13 +244,17 @@ class AppTheme {
         backgroundColor: AppColors.cardBg,
         surfaceTintColor: Colors.transparent,
         showDragHandle: true,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
       ),
       navigationBarTheme: NavigationBarThemeData(
-        height: 72,
+        height: 76,
         elevation: 0,
-        backgroundColor: AppColors.cardBg,
+        backgroundColor: const Color(0xF7FFFFFF),
         surfaceTintColor: Colors.transparent,
         indicatorColor: const Color(0xFFD7F0EB),
+        indicatorShape: const StadiumBorder(),
         iconTheme: WidgetStateProperty.resolveWith(
           (states) => IconThemeData(
             color: states.contains(WidgetState.selected)

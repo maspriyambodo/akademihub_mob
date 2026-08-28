@@ -20,6 +20,12 @@ class DashboardStatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      color: Color.alphaBlend(color.withAlpha(18), AppColors.cardBg),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(color: color.withAlpha(24)),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -28,8 +34,16 @@ class DashboardStatCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(icon, color: color, size: 20),
-                const SizedBox(width: 8),
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: color.withAlpha(28),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(icon, color: color, size: 20),
+                ),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     title,
