@@ -6,37 +6,49 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 class AnswerOperation {
   final String id;
+  final String scope;
   final String module;
   final int sessionId;
   final int questionId;
   final int sequence;
+  final DateTime createdAt;
+  final int retryCount;
   final Map<String, dynamic> payload;
 
   const AnswerOperation({
     required this.id,
+    required this.scope,
     required this.module,
     required this.sessionId,
     required this.questionId,
     required this.sequence,
+    required this.createdAt,
+    this.retryCount = 0,
     required this.payload,
   });
 
   Map<String, dynamic> toJson() => {
     'id': id,
+    'scope': scope,
     'module': module,
     'session_id': sessionId,
     'question_id': questionId,
     'sequence': sequence,
+    'created_at': createdAt.toUtc().toIso8601String(),
+    'retry_count': retryCount,
     'payload': payload,
   };
 
   factory AnswerOperation.fromJson(Map<dynamic, dynamic> json) =>
       AnswerOperation(
         id: json['id'] as String,
+        scope: json['scope'] as String,
         module: json['module'] as String,
         sessionId: (json['session_id'] as num).toInt(),
         questionId: (json['question_id'] as num).toInt(),
         sequence: (json['sequence'] as num).toInt(),
+        createdAt: DateTime.parse(json['created_at'] as String).toUtc(),
+        retryCount: (json['retry_count'] as num?)?.toInt() ?? 0,
         payload: Map<String, dynamic>.from(json['payload'] as Map),
       );
 }
@@ -47,8 +59,20 @@ class AnswerOutbox {
 
   final Box<dynamic> _box;
   int _sequence = DateTime.now().microsecondsSinceEpoch;
+  String? _scope;
 
   AnswerOutbox(this._box);
+
+  Future<void> bindSession({required int userId, String? tenantUuid}) async {
+    final scope = '${tenantUuid ?? 'global'}:$userId';
+    if (_scope == scope) return;
+    _scope = scope;
+
+    for (final key in _box.keys.toList()) {
+      final value = _box.get(key);
+      if (value is! Map || value['scope'] != scope) await _box.delete(key);
+    }
+  }
 
   static Future<AnswerOutbox> open(FlutterSecureStorage storage) async {
     await Hive.initFlutter();
@@ -73,25 +97,36 @@ class AnswerOutbox {
     required int questionId,
     required Map<String, dynamic> payload,
   }) async {
+    final scope = _scope;
+    if (scope == null) throw StateError('Answer outbox session is not bound');
     final sequence = ++_sequence;
     final operation = AnswerOperation(
       id: '$sequence-${Random.secure().nextInt(1 << 32)}',
+      scope: scope,
       module: module,
       sessionId: sessionId,
       questionId: questionId,
       sequence: sequence,
+      createdAt: DateTime.now().toUtc(),
       payload: payload,
     );
-    await _box.put(_key(module, sessionId, questionId), operation.toJson());
+    await _box.put(
+      _key(scope, module, sessionId, questionId),
+      operation.toJson(),
+    );
     return operation;
   }
 
   List<AnswerOperation> pending(String module, int sessionId) {
+    final scope = _scope;
+    if (scope == null) return const [];
     final operations = <AnswerOperation>[];
     for (final value in _box.values) {
       try {
         final operation = AnswerOperation.fromJson(value as Map);
-        if (operation.module == module && operation.sessionId == sessionId) {
+        if (operation.scope == scope &&
+            operation.module == module &&
+            operation.sessionId == sessionId) {
           operations.add(operation);
         }
       } on Object {
@@ -104,6 +139,7 @@ class AnswerOutbox {
 
   Future<void> acknowledge(AnswerOperation operation) async {
     final key = _key(
+      operation.scope,
       operation.module,
       operation.sessionId,
       operation.questionId,
@@ -114,12 +150,29 @@ class AnswerOutbox {
 
   Future<void> clearSession(String module, int sessionId) async {
     for (final operation in pending(module, sessionId)) {
-      await _box.delete(_key(module, sessionId, operation.questionId));
+      await _box.delete(
+        _key(operation.scope, module, sessionId, operation.questionId),
+      );
     }
   }
 
-  Future<void> clear() => _box.clear();
+  Future<void> recordRetry(AnswerOperation operation) async {
+    final key = _key(
+      operation.scope,
+      operation.module,
+      operation.sessionId,
+      operation.questionId,
+    );
+    final current = _box.get(key);
+    if (current is! Map || current['id'] != operation.id) return;
+    await _box.put(key, {...current, 'retry_count': operation.retryCount + 1});
+  }
 
-  String _key(String module, int sessionId, int questionId) =>
-      '$module:$sessionId:$questionId';
+  Future<void> clear() async {
+    await _box.clear();
+    _scope = null;
+  }
+
+  String _key(String scope, String module, int sessionId, int questionId) =>
+      '$scope:$module:$sessionId:$questionId';
 }

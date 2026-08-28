@@ -36,6 +36,10 @@ class AuthRepositoryImpl implements AuthRepository {
       // Login is the source of truth for the backend-resolved tenant session.
       userJson['tenant'] = data['tenant'];
       final user = UserModel.fromJson(userJson);
+      await _answerOutbox.bindSession(
+        userId: user.id,
+        tenantUuid: user.tenant?.uuid,
+      );
       await _tokenStorage.saveTokens(
         accessToken: token,
         refreshToken: refreshToken,
@@ -69,6 +73,10 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Result<UserEntity>> getCurrentUser() async {
     try {
       final user = await _remoteDataSource.getCurrentUser();
+      await _answerOutbox.bindSession(
+        userId: user.id,
+        tenantUuid: user.tenant?.uuid,
+      );
       return success(_userModelToEntity(user));
     } on DioException catch (e) {
       return fail(_mapException(mapDioException(e)));

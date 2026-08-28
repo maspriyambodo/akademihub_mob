@@ -16,6 +16,7 @@ void main() {
       'test-${DateTime.now().microsecondsSinceEpoch}',
     );
     outbox = AnswerOutbox(box);
+    await outbox.bindSession(userId: 1, tenantUuid: 'tenant-a');
   });
 
   tearDown(() async {
@@ -70,4 +71,37 @@ void main() {
       expect(outbox.pending('tmb', 9), isEmpty);
     },
   );
+
+  test('survives recreation with retry metadata', () async {
+    final operation = await outbox.enqueue(
+      module: 'cbt',
+      sessionId: 7,
+      questionId: 11,
+      payload: const {'mst_soal_opsi_id': 1},
+    );
+    await outbox.recordRetry(operation);
+
+    final restored = AnswerOutbox(box);
+    await restored.bindSession(userId: 1, tenantUuid: 'tenant-a');
+    final pending = restored.pending('cbt', 7);
+
+    expect(pending, hasLength(1));
+    expect(pending.single.id, operation.id);
+    expect(pending.single.retryCount, 1);
+    expect(pending.single.createdAt.isUtc, isTrue);
+  });
+
+  test('removes drafts from another user or tenant session', () async {
+    await outbox.enqueue(
+      module: 'tmb',
+      sessionId: 9,
+      questionId: 2,
+      payload: const {'opsi_id': 20},
+    );
+
+    await outbox.bindSession(userId: 2, tenantUuid: 'tenant-b');
+
+    expect(outbox.pending('tmb', 9), isEmpty);
+    expect(box.values, isEmpty);
+  });
 }

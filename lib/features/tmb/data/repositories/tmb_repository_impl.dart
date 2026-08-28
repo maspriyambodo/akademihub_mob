@@ -212,6 +212,7 @@ class TmbRepositoryImpl implements TmbRepository {
         );
         await _outbox.acknowledge(operation);
       } on Object {
+        await _outbox.recordRetry(operation);
         return;
       }
     }
