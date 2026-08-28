@@ -6,6 +6,7 @@ import '../../../../core/utils/responsive.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/jadwal_bloc.dart';
 import '../../domain/entities/jadwal_pelajaran_entity.dart';
+import '../../../presensi/presentation/pages/quick_attendance_page.dart';
 
 class JadwalPage extends StatelessWidget {
   const JadwalPage({super.key});
@@ -120,7 +121,10 @@ class _JadwalViewState extends State<_JadwalView> {
                                           'Tidak ada jadwal pelajaran pada hari '
                                           '${hariLabel(state.selectedHari)}',
                                     )
-                                  : _JadwalList(state: state),
+                                  : _JadwalList(
+                                      state: state,
+                                      isGuru: authState.user.isGuru,
+                                    ),
                             ),
                           ),
                         ),
@@ -218,7 +222,8 @@ class _HariSelector extends StatelessWidget {
 
 class _JadwalList extends StatelessWidget {
   final JadwalLoaded state;
-  const _JadwalList({required this.state});
+  final bool isGuru;
+  const _JadwalList({required this.state, required this.isGuru});
 
   @override
   Widget build(BuildContext context) {
@@ -235,6 +240,7 @@ class _JadwalList extends StatelessWidget {
           isHariIni: state.isHariIni,
           showKelas: state.showKelas,
           isLast: index == state.items.length,
+          canTakeAttendance: isGuru && state.isHariIni,
         );
       },
     );
@@ -308,6 +314,7 @@ class _JadwalCard extends StatelessWidget {
   final bool isHariIni;
   final bool showKelas;
   final bool isLast;
+  final bool canTakeAttendance;
 
   const _JadwalCard({
     required this.item,
@@ -315,6 +322,7 @@ class _JadwalCard extends StatelessWidget {
     required this.isHariIni,
     required this.showKelas,
     required this.isLast,
+    this.canTakeAttendance = false,
   });
 
   @override
@@ -441,6 +449,24 @@ class _JadwalCard extends StatelessWidget {
                         ],
                       ),
                     ),
+                    if (canTakeAttendance) ...[
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          icon: const Icon(Icons.fact_check_outlined),
+                          label: const Text('Quick Attendance'),
+                          onPressed: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => QuickAttendancePage(
+                                jadwal: item,
+                                tanggal: now,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
