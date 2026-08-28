@@ -14,46 +14,12 @@ class AppConfig {
       'http://10.0.2.2:8002/api/$apiVersion';
   static const String _apiBaseUrlProd =
       'https://app-api.akademihub.id/api/$apiVersion';
-  static const String approvedApiDomain = 'akademihub.id';
-
   static String get apiBaseUrl {
     if (!kDebugMode) return _apiBaseUrlProd;
 
     return !kIsWeb && defaultTargetPlatform == TargetPlatform.android
         ? _apiBaseUrlAndroidEmulator
         : _apiBaseUrlLocalhost;
-  }
-
-  static String normalizeApiBaseUrl(
-    String? value, {
-    bool allowDevelopmentHosts = kDebugMode,
-  }) {
-    final uri = Uri.tryParse(value?.trim() ?? '');
-    if (uri == null ||
-        !uri.hasScheme ||
-        uri.host.isEmpty ||
-        uri.userInfo.isNotEmpty ||
-        uri.hasQuery ||
-        uri.hasFragment) {
-      return apiBaseUrl;
-    }
-
-    final host = uri.host.toLowerCase();
-    final isApprovedHost =
-        host == approvedApiDomain || host.endsWith('.$approvedApiDomain');
-    final isDevelopmentHost =
-        allowDevelopmentHosts &&
-        const {'localhost', '127.0.0.1', '10.0.2.2'}.contains(host);
-    final validScheme = isApprovedHost
-        ? uri.scheme == 'https' && (!uri.hasPort || uri.port == 443)
-        : isDevelopmentHost && uri.scheme == 'http';
-    if (!validScheme || (!isApprovedHost && !isDevelopmentHost)) {
-      return apiBaseUrl;
-    }
-
-    final normalized = uri.normalizePath();
-    final path = normalized.path.replaceFirst(RegExp(r'/+$'), '');
-    return normalized.replace(path: path).toString();
   }
 
   // ── Token storage keys ─────────────────────────────────────────────────────

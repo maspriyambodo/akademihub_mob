@@ -5,6 +5,7 @@ import '../api/api_client.dart';
 import '../notifications/push_notification_service.dart';
 import '../storage/token_storage.dart';
 import '../storage/answer_outbox.dart';
+import '../storage/legacy_tenant_migration.dart';
 import '../../features/auth/data/datasources/auth_remote_datasource.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
@@ -192,7 +193,7 @@ Future<void> configureDependencies() async {
   );
   sl.registerLazySingleton(() => secureStorage);
   final prefs = await SharedPreferences.getInstance();
-  await prefs.remove('active_tenant');
+  await migrateLegacyTenantState(prefs, secureStorage);
 
   // ── Core ──────────────────────────────────────────────────────────────────
   final apiClient = ApiClient(secureStorage);
