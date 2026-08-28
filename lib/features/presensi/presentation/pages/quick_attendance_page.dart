@@ -74,6 +74,8 @@ class _QuickAttendancePageState extends State<QuickAttendancePage> {
   }
 
   Future<void> _save() async {
+    // Filter out unset status (0) — only send valid status values 1-4
+    _changes.removeWhere((_, v) => v < 1 || v > 4);
     if (_changes.isEmpty) return;
     setState(() => _loading = true);
     try {
@@ -198,8 +200,8 @@ class _QuickAttendancePageState extends State<QuickAttendancePage> {
                                     setState(() => _changes[id] = value!),
                           items: const [
                             DropdownMenuItem(value: 1, child: Text('Hadir')),
-                            DropdownMenuItem(value: 2, child: Text('Izin')),
-                            DropdownMenuItem(value: 3, child: Text('Sakit')),
+                            DropdownMenuItem(value: 2, child: Text('Sakit')),
+                            DropdownMenuItem(value: 3, child: Text('Izin')),
                             DropdownMenuItem(value: 4, child: Text('Alpha')),
                           ],
                         ),

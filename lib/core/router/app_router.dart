@@ -256,8 +256,21 @@ final router = GoRouter(
       path: AppRoutes.siswaInsight,
       builder: (context, state) {
         final id = int.tryParse(state.pathParameters['id'] ?? '');
-        if (id == null) {
+        if (id == null || id <= 0) {
           return const _SiswaInsightMissingId();
+        }
+        // Validate ownership: only allow the student's own ID, admin/guru
+        // with permission, or a guardian's bound child ID.
+        final authState = context.read<AuthBloc>().state;
+        if (authState is AuthAuthenticated) {
+          final user = authState.user;
+          final profile = user.profile;
+          final ownSiswaId = profile?['siswa_id'] ?? profile?['id'];
+          final isSelf = user.isSiswa && ownSiswaId == id;
+          final hasPermission = user.hasPermission('siswa.view');
+          if (!isSelf && !hasPermission) {
+            return const _SiswaInsightAccessDenied();
+          }
         }
         return SiswaInsightPage(siswaId: id);
       },
@@ -273,6 +286,18 @@ class _SiswaInsightMissingId extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Insight 360°'), centerTitle: true),
       body: const Center(child: Text('ID siswa tidak valid')),
+    );
+  }
+}
+
+class _SiswaInsightAccessDenied extends StatelessWidget {
+  const _SiswaInsightAccessDenied();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Insight 360°'), centerTitle: true),
+      body: const Center(child: Text('Anda tidak memiliki akses ke data siswa ini')),
     );
   }
 }

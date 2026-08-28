@@ -93,6 +93,10 @@ class _AuthInterceptor extends Interceptor {
     if (err.response?.statusCode == 401) {
       final path = err.requestOptions.path;
       final isRetry = err.requestOptions.extra['is_retry'] == true;
+      final allowPostRetry =
+          err.requestOptions.extra['idempotent_retry'] == true ||
+          path.contains('/akademik/absensi-siswa/check-in') ||
+          path.contains('/akademik/absensi-siswa/check-out');
 
       // Jangan refresh token saat login, register, refresh, logout gagal, atau jika request sudah retry.
       if (path.contains('/auth/login') ||
@@ -113,7 +117,9 @@ class _AuthInterceptor extends Interceptor {
         }
 
         final opts = err.requestOptions;
-        if (!_safeRetryMethods.contains(opts.method.toUpperCase())) {
+        final isSafeMethod =
+            _safeRetryMethods.contains(opts.method.toUpperCase());
+        if (!isSafeMethod && !allowPostRetry) {
           return handler.next(err);
         }
         opts.headers['Authorization'] = 'Bearer $newToken';

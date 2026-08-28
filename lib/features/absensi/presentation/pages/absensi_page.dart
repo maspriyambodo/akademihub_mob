@@ -111,7 +111,24 @@ class _AbsensiViewState extends State<_AbsensiView> {
           ),
           // ── Content ────────────────────────────────────────────────────
           Expanded(
-            child: BlocBuilder<AbsensiBloc, AbsensiState>(
+            child: BlocConsumer<AbsensiBloc, AbsensiState>(
+              listener: (context, state) {
+                if (state is AbsensiLoaded && state.mutationMessage != null) {
+                  ScaffoldMessenger.of(context)
+                    ..hideCurrentSnackBar()
+                    ..showSnackBar(
+                      SnackBar(
+                        content: Text(state.mutationMessage!),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                }
+              },
+              listenWhen: (prev, curr) {
+                final prevMsg = prev is AbsensiLoaded ? prev.mutationMessage : null;
+                final currMsg = curr is AbsensiLoaded ? curr.mutationMessage : null;
+                return currMsg != null && currMsg != prevMsg;
+              },
               builder: (context, state) {
                 if (state is AbsensiLoading || state is AbsensiInitial) {
                   return const Center(child: CircularProgressIndicator());
@@ -328,14 +345,78 @@ class _CheckInPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final checkedIn = attendance?.jamMasuk != null;
-    final checkedOut = attendance?.jamPulang != null;
-    final color = checkedIn ? AppColors.success : AppColors.primary;
-    final label = checkedOut
-        ? 'Absensi hari ini selesai'
-        : checkedIn
-        ? '${attendance?.shiftNama ?? 'Shift'} • Check-in ${attendance!.jamMasuk}'
-        : 'Belum check-in hari ini';
+    final a = attendance;
+    final checkedIn = a?.jamMasuk != null;
+    final checkedOut = a?.jamPulang != null;
+    final isFinalStatus = a != null &&
+        !a.statusAbsensi.toLowerCase().contains('hadir') &&
+        a.statusAbsensi.isNotEmpty;
+
+    // Determine if checkout time has been reached using jadwalJamPulang.
+    // This is a UI hint; backend enforces the real rule.
+    final waitingForCheckout = checkedIn && !checkedOut && !isFinalStatus;
+    bool checkoutTimeReached = true;
+    if (waitingForCheckout && a?.jadwalJamPulang != null) {
+      final now = TimeOfDay.now();
+      final parts = a!.jadwalJamPulang!.split(':');
+      if (parts.length >= 2) {
+        final schedHour = int.tryParse(parts[0]) ?? 0;
+        final schedMin = int.tryParse(parts[1]) ?? 0;
+        checkoutTimeReached =
+            now.hour > schedHour ||
+            (now.hour == schedHour && now.minute >= schedMin);
+      }
+    }
+
+    // Panel state labels
+    final String label;
+    final Color color;
+    final IconData icon;
+    final bool actionEnabled;
+    final String buttonLabel;
+    final bool isCheckOut;
+
+    if (isFinalStatus) {
+      label = 'Status: ${a.statusAbsensi}';
+      color = AppColors.warning;
+      icon = Icons.info_outline;
+      actionEnabled = false;
+      buttonLabel = a.statusAbsensi;
+      isCheckOut = false;
+    } else if (checkedOut) {
+      label = 'Absensi hari ini selesai';
+      color = AppColors.success;
+      icon = Icons.check_circle;
+      actionEnabled = false;
+      buttonLabel = 'Selesai';
+      isCheckOut = false;
+    } else if (waitingForCheckout && !checkoutTimeReached) {
+      final shift = a?.shiftNama ?? 'Shift';
+      final pulang = a?.jadwalJamPulang ?? '-';
+      final tz = a?.timezone;
+      label = '$shift • Check-in ${a!.jamMasuk}\n'
+          'Pulang mulai $pulang${tz != null ? ' ($tz)' : ''}';
+      color = AppColors.success;
+      icon = Icons.check_circle;
+      actionEnabled = false;
+      buttonLabel = 'Menunggu';
+      isCheckOut = true;
+    } else if (checkedIn) {
+      final shift = a?.shiftNama ?? 'Shift';
+      label = '$shift • Check-in ${a!.jamMasuk}';
+      color = AppColors.success;
+      icon = Icons.check_circle;
+      actionEnabled = !actionInProgress;
+      buttonLabel = 'Check-out';
+      isCheckOut = true;
+    } else {
+      label = 'Belum check-in hari ini';
+      color = AppColors.primary;
+      icon = Icons.how_to_reg;
+      actionEnabled = !actionInProgress;
+      buttonLabel = 'Check-in';
+      isCheckOut = false;
+    }
 
     return Container(
       margin: EdgeInsets.fromLTRB(
@@ -352,11 +433,7 @@ class _CheckInPanel extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(
-            checkedIn ? Icons.check_circle : Icons.how_to_reg,
-            color: color,
-            size: 28,
-          ),
+          Icon(icon, color: color, size: 28),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -365,17 +442,17 @@ class _CheckInPanel extends StatelessWidget {
             ),
           ),
           FilledButton(
-            onPressed: actionInProgress || checkedOut
-                ? null
-                : () => context.read<AbsensiBloc>().add(
-                    checkedIn
-                        ? const AbsensiCheckOutRequested()
-                        : const AbsensiCheckInRequested(),
-                  ),
+            onPressed: actionEnabled
+                ? () => context.read<AbsensiBloc>().add(
+                      isCheckOut
+                          ? const AbsensiCheckOutRequested()
+                          : const AbsensiCheckInRequested(),
+                    )
+                : null,
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
-              minimumSize: const Size(0, 44),
+              minimumSize: const Size(0, 48),
               padding: const EdgeInsets.symmetric(horizontal: 14),
             ),
             child: actionInProgress
@@ -383,13 +460,7 @@ class _CheckInPanel extends StatelessWidget {
                     dimension: 18,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : Text(
-                    checkedOut
-                        ? 'Selesai'
-                        : checkedIn
-                        ? 'Check-out'
-                        : 'Check-in',
-                  ),
+                : Text(buttonLabel),
           ),
         ],
       ),

@@ -84,8 +84,8 @@ class AbsensiSiswaModel {
     if (label is String && label.isNotEmpty) return label;
     return switch ((json['status'] as num?)?.toInt()) {
       1 => 'Hadir',
-      2 => 'Izin',
-      3 => 'Sakit',
+      2 => 'Sakit',
+      3 => 'Izin',
       4 => 'Alpha',
       _ => '',
     };

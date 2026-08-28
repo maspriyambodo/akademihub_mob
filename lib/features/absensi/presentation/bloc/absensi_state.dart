@@ -26,6 +26,11 @@ class AbsensiLoaded extends AbsensiState {
   final int tahun;
   final String role;
   final AbsensiSiswaEntity? currentAttendance;
+  final String? mutationMessage;
+  final String? mutationErrorCode;
+  final Map<String, dynamic> mutationErrorDetails;
+  final AttendanceSettingsTarget? settingsTarget;
+  final bool showContactOfficer;
 
   const AbsensiLoaded({
     required this.summary,
@@ -35,9 +40,57 @@ class AbsensiLoaded extends AbsensiState {
     required this.tahun,
     required this.role,
     this.currentAttendance,
+    this.mutationMessage,
+    this.mutationErrorCode,
+    this.mutationErrorDetails = const {},
+    this.settingsTarget,
+    this.showContactOfficer = false,
   });
 
   bool get isGuruMode => role == 'guru';
+
+  AbsensiLoaded copyWith({
+    AbsensiSummaryEntity? summary,
+    List<AbsensiSiswaEntity>? siswaItems,
+    List<AbsensiGuruEntity>? guruItems,
+    int? bulan,
+    int? tahun,
+    String? role,
+    AbsensiSiswaEntity? currentAttendance,
+    bool clearCurrentAttendance = false,
+    String? mutationMessage,
+    bool clearMutationMessage = false,
+    String? mutationErrorCode,
+    bool clearMutationErrorCode = false,
+    Map<String, dynamic>? mutationErrorDetails,
+    AttendanceSettingsTarget? settingsTarget,
+    bool clearSettingsTarget = false,
+    bool? showContactOfficer,
+  }) {
+    return AbsensiLoaded(
+      summary: summary ?? this.summary,
+      siswaItems: siswaItems ?? this.siswaItems,
+      guruItems: guruItems ?? this.guruItems,
+      bulan: bulan ?? this.bulan,
+      tahun: tahun ?? this.tahun,
+      role: role ?? this.role,
+      currentAttendance: clearCurrentAttendance
+          ? null
+          : (currentAttendance ?? this.currentAttendance),
+      mutationMessage: clearMutationMessage
+          ? null
+          : (mutationMessage ?? this.mutationMessage),
+      mutationErrorCode: clearMutationErrorCode
+          ? null
+          : (mutationErrorCode ?? this.mutationErrorCode),
+      mutationErrorDetails:
+          mutationErrorDetails ?? this.mutationErrorDetails,
+      settingsTarget: clearSettingsTarget
+          ? null
+          : (settingsTarget ?? this.settingsTarget),
+      showContactOfficer: showContactOfficer ?? this.showContactOfficer,
+    );
+  }
 
   @override
   List<Object?> get props => [
@@ -48,6 +101,11 @@ class AbsensiLoaded extends AbsensiState {
     tahun,
     role,
     currentAttendance,
+    mutationMessage,
+    mutationErrorCode,
+    mutationErrorDetails,
+    settingsTarget,
+    showContactOfficer,
   ];
 }
 

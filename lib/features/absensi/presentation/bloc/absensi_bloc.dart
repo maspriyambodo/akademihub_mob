@@ -6,6 +6,7 @@ import '../../domain/entities/absensi_summary_entity.dart';
 import '../../domain/usecases/get_absensi_siswa_usecase.dart';
 import '../../domain/usecases/get_absensi_guru_usecase.dart';
 import '../../data/services/attendance_location_service.dart';
+import '../../../../core/error/failures.dart';
 
 part 'absensi_event.dart';
 part 'absensi_state.dart';
@@ -46,19 +47,20 @@ class AbsensiBloc extends Bloc<AbsensiEvent, AbsensiState> {
     Emitter<AbsensiState> emit,
   ) async {
     if (_role != 'siswa' || _actionInProgress) return;
+    final previous = _buildLoadedForCurrentMonth();
     _actionInProgress = true;
-    emit(AbsensiActionInProgress(_buildLoadedForCurrentMonth()));
+    emit(AbsensiActionInProgress(previous));
     try {
       final location = await locationService.capture();
       final result = await checkIn(location);
       if (!result.isSuccess) {
-        emit(AbsensiError(result.requireFailure.message));
+        _emitMutationFailure(previous, result.requireFailure, emit);
         return;
       }
       _currentAttendance = result.requireData;
       await _fetchAndEmit(DateTime.now().month, DateTime.now().year, emit);
     } catch (error) {
-      emit(_locationError(error));
+      _emitLocationFailure(previous, error, emit);
     } finally {
       _actionInProgress = false;
     }
@@ -69,42 +71,79 @@ class AbsensiBloc extends Bloc<AbsensiEvent, AbsensiState> {
     Emitter<AbsensiState> emit,
   ) async {
     if (_role != 'siswa' || _actionInProgress) return;
+    final previous = _buildLoadedForCurrentMonth();
     _actionInProgress = true;
-    emit(AbsensiActionInProgress(_buildLoadedForCurrentMonth()));
+    emit(AbsensiActionInProgress(previous));
     try {
       final location = await locationService.capture();
       final result = await checkOut(location);
       if (!result.isSuccess) {
-        emit(AbsensiError(result.requireFailure.message));
+        _emitMutationFailure(previous, result.requireFailure, emit);
         return;
       }
       _currentAttendance = result.requireData;
       await _fetchAndEmit(DateTime.now().month, DateTime.now().year, emit);
     } catch (error) {
-      emit(_locationError(error));
+      _emitLocationFailure(previous, error, emit);
     } finally {
       _actionInProgress = false;
     }
   }
 
+  void _emitMutationFailure(
+    AbsensiLoaded previous,
+    Failure failure,
+    Emitter<AbsensiState> emit,
+  ) {
+    if (failure is AbsensiFailure) {
+      if (failure.refreshRequired) {
+        add(const AbsensiRefreshRequested());
+      }
+      emit(previous.copyWith(
+        mutationMessage: failure.message,
+        mutationErrorCode: failure.code,
+        mutationErrorDetails: failure.details,
+        clearSettingsTarget: true,
+        showContactOfficer: failure.code.contains('unavailable'),
+      ));
+      return;
+    }
+    emit(previous.copyWith(
+      mutationMessage: failure.message,
+      clearMutationErrorCode: true,
+      clearSettingsTarget: true,
+    ));
+  }
+
+  void _emitLocationFailure(
+    AbsensiLoaded previous,
+    Object error,
+    Emitter<AbsensiState> emit,
+  ) {
+    if (error is AttendanceLocationException) {
+      emit(previous.copyWith(
+        mutationMessage: error.message,
+        mutationErrorCode: 'location_exception',
+        settingsTarget: error.settingsTarget,
+        clearSettingsTarget: error.settingsTarget == null,
+        showContactOfficer:
+            error.settingsTarget == AttendanceSettingsTarget.app,
+      ));
+      return;
+    }
+    emit(previous.copyWith(
+      mutationMessage:
+          'Lokasi tidak dapat diperoleh. Coba lagi di area terbuka.',
+      clearMutationErrorCode: true,
+      clearSettingsTarget: true,
+    ));
+  }
+
   AbsensiLoaded _buildLoadedForCurrentMonth() {
     final current = state;
     if (current is AbsensiLoaded) return current;
+    if (current is AbsensiActionInProgress) return current.previous;
     return _buildLoaded(DateTime.now().month, DateTime.now().year);
-  }
-
-  AbsensiError _locationError(Object error) {
-    if (error is AttendanceLocationException) {
-      return AbsensiError(
-        error.message,
-        settingsTarget: error.settingsTarget,
-        showContactOfficer:
-            error.settingsTarget == AttendanceSettingsTarget.app,
-      );
-    }
-    return const AbsensiError(
-      'Lokasi tidak dapat diperoleh. Coba lagi di area terbuka.',
-    );
   }
 
   Future<void> _onLoad(
@@ -170,6 +209,7 @@ class AbsensiBloc extends Bloc<AbsensiEvent, AbsensiState> {
       final result = await getSiswaList(_profileId!);
       if (result.isSuccess) {
         _allSiswaItems = result.requireData;
+        _reconcileCurrentAttendance();
         emit(_buildLoaded(bulan, tahun));
       } else {
         emit(AbsensiError(result.requireFailure.message));
@@ -191,11 +231,38 @@ class AbsensiBloc extends Bloc<AbsensiEvent, AbsensiState> {
       final result = await getSiswaGeneral(tanggalFrom: from, tanggalTo: to);
       if (result.isSuccess) {
         _allSiswaItems = result.requireData;
+        _reconcileCurrentAttendance();
         emit(_buildLoaded(bulan, tahun));
       } else {
         emit(AbsensiError(result.requireFailure.message));
       }
     }
+  }
+
+  /// After fetching list, pick today's record as currentAttendance so that
+  /// the panel shows the correct state even after app restart.
+  void _reconcileCurrentAttendance() {
+    if (_currentAttendance != null) {
+      for (final e in _allSiswaItems) {
+        if (e.id == _currentAttendance!.id ||
+            e.tanggal == _currentAttendance!.tanggal) {
+          _currentAttendance = e;
+          return;
+        }
+      }
+    }
+    final now = DateTime.now();
+    final todayStr =
+        '${now.year.toString().padLeft(4, '0')}-'
+        '${now.month.toString().padLeft(2, '0')}-'
+        '${now.day.toString().padLeft(2, '0')}';
+    for (final e in _allSiswaItems) {
+      if (e.tanggal == todayStr) {
+        _currentAttendance = e;
+        return;
+      }
+    }
+    _currentAttendance = null;
   }
 
   AbsensiLoaded _buildLoaded(int bulan, int tahun) {

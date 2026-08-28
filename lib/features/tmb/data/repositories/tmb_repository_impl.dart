@@ -203,6 +203,13 @@ class TmbRepositoryImpl implements TmbRepository {
   Future<void> _flush(int pesertaId) async {
     for (final operation in _outbox.pending('tmb', pesertaId)) {
       try {
+        // ponytail: backoff caps at ~8s; upgrade to isolate worker if needed
+        if (operation.retryCount > 0) {
+          final delay = Duration(
+            milliseconds: 500 * (1 << operation.retryCount.clamp(0, 4)),
+          );
+          await Future<void>.delayed(delay);
+        }
         final payload = operation.payload;
         await _remote.kirimJawaban(
           pesertaId: pesertaId,
@@ -211,6 +218,14 @@ class TmbRepositoryImpl implements TmbRepository {
           jawabanTeks: payload['jawaban_teks']?.toString(),
         );
         await _outbox.acknowledge(operation);
+      } on DioException catch (e) {
+        final code = e.response?.statusCode ?? 0;
+        if (code >= 400 && code < 500 && code != 401 && code != 408 && code != 429) {
+          await _outbox.acknowledge(operation);
+        } else {
+          await _outbox.recordRetry(operation);
+        }
+        return;
       } on Object {
         await _outbox.recordRetry(operation);
         return;

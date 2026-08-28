@@ -174,6 +174,13 @@ class UjianRepositoryImpl implements UjianRepository {
   Future<void> _flush(int sesiId) async {
     for (final operation in _outbox.pending('cbt', sesiId)) {
       try {
+        // ponytail: backoff caps at ~8s; upgrade to isolate worker if needed
+        if (operation.retryCount > 0) {
+          final delay = Duration(
+            milliseconds: 500 * (1 << operation.retryCount.clamp(0, 4)),
+          );
+          await Future<void>.delayed(delay);
+        }
         final payload = operation.payload;
         await _remote.saveJawaban(
           sesiId: sesiId,
@@ -183,6 +190,15 @@ class UjianRepositoryImpl implements UjianRepository {
           raguRagu: payload['ragu_ragu'] == true,
         );
         await _outbox.acknowledge(operation);
+      } on DioException catch (e) {
+        final code = e.response?.statusCode ?? 0;
+        if (code >= 400 && code < 500 && code != 401 && code != 408 && code != 429) {
+          // Non-retryable client error — drop to prevent infinite loop.
+          await _outbox.acknowledge(operation);
+        } else {
+          await _outbox.recordRetry(operation);
+        }
+        return;
       } on Object {
         await _outbox.recordRetry(operation);
         return;
