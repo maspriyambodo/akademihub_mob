@@ -40,8 +40,8 @@ class AbsensiRemoteDataSourceImpl implements AbsensiRemoteDataSource {
   @override
   Future<List<AbsensiSiswaModel>> getAbsensiSiswaList(int siswaId) async {
     final response = await _dio.get(
-      '/akademik/absensi-siswa',
-      queryParameters: {'mst_siswa_id': siswaId, 'per_page': 100},
+      '/akademik/absensi-siswa/siswa/$siswaId',
+      queryParameters: {'per_page': 100},
     );
     final list = _extractList(response.data);
     return list
@@ -52,8 +52,8 @@ class AbsensiRemoteDataSourceImpl implements AbsensiRemoteDataSource {
   @override
   Future<List<AbsensiGuruModel>> getAbsensiGuruList(int guruId) async {
     final response = await _dio.get(
-      '/akademik/absensi-guru',
-      queryParameters: {'mst_guru_id': guruId, 'per_page': 100},
+      '/akademik/absensi-guru/guru/$guruId',
+      queryParameters: {'per_page': 100},
     );
     final list = _extractList(response.data);
     return list

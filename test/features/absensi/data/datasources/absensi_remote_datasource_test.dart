@@ -101,4 +101,61 @@ void main() {
     expect(captured?.path, '/akademik/absensi-siswa/check-out');
     expect(captured?.data, location.toJson());
   });
+
+  test('riwayat siswa memakai path ownership canonical', () async {
+    final dio = Dio(BaseOptions(baseUrl: 'https://school.test/api/v1'));
+    RequestOptions? captured;
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          captured = options;
+          handler.resolve(
+            Response(
+              requestOptions: options,
+              statusCode: 200,
+              data: {'data': <Map<String, dynamic>>[]},
+            ),
+          );
+        },
+      ),
+    );
+
+    await AbsensiRemoteDataSourceImpl(dio).getAbsensiSiswaList(17);
+
+    expect(captured?.method, 'GET');
+    expect(captured?.path, '/akademik/absensi-siswa/siswa/17');
+    expect(captured?.queryParameters, {'per_page': 100});
+    expect(captured?.queryParameters, isNot(contains('mst_siswa_id')));
+  });
+
+  test('riwayat guru memakai path ownership canonical', () async {
+    final dio = Dio(BaseOptions(baseUrl: 'https://school.test/api/v1'));
+    RequestOptions? captured;
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          captured = options;
+          handler.resolve(
+            Response(
+              requestOptions: options,
+              statusCode: 200,
+              data: {
+                'data': {
+                  'data': <Map<String, dynamic>>[],
+                  'meta': {'total': 0},
+                },
+              },
+            ),
+          );
+        },
+      ),
+    );
+
+    await AbsensiRemoteDataSourceImpl(dio).getAbsensiGuruList(23);
+
+    expect(captured?.method, 'GET');
+    expect(captured?.path, '/akademik/absensi-guru/guru/23');
+    expect(captured?.queryParameters, {'per_page': 100});
+    expect(captured?.queryParameters, isNot(contains('mst_guru_id')));
+  });
 }
