@@ -30,6 +30,19 @@ class AbsensiRepositoryImpl implements AbsensiRepository {
       return success(null);
     } on DioException catch (e) {
       return fail(_map(mapDioException(e)));
+    } on Object catch (e) {
+      return fail(ServerFailure(_locationMessage(e)));
+    }
+  }
+
+  @override
+  Future<Result<AbsensiSiswaEntity?>> getCurrentAttendance() async {
+    try {
+      return success((await _remote.getCurrentAttendance())?.toEntity());
+    } on DioException catch (e) {
+      return fail(_map(mapDioException(e)));
+    } on Object catch (e) {
+      return fail(ServerFailure(_locationMessage(e)));
     }
   }
 
@@ -77,4 +90,12 @@ class AbsensiRepositoryImpl implements AbsensiRepository {
     if (e is ForbiddenException) return ForbiddenFailure(e.message);
     return ServerFailure(e.message);
   }
+
+  String _locationMessage(Object error) => switch (error) {
+    LocationServiceDisabledException() =>
+      'Aktifkan layanan lokasi lalu coba lagi',
+    PermissionDeniedException(:final message) => message,
+    LocationAccuracyException(:final message) => message,
+    _ => 'Gagal mengambil lokasi terbaru',
+  };
 }

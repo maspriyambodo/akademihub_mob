@@ -322,10 +322,18 @@ void main() {
     );
 
     test(
-      '12. Self check-in uses canonical endpoint without client parameters',
+      '12. Self check-in uses canonical endpoint with fresh location payload',
       () async {
         final dio = Dio(BaseOptions(baseUrl: 'https://school.test/api/v1'));
-        final ds = AbsensiRemoteDataSourceImpl(dio);
+        final ds = AbsensiRemoteDataSourceImpl(
+          dio,
+          locationPayloadProvider: () async => {
+            'latitude': -6.2,
+            'longitude': 106.8,
+            'accuracy_meter': 12.4,
+            'captured_at': '2026-08-28T08:00:00.000Z',
+          },
+        );
         RequestOptions? captured;
 
         dio.interceptors.add(
@@ -356,6 +364,12 @@ void main() {
         );
         expect(captured?.method, 'POST');
         expect(captured?.path, '/akademik/absensi-siswa/check-in');
+        expect(captured?.data, {
+          'latitude': -6.2,
+          'longitude': 106.8,
+          'accuracy_meter': 12.4,
+          'captured_at': '2026-08-28T08:00:00.000Z',
+        });
       },
     );
 

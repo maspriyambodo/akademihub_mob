@@ -259,7 +259,7 @@ class _LoadedView extends StatelessWidget {
               if (isSiswa && isCurrentMonth)
                 SliverToBoxAdapter(
                   child: _CheckInPanel(
-                    items: state.siswaItems,
+                    attendance: state.currentAttendance,
                     actionInProgress: actionInProgress,
                   ),
                 ),
@@ -315,24 +315,23 @@ class _LoadedView extends StatelessWidget {
 }
 
 class _CheckInPanel extends StatelessWidget {
-  final List<AbsensiSiswaEntity> items;
+  final AbsensiSiswaEntity? attendance;
   final bool actionInProgress;
 
-  const _CheckInPanel({required this.items, required this.actionInProgress});
+  const _CheckInPanel({
+    required this.attendance,
+    required this.actionInProgress,
+  });
 
   @override
   Widget build(BuildContext context) {
-    // Data terakhir berasal dari tanggal sekolah yang dihitung backend.
-    final today = items.isEmpty
-        ? null
-        : items.reduce((a, b) => a.tanggal.compareTo(b.tanggal) >= 0 ? a : b);
-    final checkedIn = today?.jamMasuk != null;
-    final checkedOut = today?.jamPulang != null;
+    final checkedIn = attendance?.jamMasuk != null;
+    final checkedOut = attendance?.jamPulang != null;
     final color = checkedIn ? AppColors.success : AppColors.primary;
     final label = checkedOut
         ? 'Absensi hari ini selesai'
         : checkedIn
-        ? '${today?.shiftNama ?? 'Shift'} • Check-in ${today!.jamMasuk}'
+        ? '${attendance?.shiftNama ?? 'Shift'} • Check-in ${attendance!.jamMasuk}'
         : 'Belum check-in hari ini';
 
     return Container(
