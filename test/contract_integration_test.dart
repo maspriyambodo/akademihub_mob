@@ -325,15 +325,7 @@ void main() {
       '12. Self check-in uses canonical endpoint with fresh location payload',
       () async {
         final dio = Dio(BaseOptions(baseUrl: 'https://school.test/api/v1'));
-        final ds = AbsensiRemoteDataSourceImpl(
-          dio,
-          locationPayloadProvider: () async => {
-            'latitude': -6.2,
-            'longitude': 106.8,
-            'accuracy_meter': 12.4,
-            'captured_at': '2026-08-28T08:00:00.000Z',
-          },
-        );
+        final ds = AbsensiRemoteDataSourceImpl(dio);
         RequestOptions? captured;
 
         dio.interceptors.add(
@@ -358,8 +350,8 @@ void main() {
           AttendanceLocation(
             latitude: -6.2,
             longitude: 106.8,
-            accuracyMeter: 10,
-            capturedAt: DateTime.utc(2026, 8, 16),
+            accuracyMeter: 12.4,
+            capturedAt: DateTime.utc(2026, 8, 28, 8),
           ),
         );
         expect(captured?.method, 'POST');
