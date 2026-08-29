@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_filex/open_filex.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -525,7 +526,7 @@ class _SiswaSessionTabState extends State<_SiswaSessionTab> {
         }
         if (snapshot.hasError) {
           return _ErrorView(
-            message: snapshot.error.toString().replaceFirst('Exception: ', ''),
+            message: _errorMessage(snapshot.error),
             onRetry: _refresh,
           );
         }
@@ -597,6 +598,13 @@ class _SiswaSessionTabState extends State<_SiswaSessionTab> {
         );
       },
     );
+  }
+
+  String _errorMessage(Object? error) {
+    if (error is DioException && error.response?.statusCode == 404) {
+      return 'Sesi ujian tidak ditemukan atau sudah tidak tersedia.';
+    }
+    return error.toString().replaceFirst('Exception: ', '');
   }
 }
 
