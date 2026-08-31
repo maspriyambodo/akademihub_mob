@@ -114,7 +114,6 @@ class _MainShellState extends State<MainShell> {
             }
 
             return Scaffold(
-              extendBody: true,
               body: AnimatedSwitcher(
                 duration: MediaQuery.disableAnimationsOf(context)
                     ? Duration.zero

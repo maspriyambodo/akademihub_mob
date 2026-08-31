@@ -37,6 +37,14 @@ void main() {
       ),
       isA<NetworkException>(),
     );
-    expect(mapDioException(responseError(500, {})), isA<ServerException>());
+    final server = mapDioException(
+      responseError(500, {'message': 'internal database detail'}),
+    );
+    expect(server, isA<ServerException>());
+    expect(
+      server.message,
+      'Server sedang bermasalah. Silakan coba lagi nanti.',
+    );
+    expect(server.message, isNot(contains('database')));
   });
 }

@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/error/exceptions.dart';
 import '../../domain/entities/dashboard_entity.dart';
 import '../../domain/usecases/get_dashboard_usecase.dart';
 
@@ -21,8 +22,12 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     try {
       final data = await _getDashboardData();
       emit(DashboardLoaded(data));
-    } catch (e) {
-      emit(DashboardError(e.toString()));
+    } on AppException catch (error) {
+      emit(DashboardError(error.message));
+    } catch (_) {
+      emit(
+        DashboardError('Terjadi kesalahan tidak terduga. Silakan coba lagi.'),
+      );
     }
   }
 
@@ -33,8 +38,12 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     try {
       final data = await _getDashboardData();
       emit(DashboardLoaded(data));
-    } catch (e) {
-      emit(DashboardError(e.toString()));
+    } on AppException catch (error) {
+      emit(DashboardError(error.message));
+    } catch (_) {
+      emit(
+        DashboardError('Terjadi kesalahan tidak terduga. Silakan coba lagi.'),
+      );
     }
   }
 }

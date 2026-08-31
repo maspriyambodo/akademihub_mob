@@ -48,6 +48,13 @@ AppException mapDioException(DioException e) {
           ? (data['message'] ?? 'Terjadi kesalahan')
           : 'Terjadi kesalahan';
 
+      if (status != null && status >= 500) {
+        return ServerException(
+          'Server sedang bermasalah. Silakan coba lagi nanti.',
+          statusCode: status,
+        );
+      }
+
       if (status == 401) {
         return AuthException(message.toString());
       }
