@@ -11,10 +11,10 @@ void main() {
     expect(dark.useMaterial3, isTrue);
     expect(light.colorScheme.brightness, Brightness.light);
     expect(dark.colorScheme.brightness, Brightness.dark);
-    expect(light.cardTheme.elevation, 1);
+    expect(light.cardTheme.elevation, 0);
     expect(light.navigationBarTheme.height, 76);
-    expect(light.colorScheme.primary, const Color(0xFF086F68));
-    expect(light.colorScheme.secondary, const Color(0xFFF2A93B));
-    expect(light.scaffoldBackgroundColor, const Color(0xFFF8FAFC));
+    expect(light.colorScheme.primary, const Color(0xFF087F8C));
+    expect(light.colorScheme.secondary, const Color(0xFFFFC857));
+    expect(light.scaffoldBackgroundColor, const Color(0xFFF4F7FA));
   });
 }

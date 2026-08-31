@@ -96,12 +96,15 @@ class _DashboardPageState extends State<DashboardPage> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  roleColor,
-                  Color.alphaBlend(Colors.black.withAlpha(40), roleColor),
+                  AppColors.primaryDark,
+                  Color.alphaBlend(
+                    roleColor.withAlpha(145),
+                    AppColors.primaryDark,
+                  ),
                 ],
               ),
               borderRadius: const BorderRadius.vertical(
-                bottom: Radius.circular(32),
+                bottom: Radius.circular(36),
               ),
             ),
           ),

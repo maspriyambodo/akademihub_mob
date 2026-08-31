@@ -99,20 +99,24 @@ class AbsensiBloc extends Bloc<AbsensiEvent, AbsensiState> {
       if (failure.refreshRequired) {
         add(const AbsensiRefreshRequested());
       }
-      emit(previous.copyWith(
-        mutationMessage: failure.message,
-        mutationErrorCode: failure.code,
-        mutationErrorDetails: failure.details,
-        clearSettingsTarget: true,
-        showContactOfficer: failure.code.contains('unavailable'),
-      ));
+      emit(
+        previous.copyWith(
+          mutationMessage: failure.message,
+          mutationErrorCode: failure.code,
+          mutationErrorDetails: failure.details,
+          clearSettingsTarget: true,
+          showContactOfficer: failure.code.contains('unavailable'),
+        ),
+      );
       return;
     }
-    emit(previous.copyWith(
-      mutationMessage: failure.message,
-      clearMutationErrorCode: true,
-      clearSettingsTarget: true,
-    ));
+    emit(
+      previous.copyWith(
+        mutationMessage: failure.message,
+        clearMutationErrorCode: true,
+        clearSettingsTarget: true,
+      ),
+    );
   }
 
   void _emitLocationFailure(
@@ -121,22 +125,26 @@ class AbsensiBloc extends Bloc<AbsensiEvent, AbsensiState> {
     Emitter<AbsensiState> emit,
   ) {
     if (error is AttendanceLocationException) {
-      emit(previous.copyWith(
-        mutationMessage: error.message,
-        mutationErrorCode: 'location_exception',
-        settingsTarget: error.settingsTarget,
-        clearSettingsTarget: error.settingsTarget == null,
-        showContactOfficer:
-            error.settingsTarget == AttendanceSettingsTarget.app,
-      ));
+      emit(
+        previous.copyWith(
+          mutationMessage: error.message,
+          mutationErrorCode: 'location_exception',
+          settingsTarget: error.settingsTarget,
+          clearSettingsTarget: error.settingsTarget == null,
+          showContactOfficer:
+              error.settingsTarget == AttendanceSettingsTarget.app,
+        ),
+      );
       return;
     }
-    emit(previous.copyWith(
-      mutationMessage:
-          'Lokasi tidak dapat diperoleh. Coba lagi di area terbuka.',
-      clearMutationErrorCode: true,
-      clearSettingsTarget: true,
-    ));
+    emit(
+      previous.copyWith(
+        mutationMessage:
+            'Lokasi tidak dapat diperoleh. Coba lagi di area terbuka.',
+        clearMutationErrorCode: true,
+        clearSettingsTarget: true,
+      ),
+    );
   }
 
   AbsensiLoaded _buildLoadedForCurrentMonth() {
@@ -214,6 +222,10 @@ class AbsensiBloc extends Bloc<AbsensiEvent, AbsensiState> {
       } else {
         emit(AbsensiError(result.requireFailure.message));
       }
+    } else if (_role == 'siswa') {
+      emit(
+        const AbsensiError('ID siswa tidak tersedia. Silakan masuk kembali.'),
+      );
     } else if (_role == 'wali') {
       emit(
         const AbsensiError(
@@ -222,7 +234,7 @@ class AbsensiBloc extends Bloc<AbsensiEvent, AbsensiState> {
         ),
       );
     } else {
-      // admin / siswa tanpa profileId memakai endpoint rentang tanggal.
+      // Admin memakai endpoint rentang tanggal.
       final from = '$tahun-${bulan.toString().padLeft(2, '0')}-01';
       final lastDay = DateTime(tahun, bulan + 1, 0).day;
       final to =

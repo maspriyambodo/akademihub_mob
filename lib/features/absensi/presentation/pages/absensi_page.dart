@@ -45,7 +45,7 @@ class _AbsensiViewState extends State<_AbsensiView> {
       final authState = context.read<AuthBloc>().state;
       if (authState is AuthAuthenticated) {
         final user = authState.user;
-        final profileId = user.profile?['id'] as int?;
+        final profileId = user.profileId;
         context.read<AbsensiBloc>().add(
           AbsensiLoadRequested(
             role: user.role ?? 'unknown',
@@ -125,8 +125,12 @@ class _AbsensiViewState extends State<_AbsensiView> {
                 }
               },
               listenWhen: (prev, curr) {
-                final prevMsg = prev is AbsensiLoaded ? prev.mutationMessage : null;
-                final currMsg = curr is AbsensiLoaded ? curr.mutationMessage : null;
+                final prevMsg = prev is AbsensiLoaded
+                    ? prev.mutationMessage
+                    : null;
+                final currMsg = curr is AbsensiLoaded
+                    ? curr.mutationMessage
+                    : null;
                 return currMsg != null && currMsg != prevMsg;
               },
               builder: (context, state) {
@@ -348,7 +352,8 @@ class _CheckInPanel extends StatelessWidget {
     final a = attendance;
     final checkedIn = a?.jamMasuk != null;
     final checkedOut = a?.jamPulang != null;
-    final isFinalStatus = a != null &&
+    final isFinalStatus =
+        a != null &&
         !a.statusAbsensi.toLowerCase().contains('hadir') &&
         a.statusAbsensi.isNotEmpty;
 
@@ -394,7 +399,8 @@ class _CheckInPanel extends StatelessWidget {
       final shift = a?.shiftNama ?? 'Shift';
       final pulang = a?.jadwalJamPulang ?? '-';
       final tz = a?.timezone;
-      label = '$shift • Check-in ${a!.jamMasuk}\n'
+      label =
+          '$shift • Check-in ${a!.jamMasuk}\n'
           'Pulang mulai $pulang${tz != null ? ' ($tz)' : ''}';
       color = AppColors.success;
       icon = Icons.check_circle;
@@ -444,10 +450,10 @@ class _CheckInPanel extends StatelessWidget {
           FilledButton(
             onPressed: actionEnabled
                 ? () => context.read<AbsensiBloc>().add(
-                      isCheckOut
-                          ? const AbsensiCheckOutRequested()
-                          : const AbsensiCheckInRequested(),
-                    )
+                    isCheckOut
+                        ? const AbsensiCheckOutRequested()
+                        : const AbsensiCheckInRequested(),
+                  )
                 : null,
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.primary,

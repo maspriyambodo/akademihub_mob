@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const Color primary = Color(0xFF086F68);
-  static const Color primaryLight = Color(0xFF10A396);
-  static const Color primaryDark = Color(0xFF064E49);
-  static const Color secondary = Color(0xFFF2A93B);
-  static const Color accent = Color(0xFF5965D8);
+  static const Color primary = Color(0xFF087F8C);
+  static const Color primaryLight = Color(0xFF18D5C4);
+  static const Color primaryDark = Color(0xFF061A2C);
+  static const Color secondary = Color(0xFFFFC857);
+  static const Color accent = Color(0xFF7479FF);
 
   // Role accent colors
   static const Color siswaColor = Color(0xFF00AFC1);
@@ -20,13 +20,13 @@ class AppColors {
   static const Color info = Color(0xFF287CA8);
 
   // Neutral
-  static const Color surface = Color(0xFFF8FAFC);
+  static const Color surface = Color(0xFFF4F7FA);
   static const Color cardBg = Color(0xFFFFFFFF);
-  static const Color divider = Color(0xFFE8EEEC);
-  static const Color textPrimary = Color(0xFF17201E);
-  static const Color textSecondary = Color(0xFF5E6B67);
-  static const Color textHint = Color(0xFF8B9793);
-  static const Color surfaceMuted = Color(0xFFECF3F0);
+  static const Color divider = Color(0xFFDDE8EE);
+  static const Color textPrimary = Color(0xFF102638);
+  static const Color textSecondary = Color(0xFF566B78);
+  static const Color textHint = Color(0xFF8295A0);
+  static const Color surfaceMuted = Color(0xFFE8F2F5);
 }
 
 class AppTheme {
@@ -34,7 +34,7 @@ class AppTheme {
     const scheme = ColorScheme.light(
       primary: AppColors.primary,
       onPrimary: Colors.white,
-      primaryContainer: Color(0xFFD7F0EB),
+      primaryContainer: Color(0xFFD7F8F4),
       onPrimaryContainer: AppColors.primaryDark,
       secondary: AppColors.secondary,
       onSecondary: Colors.white,
@@ -42,7 +42,7 @@ class AppTheme {
       onSurface: AppColors.textPrimary,
       error: AppColors.error,
       outline: AppColors.divider,
-      outlineVariant: Color(0xFFE8ECE6),
+      outlineVariant: Color(0xFFDDE8EE),
     );
 
     final base = ThemeData(useMaterial3: true, colorScheme: scheme);
@@ -50,7 +50,7 @@ class AppTheme {
       scaffoldBackgroundColor: AppColors.surface,
       splashFactory: InkSparkle.splashFactory,
       appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.transparent,
+        backgroundColor: Color(0xF7F4F7FA),
         foregroundColor: AppColors.textPrimary,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -65,16 +65,19 @@ class AppTheme {
         ),
       ),
       cardTheme: CardThemeData(
-        color: AppColors.cardBg,
+        color: const Color(0xF7FFFFFF),
         surfaceTintColor: Colors.transparent,
-        elevation: 1,
-        shadowColor: const Color(0x100F172A),
+        elevation: 0,
+        shadowColor: const Color(0x18061A2C),
         margin: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: Color(0x99DDE8EE)),
+        ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
+          backgroundColor: AppColors.primaryDark,
           foregroundColor: Colors.white,
           disabledBackgroundColor: AppColors.divider,
           disabledForegroundColor: AppColors.textSecondary,
@@ -83,7 +86,7 @@ class AppTheme {
           shadowColor: AppColors.primaryDark.withAlpha(50),
           textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(16),
           ),
         ),
       ),
@@ -119,32 +122,32 @@ class AppTheme {
       iconButtonTheme: IconButtonThemeData(
         style: IconButton.styleFrom(
           foregroundColor: AppColors.textPrimary,
-          focusColor: Color(0xFFD7F0EB),
-          highlightColor: Color(0xFFD7F0EB),
+          focusColor: Color(0xFFD7F8F4),
+          highlightColor: Color(0xFFD7F8F4),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.cardBg,
+        fillColor: const Color(0xEFFFFFFF),
         labelStyle: const TextStyle(color: AppColors.textSecondary),
         floatingLabelStyle: const TextStyle(
           color: AppColors.primary,
           fontWeight: FontWeight.w600,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: AppColors.divider),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: AppColors.divider),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: AppColors.error),
         ),
         contentPadding: const EdgeInsets.symmetric(
@@ -205,7 +208,7 @@ class AppTheme {
       ),
       chipTheme: base.chipTheme.copyWith(
         backgroundColor: AppColors.cardBg,
-        selectedColor: const Color(0xFFD7F0EB),
+        selectedColor: const Color(0xFFD7F8F4),
         side: const BorderSide(color: AppColors.divider),
         labelStyle: const TextStyle(
           color: AppColors.textSecondary,
@@ -226,7 +229,7 @@ class AppTheme {
         ),
       ),
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
-        backgroundColor: AppColors.primary,
+        backgroundColor: AppColors.primaryDark,
         foregroundColor: Colors.white,
         elevation: 1,
         focusElevation: 2,
@@ -251,23 +254,23 @@ class AppTheme {
       navigationBarTheme: NavigationBarThemeData(
         height: 76,
         elevation: 0,
-        backgroundColor: const Color(0xF7FFFFFF),
+        backgroundColor: const Color(0xFA061A2C),
         surfaceTintColor: Colors.transparent,
-        indicatorColor: const Color(0xFFD7F0EB),
+        indicatorColor: const Color(0x3318D5C4),
         indicatorShape: const StadiumBorder(),
         iconTheme: WidgetStateProperty.resolveWith(
           (states) => IconThemeData(
             color: states.contains(WidgetState.selected)
-                ? AppColors.primary
-                : AppColors.textHint,
+                ? AppColors.primaryLight
+                : const Color(0xFF91A8B6),
             size: 22,
           ),
         ),
         labelTextStyle: WidgetStateProperty.resolveWith(
           (states) => TextStyle(
             color: states.contains(WidgetState.selected)
-                ? AppColors.primaryDark
-                : AppColors.textSecondary,
+                ? Colors.white
+                : const Color(0xFF91A8B6),
             fontSize: 11,
             fontWeight: states.contains(WidgetState.selected)
                 ? FontWeight.w700
@@ -276,15 +279,15 @@ class AppTheme {
         ),
       ),
       navigationRailTheme: const NavigationRailThemeData(
-        backgroundColor: AppColors.cardBg,
-        indicatorColor: Color(0xFFD7F0EB),
-        selectedIconTheme: IconThemeData(color: AppColors.primary),
-        unselectedIconTheme: IconThemeData(color: AppColors.textHint),
+        backgroundColor: AppColors.primaryDark,
+        indicatorColor: Color(0x3318D5C4),
+        selectedIconTheme: IconThemeData(color: AppColors.primaryLight),
+        unselectedIconTheme: IconThemeData(color: Color(0xFF91A8B6)),
         selectedLabelTextStyle: TextStyle(
-          color: AppColors.primaryDark,
+          color: Colors.white,
           fontWeight: FontWeight.w700,
         ),
-        unselectedLabelTextStyle: TextStyle(color: AppColors.textSecondary),
+        unselectedLabelTextStyle: TextStyle(color: Color(0xFF91A8B6)),
       ),
       dividerTheme: const DividerThemeData(
         color: AppColors.divider,

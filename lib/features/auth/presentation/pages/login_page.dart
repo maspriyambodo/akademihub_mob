@@ -2,10 +2,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/batas_lebar_konten.dart';
 import '../bloc/auth_bloc.dart';
+
+const _night = Color(0xFF061A2C);
+const _electricCyan = Color(0xFF18D5C4);
+const _sunset = Color(0xFFFFC857);
+const _ultraviolet = Color(0xFF7479FF);
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -71,7 +75,7 @@ class _LoginPageState extends State<LoginPage>
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: _night,
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthError) {
@@ -80,57 +84,62 @@ class _LoginPageState extends State<LoginPage>
             ).showSnackBar(SnackBar(content: Text(state.message)));
           }
         },
-        child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final isSplit = constraints.maxWidth >= 840;
-              final form = _LoginContent(
-                formKey: _formKey,
-                usernameController: _usernameCtrl,
-                passwordController: _passwordCtrl,
-                obscurePassword: _obscurePassword,
-                shortScreen: shortScreen,
-                onTogglePassword: () =>
-                    setState(() => _obscurePassword = !_obscurePassword),
-                onSubmit: _submit,
-              );
-              final content = isSplit
-                  ? Row(
-                      children: [
-                        const Expanded(flex: 5, child: _BrandPanel()),
-                        const SizedBox(width: 56),
-                        Expanded(flex: 4, child: form),
-                      ],
-                    )
-                  : form;
+        child: Stack(
+          children: [
+            const Positioned.fill(child: _FutureBackground()),
+            SafeArea(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final isSplit = constraints.maxWidth >= 840;
+                  final form = _LoginContent(
+                    formKey: _formKey,
+                    usernameController: _usernameCtrl,
+                    passwordController: _passwordCtrl,
+                    obscurePassword: _obscurePassword,
+                    shortScreen: shortScreen,
+                    onTogglePassword: () =>
+                        setState(() => _obscurePassword = !_obscurePassword),
+                    onSubmit: _submit,
+                  );
+                  final content = isSplit
+                      ? Row(
+                          children: [
+                            const Expanded(flex: 5, child: _BrandPanel()),
+                            const SizedBox(width: 56),
+                            Expanded(flex: 4, child: form),
+                          ],
+                        )
+                      : form;
 
-              return SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(
-                  pagePadding.left + 8,
-                  pagePadding.top,
-                  pagePadding.right + 8,
-                  pagePadding.bottom + keyboardInset,
-                ),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight - pagePadding.vertical,
-                  ),
-                  child: BatasLebarKonten(
-                    maxWidth: isSplit ? 1080 : 520,
-                    child: reduceMotion
-                        ? content
-                        : FadeTransition(
-                            opacity: _fadeAnimation,
-                            child: SlideTransition(
-                              position: _slideAnimation,
-                              child: content,
-                            ),
-                          ),
-                  ),
-                ),
-              );
-            },
-          ),
+                  return SingleChildScrollView(
+                    padding: EdgeInsets.fromLTRB(
+                      pagePadding.left + 8,
+                      pagePadding.top,
+                      pagePadding.right + 8,
+                      pagePadding.bottom + keyboardInset,
+                    ),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight - pagePadding.vertical,
+                      ),
+                      child: BatasLebarKonten(
+                        maxWidth: isSplit ? 1080 : 520,
+                        child: reduceMotion
+                            ? content
+                            : FadeTransition(
+                                opacity: _fadeAnimation,
+                                child: SlideTransition(
+                                  position: _slideAnimation,
+                                  child: content,
+                                ),
+                              ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -146,8 +155,20 @@ class _BrandPanel extends StatelessWidget {
       height: 560,
       padding: const EdgeInsets.fromLTRB(48, 48, 48, 56),
       decoration: BoxDecoration(
-        color: AppColors.primaryDark,
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF123B59), Color(0xFF092338)],
+        ),
         borderRadius: BorderRadius.circular(34),
+        border: Border.all(color: Color(0x3318D5C4)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x4418D5C4),
+            blurRadius: 56,
+            spreadRadius: -24,
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,7 +176,7 @@ class _BrandPanel extends StatelessWidget {
           const _BrandMark(inverse: true),
           const Spacer(),
           Text(
-            'Satu ruang untuk\nsetiap langkah belajar.',
+            'Masa depanmu\ndimulai hari ini.',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               color: Colors.white,
               fontSize: 38,
@@ -165,7 +186,7 @@ class _BrandPanel extends StatelessWidget {
           ),
           const SizedBox(height: 18),
           Text(
-            'Jadwal hari ini, tugas berikutnya, dan perkembangan akademik tetap dekat.',
+            'Semua aktivitas sekolah terhubung dalam satu orbit digital.',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               color: Colors.white.withAlpha(180),
               height: 1.6,
@@ -182,7 +203,7 @@ class _BrandPanel extends StatelessWidget {
               SizedBox(width: 10),
               Flexible(
                 child: Text(
-                  'Data sekolah tersinkron aman',
+                  'Koneksi data sekolah terenkripsi',
                   style: TextStyle(color: Colors.white70),
                 ),
               ),
@@ -222,15 +243,20 @@ class _LoginContent extends StatelessWidget {
         const _BrandMark(),
         SizedBox(height: shortScreen ? 22 : 36),
         Text(
-          'Kembali ke ruang belajar Anda.',
-          style: Theme.of(context).textTheme.headlineSmall,
+          'Selamat datang\nkembali.',
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            color: Colors.white,
+            fontSize: 36,
+            height: 1.04,
+            letterSpacing: -1.2,
+          ),
         ),
         const SizedBox(height: 10),
         Text(
-          'Masuk untuk melihat jadwal, tugas, nilai, dan kabar sekolah terbaru.',
+          'Masuk ke pusat kendali belajarmu.',
           style: Theme.of(
             context,
-          ).textTheme.bodyLarge?.copyWith(color: AppColors.textSecondary),
+          ).textTheme.bodyLarge?.copyWith(color: Colors.white60),
         ),
         SizedBox(height: shortScreen ? 24 : 36),
         _DoubleBezel(
@@ -338,7 +364,10 @@ class _LoginContent extends StatelessWidget {
           alignment: Alignment.center,
           child: Text(
             'AkademiHub · v1.0.0',
-            style: Theme.of(context).textTheme.labelSmall,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: Colors.white38,
+              letterSpacing: 1,
+            ),
           ),
         ),
       ],
@@ -355,26 +384,22 @@ class _DoubleBezel extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: AppColors.primary.withAlpha(10),
+        color: _electricCyan.withAlpha(12),
         borderRadius: BorderRadius.circular(26),
-        border: Border.all(color: AppColors.primary.withAlpha(18)),
+        border: Border.all(color: _electricCyan.withAlpha(50)),
       ),
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: AppColors.cardBg,
+          color: const Color(0xEE102A40),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primaryDark.withAlpha(12),
+              color: Colors.black.withAlpha(70),
               blurRadius: 32,
               offset: const Offset(0, 14),
             ),
-            const BoxShadow(
-              color: Colors.white,
-              blurRadius: 1,
-              offset: Offset(0, -1),
-            ),
+            const BoxShadow(color: Color(0x3318D5C4), blurRadius: 24),
           ],
         ),
         child: child,
@@ -395,16 +420,18 @@ class _BrandMark extends StatelessWidget {
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-            color: inverse ? Colors.white.withAlpha(20) : AppColors.primary,
+            gradient: const LinearGradient(
+              colors: [_electricCyan, _ultraviolet],
+            ),
             borderRadius: BorderRadius.circular(14),
           ),
-          child: const Icon(CupertinoIcons.book, color: Colors.white, size: 21),
+          child: const Icon(CupertinoIcons.book, color: _night, size: 21),
         ),
         const SizedBox(width: 12),
         Text(
           'AKADEMIHUB',
           style: TextStyle(
-            color: inverse ? Colors.white : AppColors.primaryDark,
+            color: Colors.white,
             fontSize: 12,
             fontWeight: FontWeight.w700,
             letterSpacing: 1.4,
@@ -430,4 +457,66 @@ class _ButtonIsland extends StatelessWidget {
       child: const Icon(CupertinoIcons.arrow_right, size: 14),
     );
   }
+}
+
+class _FutureBackground extends StatelessWidget {
+  const _FutureBackground();
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      painter: _GridPainter(),
+      child: Stack(
+        children: const [
+          Positioned(
+            left: -120,
+            top: -100,
+            child: _GlowOrb(color: _electricCyan),
+          ),
+          Positioned(
+            right: -150,
+            top: 220,
+            child: _GlowOrb(color: _ultraviolet),
+          ),
+          Positioned(left: 40, bottom: -190, child: _GlowOrb(color: _sunset)),
+        ],
+      ),
+    );
+  }
+}
+
+class _GlowOrb extends StatelessWidget {
+  final Color color;
+  const _GlowOrb({required this.color});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: 360,
+    height: 360,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      gradient: RadialGradient(
+        colors: [color.withAlpha(50), color.withAlpha(0)],
+      ),
+    ),
+  );
+}
+
+class _GridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withAlpha(7)
+      ..strokeWidth = 1;
+    const gap = 42.0;
+    for (double x = 0; x < size.width; x += gap) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+    for (double y = 0; y < size.height; y += gap) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

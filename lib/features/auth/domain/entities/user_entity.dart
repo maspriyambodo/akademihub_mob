@@ -34,6 +34,16 @@ class UserEntity extends Equatable {
 
   String get primaryRole => role ?? 'unknown';
 
+  int? get profileId {
+    final nestedProfile = profile?['siswa'];
+    final value =
+        profile?['mst_siswa_id'] ??
+        profile?['siswa_id'] ??
+        (nestedProfile is Map ? nestedProfile['id'] : null) ??
+        profile?['id'];
+    return value is int ? value : int.tryParse('$value');
+  }
+
   bool hasPermission(String permission) => permissions.contains(permission);
 
   @override

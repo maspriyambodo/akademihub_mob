@@ -158,4 +158,33 @@ void main() {
     expect(captured?.queryParameters, {'per_page': 100});
     expect(captured?.queryParameters, isNot(contains('mst_guru_id')));
   });
+
+  test('rentang tanggal memakai kontrak body backend', () async {
+    final dio = Dio(BaseOptions(baseUrl: 'https://school.test/api/v1'));
+    RequestOptions? captured;
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          captured = options;
+          handler.resolve(
+            Response(
+              requestOptions: options,
+              statusCode: 200,
+              data: {'data': <Map<String, dynamic>>[]},
+            ),
+          );
+        },
+      ),
+    );
+
+    await AbsensiRemoteDataSourceImpl(dio).getAbsensiSiswaGeneral(
+      tanggalFrom: '2026-08-01',
+      tanggalTo: '2026-08-31',
+    );
+
+    expect(captured?.data, {
+      'tanggal_mulai': '2026-08-01',
+      'tanggal_akhir': '2026-08-31',
+    });
+  });
 }

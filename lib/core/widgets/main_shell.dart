@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../router/app_router.dart';
 import '../utils/responsive.dart';
+import '../theme/app_theme.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 
 class MainShell extends StatefulWidget {
@@ -92,6 +93,8 @@ class _MainShellState extends State<MainShell> {
                           label: 'AkademiHub',
                           child: const CircleAvatar(
                             radius: 22,
+                            backgroundColor: AppColors.primaryLight,
+                            foregroundColor: AppColors.primaryDark,
                             child: Icon(Icons.auto_stories_rounded),
                           ),
                         ),

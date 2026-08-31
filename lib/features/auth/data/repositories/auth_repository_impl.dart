@@ -30,27 +30,27 @@ class AuthRepositoryImpl implements AuthRepository {
       final data = await _remoteDataSource.login(username, password);
       final token = data['access_token'] as String;
       final refreshToken = data['refresh_token'] as String?;
-      final userJson = Map<String, dynamic>.from(
-        data['user'] as Map<String, dynamic>,
-      );
-      // Login is the source of truth for the backend-resolved tenant session.
-      userJson['tenant'] = data['tenant'];
-      final user = UserModel.fromJson(userJson);
-      await _answerOutbox.bindSession(
-        userId: user.id,
-        tenantUuid: user.tenant?.uuid,
-      );
       await _tokenStorage.saveTokens(
         accessToken: token,
         refreshToken: refreshToken,
         origin: AppConfig.extractOrigin(_apiClient.dio.options.baseUrl),
       );
+      // Login berjalan sebelum tenant middleware, sehingga profil role belum
+      // selalu ikut. /auth/me memakai token dan tenant session yang sudah aktif.
+      final user = await _remoteDataSource.getCurrentUser();
+      await _answerOutbox.bindSession(
+        userId: user.id,
+        tenantUuid: user.tenant?.uuid,
+      );
       return success(_userModelToEntity(user));
     } on DioException catch (e) {
+      await _tokenStorage.clearTokens();
       return fail(_mapException(mapDioException(e)));
     } on AppException catch (e) {
+      await _tokenStorage.clearTokens();
       return fail(_mapException(e));
     } on Object {
+      await _tokenStorage.clearTokens();
       return fail(const ServerFailure('Format respons login tidak valid'));
     }
   }

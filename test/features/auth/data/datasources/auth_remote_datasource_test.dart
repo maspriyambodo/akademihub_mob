@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 class _Adapter implements HttpClientAdapter {
   RequestOptions? request;
+  String responseBody = '{"data":{"access_token":"token","user":{}}}';
 
   @override
   Future<ResponseBody> fetch(
@@ -15,7 +16,7 @@ class _Adapter implements HttpClientAdapter {
   ) async {
     request = options;
     return ResponseBody.fromString(
-      '{"data":{"access_token":"token","user":{}}}',
+      responseBody,
       200,
       headers: {
         Headers.contentTypeHeader: [Headers.jsonContentType],
@@ -41,5 +42,20 @@ void main() {
       'username': 'guru01',
       'password': 'secret123',
     });
+  });
+
+  test('current user parses hydrated profile from wrapped response', () async {
+    final dio = Dio(BaseOptions(baseUrl: 'https://api.example.test'));
+    final adapter = _Adapter()
+      ..responseBody = '''
+        {"data":{"id":10,"name":"Siswa","email":"siswa@example.test",
+        "role":"SISWA","profile":{"id":62}}}
+      ''';
+    dio.httpClientAdapter = adapter;
+
+    final user = await AuthRemoteDataSourceImpl(dio).getCurrentUser();
+
+    expect(adapter.request?.path, '/auth/me');
+    expect(user.profile?['id'], 62);
   });
 }

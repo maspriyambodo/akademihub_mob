@@ -68,7 +68,7 @@ class AbsensiRemoteDataSourceImpl implements AbsensiRemoteDataSource {
   }) async {
     final response = await _dio.post(
       '/akademik/absensi-siswa/date-range',
-      data: {'tanggal_awal': tanggalFrom, 'tanggal_akhir': tanggalTo}
+      data: {'tanggal_mulai': tanggalFrom, 'tanggal_akhir': tanggalTo}
         ..removeWhere((_, v) => v == null),
     );
     final list = _extractList(response.data);
