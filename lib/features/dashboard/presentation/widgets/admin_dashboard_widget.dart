@@ -33,22 +33,6 @@ class AdminDashboardWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header
-        Text(
-          'Ringkasan sekolah',
-          style: Theme.of(
-            context,
-          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'Data utama operasional sekolah saat ini',
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
-        ),
-        const SizedBox(height: 20),
-
         // Summary stat cards
         GridView(
           shrinkWrap: true,

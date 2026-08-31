@@ -15,28 +15,11 @@ class WaliDashboardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final profile = data.profile ?? {};
     final children = data.children ?? [];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header
-        Text(
-          'Selamat Datang, ${profile['nama'] ?? 'Wali'}',
-          style: Theme.of(
-            context,
-          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'Dashboard Orang Tua / Wali',
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
-        ),
-        const SizedBox(height: 20),
-
         // Children cards
         if (children.isEmpty)
           Card(

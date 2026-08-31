@@ -17,7 +17,6 @@ class GuruDashboardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final profile = data.profile ?? {};
     final summary = data.summary ?? {};
     final recentBkCases = data.recentBkCases ?? [];
 
@@ -42,22 +41,6 @@ class GuruDashboardWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header
-        Text(
-          'Selamat Datang, ${profile['nama'] ?? 'Guru'}',
-          style: Theme.of(
-            context,
-          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'NIP: ${profile['nip'] ?? '-'}',
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
-        ),
-        const SizedBox(height: 20),
-
         // Stat cards
         GridView(
           shrinkWrap: true,

@@ -16,7 +16,6 @@ class SiswaDashboardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final profile = data.profile ?? {};
     final attendanceSummary = data.attendanceSummary ?? [];
     final unpaidSpp = data.unpaidSpp ?? [];
     final recentGrades = data.recentGrades ?? [];
@@ -46,20 +45,6 @@ class SiswaDashboardWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header
-        Text(
-          'Selamat datang,\n${profile['nama'] ?? 'Siswa'}',
-          style: Theme.of(context).textTheme.headlineSmall,
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'NIS: ${profile['nis'] ?? '-'}  ·  Kelas: ${profile['kelas'] ?? '-'}',
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
-        ),
-        const SizedBox(height: 28),
-
         // Attendance summary stats
         Text(
           'Ringkasan Kehadiran',
