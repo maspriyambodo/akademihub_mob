@@ -117,17 +117,7 @@ class _MainShellState extends State<MainShell> {
             }
 
             return Scaffold(
-              body: AnimatedSwitcher(
-                duration: MediaQuery.disableAnimationsOf(context)
-                    ? Duration.zero
-                    : const Duration(milliseconds: 220),
-                switchInCurve: Curves.easeOutCubic,
-                switchOutCurve: Curves.easeInCubic,
-                child: KeyedSubtree(
-                  key: ValueKey(location),
-                  child: widget.child,
-                ),
-              ),
+              body: widget.child,
               bottomNavigationBar: NavigationBar(
                 selectedIndex: selectedIndex,
                 onDestinationSelected: goTo,

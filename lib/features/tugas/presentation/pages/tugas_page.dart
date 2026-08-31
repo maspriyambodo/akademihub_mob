@@ -44,7 +44,7 @@ class _TugasViewState extends State<_TugasView> {
       final user = authState.user;
       final role = user.role ?? 'unknown';
       final profile = user.profile;
-      final profileId = (profile?['id'] as num?)?.toInt();
+      final profileId = user.profileId;
 
       final kelasRaw = profile?['kelas'];
       final kelasId = kelasRaw is Map

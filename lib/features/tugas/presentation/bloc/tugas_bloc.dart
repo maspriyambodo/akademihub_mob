@@ -135,6 +135,16 @@ class TugasBloc extends Bloc<TugasEvent, TugasState> {
   }
 
   Future<void> _fetchSiswa(Emitter<TugasState> emit) async {
+    final siswaId = _siswaId;
+    if (siswaId == null) {
+      emit(
+        const TugasError(
+          'Profil siswa belum terhubung ke akun. Hubungi administrator sekolah.',
+        ),
+      );
+      return;
+    }
+
     final kelasId = _kelasId;
     final tugasResult = kelasId != null
         ? await getTugasByKelas(kelasId)
@@ -145,10 +155,7 @@ class TugasBloc extends Bloc<TugasEvent, TugasState> {
       return;
     }
 
-    final siswaId = _siswaId;
-    final pengumpulanResult = siswaId != null
-        ? await getPengumpulanBySiswa(siswaId)
-        : await getPengumpulanList();
+    final pengumpulanResult = await getPengumpulanBySiswa(siswaId);
 
     final pengumpulan = pengumpulanResult.isSuccess
         ? pengumpulanResult.requireData

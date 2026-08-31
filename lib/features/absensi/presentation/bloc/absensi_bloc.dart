@@ -224,7 +224,9 @@ class AbsensiBloc extends Bloc<AbsensiEvent, AbsensiState> {
       }
     } else if (_role == 'siswa') {
       emit(
-        const AbsensiError('ID siswa tidak tersedia. Silakan masuk kembali.'),
+        const AbsensiError(
+          'Profil siswa belum terhubung ke akun. Hubungi administrator sekolah.',
+        ),
       );
     } else if (_role == 'wali') {
       emit(
