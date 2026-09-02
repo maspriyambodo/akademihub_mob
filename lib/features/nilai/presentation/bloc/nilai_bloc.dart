@@ -118,7 +118,12 @@ class NilaiBloc extends Bloc<NilaiEvent, NilaiState> {
       nilai: event.nilai,
       keterangan: event.keterangan,
     );
-    await _completeMutation(result.isSuccess, result.isSuccess ? null : result.requireFailure.message, 'Nilai ditambahkan', emit);
+    await _completeMutation(
+      result.isSuccess,
+      result.isSuccess ? null : result.requireFailure.message,
+      'Nilai ditambahkan',
+      emit,
+    );
   }
 
   Future<void> _onUpdate(
@@ -130,7 +135,12 @@ class NilaiBloc extends Bloc<NilaiEvent, NilaiState> {
       nilai: event.nilai,
       keterangan: event.keterangan,
     );
-    await _completeMutation(result.isSuccess, result.isSuccess ? null : result.requireFailure.message, 'Nilai diperbarui', emit);
+    await _completeMutation(
+      result.isSuccess,
+      result.isSuccess ? null : result.requireFailure.message,
+      'Nilai diperbarui',
+      emit,
+    );
   }
 
   Future<void> _onDelete(
@@ -138,7 +148,12 @@ class NilaiBloc extends Bloc<NilaiEvent, NilaiState> {
     Emitter<NilaiState> emit,
   ) async {
     final result = await deleteNilai(event.id);
-    await _completeMutation(result.isSuccess, result.isSuccess ? null : result.requireFailure.message, 'Nilai dihapus', emit);
+    await _completeMutation(
+      result.isSuccess,
+      result.isSuccess ? null : result.requireFailure.message,
+      'Nilai dihapus',
+      emit,
+    );
   }
 
   Future<void> _completeMutation(

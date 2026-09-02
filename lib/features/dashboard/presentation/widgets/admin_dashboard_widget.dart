@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/theme/app_theme.dart';
-import '../../../../core/utils/responsive.dart';
+import '../../../../core/widgets/app_metric_tile.dart';
+import '../../../../core/widgets/app_section_header.dart';
+import '../../../../core/widgets/app_surface_card.dart';
 import '../../domain/entities/dashboard_entity.dart';
-import 'dashboard_stat_card.dart';
 import 'dashboard_quick_actions.dart';
 
 class AdminDashboardWidget extends StatelessWidget {
@@ -33,52 +35,129 @@ class AdminDashboardWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Summary stat cards
-        GridView(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: Responsive.gridDelegate(context, tinggi: 140),
+        // 1. Ringkasan Operasional Sekolah
+        const AppSectionHeader(
+          title: 'Statistik Sekolah',
+          eyebrow: 'Administrasi',
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Column(
           children: [
-            DashboardStatCard(
-              title: 'Total Siswa Aktif',
-              value: '$totalSiswa',
-              icon: Icons.people,
-              color: AppColors.info,
+            Row(
+              children: [
+                Expanded(
+                  child: AppMetricTile(
+                    label: 'Total Siswa Aktif',
+                    value: '$totalSiswa',
+                    icon: Icons.people_outline,
+                    tone: AppStatusTone.info,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                Expanded(
+                  child: AppMetricTile(
+                    label: 'Total Guru',
+                    value: '$totalGuru',
+                    icon: Icons.menu_book_outlined,
+                    tone: AppStatusTone.success,
+                  ),
+                ),
+              ],
             ),
-            DashboardStatCard(
-              title: 'Total Guru',
-              value: '$totalGuru',
-              icon: Icons.menu_book,
-              color: AppColors.success,
-            ),
-            DashboardStatCard(
-              title: 'Total Kelas',
-              value: '$totalKelas',
-              icon: Icons.school,
-              color: AppColors.primary,
-            ),
-            DashboardStatCard(
-              title: 'Kasus BK Proses',
-              value: '$kasusBk',
-              icon: Icons.warning_amber,
-              color: AppColors.error,
+            const SizedBox(height: AppSpacing.xs),
+            Row(
+              children: [
+                Expanded(
+                  child: AppMetricTile(
+                    label: 'Total Kelas',
+                    value: '$totalKelas',
+                    icon: Icons.school_outlined,
+                    tone: AppStatusTone.neutral,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                Expanded(
+                  child: AppMetricTile(
+                    label: 'Kasus BK Aktif',
+                    value: '$kasusBk',
+                    icon: Icons.warning_amber_rounded,
+                    tone: kasusBk > 0
+                        ? AppStatusTone.error
+                        : AppStatusTone.neutral,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: AppSpacing.md),
 
-        DashboardStatCard(
-          title: 'Tunggakan SPP',
-          value: tunggakanFormatted,
-          icon: Icons.attach_money,
-          color: AppColors.warning,
-          description: tunggakanDesc.trim().isNotEmpty ? tunggakanDesc : null,
+        // Tunggakan SPP Highlight
+        AppSurfaceCard(
+          accentColor: AppColors.warning,
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.warningContainer,
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                ),
+                child: const Icon(
+                  Icons.account_balance_wallet_outlined,
+                  color: AppColors.warningOnContainer,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Tunggakan SPP Sekolah',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.inkMuted,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      tunggakanFormatted,
+                      style:
+                          (Theme.of(
+                                    context,
+                                  ).extension<AppDataTypography>()?.value ??
+                                  Theme.of(context).textTheme.titleLarge ??
+                                  const TextStyle())
+                              .copyWith(
+                                color: AppColors.warningOnContainer,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700,
+                              ),
+                    ),
+                    if (tunggakanDesc.trim().isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        tunggakanDesc,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.inkSoft,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: AppSpacing.lg),
 
-        // Quick Actions
+        // 2. Akses Cepat Admin
         DashboardQuickActions(role: 'admin', permissions: permissions),
-        const SizedBox(height: 16),
       ],
     );
   }

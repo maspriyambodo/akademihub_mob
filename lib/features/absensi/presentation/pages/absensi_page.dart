@@ -3,6 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive.dart';
+import '../../../../core/widgets/app_metric_tile.dart';
+import '../../../../core/widgets/app_section_header.dart';
+import '../../../../core/widgets/app_status_badge.dart';
+import '../../../../core/widgets/app_surface_card.dart';
+import '../../../../core/widgets/batas_lebar_konten.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/absensi_bloc.dart';
 import '../../domain/entities/absensi_siswa_entity.dart';
@@ -75,7 +80,7 @@ class _AbsensiViewState extends State<_AbsensiView> {
   void _nextMonth() {
     final now = DateTime.now();
     if (_tahun > now.year || (_tahun == now.year && _bulan >= now.month)) {
-      return; // jangan ke depan melebihi bulan ini
+      return;
     }
     setState(() {
       if (_bulan == 12) {
@@ -96,20 +101,19 @@ class _AbsensiViewState extends State<_AbsensiView> {
     final isSiswa = user?.role == 'siswa';
 
     return Scaffold(
+      backgroundColor: AppColors.paper,
       appBar: AppBar(
         title: Text(isSiswa ? 'Riwayat Absensi Saya' : 'Absensi'),
         centerTitle: true,
       ),
       body: Column(
         children: [
-          // ── Month selector ─────────────────────────────────────────────
           _MonthSelector(
             bulan: _bulan,
             tahun: _tahun,
             onPrev: _prevMonth,
             onNext: _nextMonth,
           ),
-          // ── Content ────────────────────────────────────────────────────
           Expanded(
             child: BlocConsumer<AbsensiBloc, AbsensiState>(
               listener: (context, state) {
@@ -211,16 +215,22 @@ class _MonthSelector extends StatelessWidget {
     final isCurrentMonth = bulan == now.month && tahun == now.year;
 
     return Container(
-      color: AppColors.primary,
+      decoration: const BoxDecoration(
+        color: AppColors.paperBright,
+        border: Border(bottom: BorderSide(color: AppColors.line)),
+      ),
       padding: EdgeInsets.symmetric(
-        horizontal: context.isCompact ? 8 : 16,
-        vertical: 10,
+        horizontal: Responsive.isCompact(context)
+            ? AppSpacing.xs
+            : AppSpacing.md,
+        vertical: AppSpacing.xs,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
-            icon: const Icon(Icons.chevron_left, color: Colors.white),
+            icon: const Icon(Icons.chevron_left, color: AppColors.ink),
+            tooltip: 'Bulan sebelumnya',
             onPressed: onPrev,
           ),
           Expanded(
@@ -230,17 +240,20 @@ class _MonthSelector extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
-                color: Colors.white,
+                color: AppColors.ink,
                 fontSize: 16,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
           IconButton(
             icon: Icon(
               Icons.chevron_right,
-              color: isCurrentMonth ? Colors.white38 : Colors.white,
+              color: isCurrentMonth
+                  ? AppColors.inkMuted.withValues(alpha: 0.3)
+                  : AppColors.ink,
             ),
+            tooltip: 'Bulan berikutnya',
             onPressed: isCurrentMonth ? null : onNext,
           ),
         ],
@@ -267,71 +280,97 @@ class _LoadedView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = state.isGuruMode ? state.guruItems : state.siswaItems;
-    final hPad = Responsive.pagePadding(context).left;
+    final pagePadding = Responsive.pagePadding(context);
     final now = DateTime.now();
     final isCurrentMonth = state.bulan == now.month && state.tahun == now.year;
 
-    return Center(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: Responsive.lebarKontenMaks(context),
-        ),
-        child: RefreshIndicator(
-          onRefresh: onRefresh,
-          child: CustomScrollView(
-            slivers: [
-              if (isSiswa && isCurrentMonth)
-                SliverToBoxAdapter(
+    return BatasLebarKonten(
+      child: RefreshIndicator(
+        color: AppColors.primary,
+        onRefresh: onRefresh,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            if (isSiswa && isCurrentMonth)
+              SliverPadding(
+                padding: EdgeInsets.fromLTRB(
+                  pagePadding.left,
+                  AppSpacing.md,
+                  pagePadding.right,
+                  0,
+                ),
+                sliver: SliverToBoxAdapter(
                   child: _CheckInPanel(
                     attendance: state.currentAttendance,
                     actionInProgress: actionInProgress,
                   ),
                 ),
-              // Summary cards
-              SliverToBoxAdapter(child: _SummaryRow(summary: state.summary)),
-              // List header
-              if (items.isNotEmpty)
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: hPad,
-                      vertical: 8,
-                    ),
-                    child: Text(
-                      '${items.length} catatan',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
+              ),
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(
+                pagePadding.left,
+                AppSpacing.md,
+                pagePadding.right,
+                0,
+              ),
+              sliver: SliverToBoxAdapter(
+                child: _SummaryRow(summary: state.summary),
+              ),
+            ),
+            if (items.isNotEmpty)
+              SliverPadding(
+                padding: EdgeInsets.fromLTRB(
+                  pagePadding.left,
+                  AppSpacing.md,
+                  pagePadding.right,
+                  AppSpacing.xs,
+                ),
+                sliver: SliverToBoxAdapter(
+                  child: AppSectionHeader(
+                    title: 'Riwayat Kehadiran',
+                    eyebrow: 'Log Presensi',
+                    actionLabel: '${items.length} Catatan',
                   ),
                 ),
-              // Empty state
-              if (items.isEmpty)
-                SliverFillRemaining(
-                  child: _EmptyView(
-                    message: state.isGuruMode
-                        ? 'Belum ada data absensi guru bulan ini'
-                        : 'Belum ada data absensi bulan ini',
-                  ),
-                )
-              else if (state.isGuruMode)
-                SliverList(
+              ),
+            if (items.isEmpty)
+              SliverFillRemaining(
+                child: _EmptyView(
+                  message: state.isGuruMode
+                      ? 'Belum ada data absensi guru bulan ini'
+                      : 'Belum ada data absensi bulan ini',
+                ),
+              )
+            else if (state.isGuruMode)
+              SliverPadding(
+                padding: EdgeInsets.symmetric(horizontal: pagePadding.left),
+                sliver: SliverList(
                   delegate: SliverChildBuilderDelegate(
-                    (_, i) => _AbsensiGuruCard(item: state.guruItems[i]),
+                    (_, i) => Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                      child: _AbsensiGuruCard(item: state.guruItems[i]),
+                    ),
                     childCount: state.guruItems.length,
                   ),
-                )
-              else
-                SliverList(
+                ),
+              )
+            else
+              SliverPadding(
+                padding: EdgeInsets.symmetric(horizontal: pagePadding.left),
+                sliver: SliverList(
                   delegate: SliverChildBuilderDelegate(
-                    (_, i) => _AbsensiSiswaCard(item: state.siswaItems[i]),
+                    (_, i) => Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                      child: _AbsensiSiswaCard(item: state.siswaItems[i]),
+                    ),
                     childCount: state.siswaItems.length,
                   ),
                 ),
-              const SliverPadding(padding: EdgeInsets.only(bottom: 16)),
-            ],
-          ),
+              ),
+            const SliverPadding(
+              padding: EdgeInsets.only(bottom: AppSpacing.xxl),
+            ),
+          ],
         ),
       ),
     );
@@ -357,8 +396,6 @@ class _CheckInPanel extends StatelessWidget {
         !a.statusAbsensi.toLowerCase().contains('hadir') &&
         a.statusAbsensi.isNotEmpty;
 
-    // Determine if checkout time has been reached using jadwalJamPulang.
-    // This is a UI hint; backend enforces the real rule.
     final waitingForCheckout = checkedIn && !checkedOut && !isFinalStatus;
     bool checkoutTimeReached = true;
     if (waitingForCheckout && a?.jadwalJamPulang != null) {
@@ -373,7 +410,6 @@ class _CheckInPanel extends StatelessWidget {
       }
     }
 
-    // Panel state labels
     final String label;
     final Color color;
     final IconData icon;
@@ -391,7 +427,7 @@ class _CheckInPanel extends StatelessWidget {
     } else if (checkedOut) {
       label = 'Absensi hari ini selesai';
       color = AppColors.success;
-      icon = Icons.check_circle;
+      icon = Icons.check_circle_outline;
       actionEnabled = false;
       buttonLabel = 'Selesai';
       isCheckOut = false;
@@ -403,7 +439,7 @@ class _CheckInPanel extends StatelessWidget {
           '$shift • Check-in ${a!.jamMasuk}\n'
           'Pulang mulai $pulang${tz != null ? ' ($tz)' : ''}';
       color = AppColors.success;
-      icon = Icons.check_circle;
+      icon = Icons.schedule_outlined;
       actionEnabled = false;
       buttonLabel = 'Menunggu';
       isCheckOut = true;
@@ -411,40 +447,41 @@ class _CheckInPanel extends StatelessWidget {
       final shift = a?.shiftNama ?? 'Shift';
       label = '$shift • Check-in ${a!.jamMasuk}';
       color = AppColors.success;
-      icon = Icons.check_circle;
+      icon = Icons.check_circle_outline;
       actionEnabled = !actionInProgress;
       buttonLabel = 'Check-out';
       isCheckOut = true;
     } else {
       label = 'Belum check-in hari ini';
       color = AppColors.primary;
-      icon = Icons.how_to_reg;
+      icon = Icons.how_to_reg_outlined;
       actionEnabled = !actionInProgress;
       buttonLabel = 'Check-in';
       isCheckOut = false;
     }
 
-    return Container(
-      margin: EdgeInsets.fromLTRB(
-        Responsive.pagePadding(context).left,
-        12,
-        Responsive.pagePadding(context).right,
-        4,
-      ),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withAlpha(18),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withAlpha(80)),
-      ),
+    return AppSurfaceCard(
+      accentColor: color,
+      padding: const EdgeInsets.all(AppSpacing.md),
       child: Row(
         children: [
-          Icon(icon, color: color, size: 28),
-          const SizedBox(width: 12),
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(AppRadius.md),
+            ),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
               label,
-              style: const TextStyle(fontWeight: FontWeight.w600),
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                color: AppColors.ink,
+              ),
             ),
           ),
           FilledButton(
@@ -458,13 +495,16 @@ class _CheckInPanel extends StatelessWidget {
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
-              minimumSize: const Size(0, 48),
-              padding: const EdgeInsets.symmetric(horizontal: 14),
+              minimumSize: const Size(0, 44),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
             ),
             child: actionInProgress
                 ? const SizedBox.square(
                     dimension: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
                   )
                 : Text(buttonLabel),
           ),
@@ -482,86 +522,67 @@ class _SummaryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Empat kartu angka. Di layar sempit satu baris berisi 4 kartu pasti
-    // meluber, jadi dipakai Wrap dengan lebar sel dihitung dari lebar nyata.
-    final data = <(String, int, Color)>[
-      ('Hadir', summary.hadir, AppColors.success),
-      ('Izin', summary.izin, AppColors.info),
-      ('Sakit', summary.sakit, AppColors.warning),
-      ('Alpha', summary.alpha, AppColors.error),
-    ];
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxWidth < Responsive.compactWidth;
+        final tiles = [
+          AppMetricTile(
+            label: 'Hadir',
+            value: '${summary.hadir}',
+            icon: Icons.check_circle_outline,
+            tone: AppStatusTone.success,
+          ),
+          AppMetricTile(
+            label: 'Izin',
+            value: '${summary.izin}',
+            icon: Icons.info_outline,
+            tone: AppStatusTone.info,
+          ),
+          AppMetricTile(
+            label: 'Sakit',
+            value: '${summary.sakit}',
+            icon: Icons.local_hospital_outlined,
+            tone: AppStatusTone.warning,
+          ),
+          AppMetricTile(
+            label: 'Alpha',
+            value: '${summary.alpha}',
+            icon: Icons.highlight_off,
+            tone: AppStatusTone.error,
+          ),
+        ];
 
-    return Container(
-      color: Colors.white,
-      padding: EdgeInsets.all(Responsive.isCompact(context) ? 8 : 12),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          const spacing = 8.0;
-          // 4 kolom bila muat lega, kalau tidak 2 kolom (dua baris).
-          final perBaris = constraints.maxWidth >= 340 ? 4 : 2;
-          final lebarSel =
-              (constraints.maxWidth - spacing * (perBaris - 1)) / perBaris;
-          return Wrap(
-            spacing: spacing,
-            runSpacing: spacing,
+        if (isCompact) {
+          return Column(
             children: [
-              for (final (label, count, color) in data)
-                SizedBox(
-                  width: lebarSel,
-                  child: _SummaryCard(label: label, count: count, color: color),
-                ),
+              Row(
+                children: [
+                  Expanded(child: tiles[0]),
+                  const SizedBox(width: AppSpacing.xs),
+                  Expanded(child: tiles[1]),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Row(
+                children: [
+                  Expanded(child: tiles[2]),
+                  const SizedBox(width: AppSpacing.xs),
+                  Expanded(child: tiles[3]),
+                ],
+              ),
             ],
           );
-        },
-      ),
-    );
-  }
-}
+        }
 
-class _SummaryCard extends StatelessWidget {
-  final String label;
-  final int count;
-  final Color color;
-
-  const _SummaryCard({
-    required this.label,
-    required this.count,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-      decoration: BoxDecoration(
-        color: color.withAlpha(25),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withAlpha(77)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              '$count',
-              maxLines: 1,
-              style: TextStyle(
-                fontSize: Responsive.fontSize(context, 22),
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 11, color: color),
-          ),
-        ],
-      ),
+        return Row(
+          children: [
+            for (int i = 0; i < tiles.length; i++) ...[
+              if (i > 0) const SizedBox(width: AppSpacing.xs),
+              Expanded(child: tiles[i]),
+            ],
+          ],
+        );
+      },
     );
   }
 }
@@ -591,55 +612,65 @@ class _AbsensiSiswaCard extends StatelessWidget {
         ? '$dayLabel, ${date.day} ${_monthShort(date.month)} ${date.year}'
         : item.tanggal;
 
-    return Card(
-      margin: EdgeInsets.symmetric(
-        horizontal: Responsive.pagePadding(context).left,
-        vertical: 4,
-      ),
-      child: ListTile(
-        contentPadding: EdgeInsets.symmetric(
-          horizontal: Responsive.isCompact(context) ? 10 : 16,
-        ),
-        leading: CircleAvatar(
-          backgroundColor: _statusColor(item.statusAbsensi).withAlpha(30),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              date != null ? '${date.day}' : '-',
-              style: TextStyle(
-                color: _statusColor(item.statusAbsensi),
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
+    final tone = _toneFromStatus(item.statusAbsensi);
+
+    return AppSurfaceCard(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.semantic(tone).container,
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+            ),
+            child: Center(
+              child: Text(
+                date != null ? '${date.day}' : '-',
+                style: TextStyle(
+                  color: AppColors.semantic(tone).onContainer,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 15,
+                ),
               ),
             ),
           ),
-        ),
-        title: Text(
-          dateLabel,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
-        ),
-        subtitle: item.keterangan != null && item.keterangan!.isNotEmpty
-            ? Text(
-                item.keterangan!,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-              )
-            : null,
-        trailing: _StatusBadge(label: item.statusAbsensi),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  dateLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.ink,
+                  ),
+                ),
+                if (item.keterangan != null && item.keterangan!.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    item.keterangan!,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.inkSoft,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          AppStatusBadge(label: item.statusAbsensi, tone: tone),
+        ],
       ),
     );
-  }
-
-  Color _statusColor(String status) {
-    final s = status.toLowerCase();
-    if (s.contains('hadir')) return AppColors.success;
-    if (s.contains('izin')) return AppColors.info;
-    if (s.contains('sakit')) return AppColors.warning;
-    if (s.contains('alp')) return AppColors.error;
-    return AppColors.textSecondary;
   }
 
   static const _months = [
@@ -691,55 +722,65 @@ class _AbsensiGuruCard extends StatelessWidget {
       if (item.jamKeluar != null) 'Keluar: ${item.jamKeluar}',
     ].join('  ·  ');
 
-    return Card(
-      margin: EdgeInsets.symmetric(
-        horizontal: Responsive.pagePadding(context).left,
-        vertical: 4,
-      ),
-      child: ListTile(
-        contentPadding: EdgeInsets.symmetric(
-          horizontal: Responsive.isCompact(context) ? 10 : 16,
-        ),
-        leading: CircleAvatar(
-          backgroundColor: _statusColor(item.statusAbsensi).withAlpha(30),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              date != null ? '${date.day}' : '-',
-              style: TextStyle(
-                color: _statusColor(item.statusAbsensi),
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
+    final tone = _toneFromStatus(item.statusAbsensi);
+
+    return AppSurfaceCard(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.semantic(tone).container,
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+            ),
+            child: Center(
+              child: Text(
+                date != null ? '${date.day}' : '-',
+                style: TextStyle(
+                  color: AppColors.semantic(tone).onContainer,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 15,
+                ),
               ),
             ),
           ),
-        ),
-        title: Text(
-          dateLabel,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
-        ),
-        subtitle: timeInfo.isNotEmpty
-            ? Text(
-                timeInfo,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-              )
-            : null,
-        trailing: _StatusBadge(label: item.statusAbsensi),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  dateLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.ink,
+                  ),
+                ),
+                if (timeInfo.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    timeInfo,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.inkSoft,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          AppStatusBadge(label: item.statusAbsensi, tone: tone),
+        ],
       ),
     );
-  }
-
-  Color _statusColor(String status) {
-    final s = status.toLowerCase();
-    if (s.contains('hadir')) return AppColors.success;
-    if (s.contains('izin')) return AppColors.info;
-    if (s.contains('sakit')) return AppColors.warning;
-    if (s.contains('alp')) return AppColors.error;
-    return AppColors.textSecondary;
   }
 
   static const _months = [
@@ -761,109 +802,16 @@ class _AbsensiGuruCard extends StatelessWidget {
   String _monthShort(int m) => _months[m];
 }
 
-// ── Status Badge ──────────────────────────────────────────────────────────────
-
-class _StatusBadge extends StatelessWidget {
-  final String label;
-  const _StatusBadge({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    final color = _color(label);
-    return Container(
-      constraints: const BoxConstraints(maxWidth: 96),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withAlpha(30),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withAlpha(100)),
-      ),
-      child: Text(
-        label,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          fontSize: 11,
-          color: color,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-
-  Color _color(String s) {
-    final lower = s.toLowerCase();
-    if (lower.contains('hadir')) return AppColors.success;
-    if (lower.contains('izin')) return AppColors.info;
-    if (lower.contains('sakit')) return AppColors.warning;
-    if (lower.contains('alp')) return AppColors.error;
-    return AppColors.textSecondary;
-  }
+AppStatusTone _toneFromStatus(String status) {
+  final s = status.toLowerCase();
+  if (s.contains('hadir')) return AppStatusTone.success;
+  if (s.contains('izin')) return AppStatusTone.info;
+  if (s.contains('sakit')) return AppStatusTone.warning;
+  if (s.contains('alp')) return AppStatusTone.error;
+  return AppStatusTone.neutral;
 }
 
-// ── Error View ────────────────────────────────────────────────────────────────
-
-class _ErrorView extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-  final AttendanceSettingsTarget? settingsTarget;
-  final bool showContactOfficer;
-  const _ErrorView({
-    required this.message,
-    required this.onRetry,
-    this.settingsTarget,
-    this.showContactOfficer = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: Responsive.pagePadding(context) + const EdgeInsets.all(16),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.error_outline, size: 56, color: AppColors.error),
-            const SizedBox(height: 16),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 14),
-            ),
-            const SizedBox(height: 20),
-            if (settingsTarget != null) ...[
-              FilledButton.icon(
-                onPressed: () => openAttendanceSettings(settingsTarget!),
-                icon: const Icon(Icons.settings_outlined),
-                label: Text(
-                  settingsTarget == AttendanceSettingsTarget.app
-                      ? 'Buka Pengaturan Aplikasi'
-                      : 'Buka Pengaturan Lokasi',
-                ),
-              ),
-              const SizedBox(height: 8),
-            ],
-            ElevatedButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Coba Lagi'),
-            ),
-            if (showContactOfficer) ...[
-              const SizedBox(height: 16),
-              Text(
-                'Tidak dapat mengubah pengaturan? Hubungi petugas sekolah untuk bantuan absensi.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── Empty View ────────────────────────────────────────────────────────────────
+// ── Empty View ───────────────────────────────────────────────────────────────
 
 class _EmptyView extends StatelessWidget {
   final String message;
@@ -871,22 +819,86 @@ class _EmptyView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: Responsive.pagePadding(context) + const EdgeInsets.all(16),
-      child: Center(
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.how_to_reg_outlined,
-              size: 64,
-              color: AppColors.textHint,
+            const Icon(
+              Icons.event_busy_outlined,
+              size: 48,
+              color: AppColors.inkMuted,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+              style: const TextStyle(color: AppColors.inkSoft, fontSize: 14),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Error View ───────────────────────────────────────────────────────────────
+
+class _ErrorView extends StatelessWidget {
+  final String message;
+  final AttendanceSettingsTarget? settingsTarget;
+  final bool showContactOfficer;
+  final VoidCallback onRetry;
+
+  const _ErrorView({
+    required this.message,
+    required this.settingsTarget,
+    required this.showContactOfficer,
+    required this.onRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: const BoxDecoration(
+                color: AppColors.errorContainer,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.error_outline_rounded,
+                size: 28,
+                color: AppColors.error,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              'Gagal Memuat Absensi',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: AppColors.ink,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              message,
+              style: const TextStyle(color: AppColors.inkSoft, fontSize: 13),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            FilledButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Coba Lagi'),
             ),
           ],
         ),

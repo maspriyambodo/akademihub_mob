@@ -1,394 +1,317 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../../core/utils/responsive.dart';
+import '../../../../core/widgets/app_section_header.dart';
+import '../../../../core/widgets/app_surface_card.dart';
 
 class _QuickAction {
   final String label;
   final IconData icon;
   final String route;
-  final Color color;
+  final Color tintColor;
+  final Color iconColor;
 
   const _QuickAction({
     required this.label,
     required this.icon,
     required this.route,
-    required this.color,
+    required this.tintColor,
+    required this.iconColor,
   });
 }
 
-const _adminActions = [
-  _QuickAction(
+_QuickAction _action({
+  required String label,
+  required IconData icon,
+  required String route,
+}) {
+  // Meaningful category color palette by route
+  final (tint, color) = switch (route) {
+    AppRoutes.materi ||
+    AppRoutes.jadwal ||
+    AppRoutes.ujian ||
+    AppRoutes.perpustakaan => (
+      AppColors.role('siswa').container,
+      AppColors.role('siswa').onContainer,
+    ),
+    AppRoutes.absensi => (
+      AppColors.semantic(AppStatusTone.success).container,
+      AppColors.semantic(AppStatusTone.success).onContainer,
+    ),
+    AppRoutes.forum ||
+    AppRoutes.notifications ||
+    AppRoutes.organisasi => (AppColors.primaryLight, AppColors.primaryDark),
+    AppRoutes.keuangan ||
+    AppRoutes.tugas ||
+    AppRoutes.rapor ||
+    AppRoutes.tmb ||
+    AppRoutes.kalender => (
+      AppColors.semantic(AppStatusTone.warning).container,
+      AppColors.semantic(AppStatusTone.warning).onContainer,
+    ),
+    AppRoutes.bk || AppRoutes.ews => (
+      AppColors.semantic(AppStatusTone.error).container,
+      AppColors.semantic(AppStatusTone.error).onContainer,
+    ),
+    _ => (AppColors.paperMuted, AppColors.inkSoft),
+  };
+
+  return _QuickAction(
+    label: label,
+    icon: icon,
+    route: route,
+    tintColor: tint,
+    iconColor: color,
+  );
+}
+
+final _adminActions = [
+  _action(
     label: 'Perpustakaan',
     icon: Icons.local_library_outlined,
     route: AppRoutes.perpustakaan,
-    color: AppColors.info,
   ),
-  _QuickAction(
+  _action(
     label: 'Absensi',
-    icon: Icons.checklist,
+    icon: Icons.checklist_outlined,
     route: AppRoutes.absensi,
-    color: AppColors.info,
   ),
-  _QuickAction(
-    label: 'Nilai',
-    icon: Icons.grade,
-    route: AppRoutes.nilai,
-    color: AppColors.success,
-  ),
-  _QuickAction(
+  _action(label: 'Nilai', icon: Icons.grade_outlined, route: AppRoutes.nilai),
+  _action(
     label: 'Jadwal',
-    icon: Icons.calendar_today,
+    icon: Icons.calendar_today_outlined,
     route: AppRoutes.jadwal,
-    color: AppColors.primary,
   ),
-  _QuickAction(
+  _action(
     label: 'Tugas',
-    icon: Icons.assignment,
+    icon: Icons.assignment_outlined,
     route: AppRoutes.tugas,
-    color: AppColors.secondary,
   ),
-  _QuickAction(
+  _action(
     label: 'Rapor',
-    icon: Icons.book,
+    icon: Icons.auto_stories_outlined,
     route: AppRoutes.rapor,
-    color: AppColors.accent,
   ),
-  _QuickAction(
+  _action(
     label: 'Notifikasi',
-    icon: Icons.notifications,
+    icon: Icons.notifications_outlined,
     route: AppRoutes.notifications,
-    color: AppColors.warning,
   ),
-  _QuickAction(
+  _action(
     label: 'Pembayaran SPP',
     icon: Icons.payments_outlined,
     route: AppRoutes.keuangan,
-    color: AppColors.success,
   ),
-  _QuickAction(
+  _action(
     label: 'Materi',
     icon: Icons.menu_book_outlined,
     route: AppRoutes.materi,
-    color: AppColors.info,
   ),
-  _QuickAction(
-    label: 'Forum',
-    icon: Icons.forum_outlined,
-    route: AppRoutes.forum,
-    color: AppColors.secondary,
-  ),
-  _QuickAction(
+  _action(label: 'Forum', icon: Icons.forum_outlined, route: AppRoutes.forum),
+  _action(
     label: 'Ekstrakurikuler',
-    icon: Icons.sports_soccer,
+    icon: Icons.sports_soccer_outlined,
     route: AppRoutes.ekstrakurikuler,
-    color: AppColors.primaryLight,
   ),
-  // Kalender hanya untuk admin: di RbacSeeder, izin `kalender-akademik.view`
-  // hanya diberikan lewat bundle $sysAdmin yang dipakai role `admin` saja.
-  // Role lain akan menerima 403.
-  _QuickAction(
+  _action(
     label: 'Kalender',
-    icon: Icons.event_note,
+    icon: Icons.event_note_outlined,
     route: AppRoutes.kalender,
-    color: AppColors.waliColor,
   ),
-  _QuickAction(
+  _action(
     label: 'Ujian & Ranking',
     icon: Icons.emoji_events_outlined,
     route: AppRoutes.ujian,
-    color: AppColors.warning,
   ),
-  _QuickAction(
+  _action(
     label: 'Tes Minat Bakat',
     icon: Icons.psychology_outlined,
     route: AppRoutes.tmb,
-    color: AppColors.secondary,
   ),
-  _QuickAction(
-    label: 'BK',
-    icon: Icons.support_agent,
-    route: AppRoutes.bk,
-    color: AppColors.guruColor,
-  ),
-  _QuickAction(
+  _action(label: 'BK', icon: Icons.support_agent_outlined, route: AppRoutes.bk),
+  _action(
     label: 'EWS',
-    icon: Icons.warning_amber,
+    icon: Icons.warning_amber_rounded,
     route: AppRoutes.ews,
-    color: AppColors.error,
   ),
-  _QuickAction(
+  _action(
     label: 'Profil',
     icon: Icons.account_circle_outlined,
     route: AppRoutes.profil,
-    color: AppColors.textSecondary,
   ),
 ];
 
-const _guruActions = [
-  _QuickAction(
+final _guruActions = [
+  _action(
     label: 'Perpustakaan',
     icon: Icons.local_library_outlined,
     route: AppRoutes.perpustakaan,
-    color: AppColors.info,
   ),
-  _QuickAction(
-    label: 'Jadwal Pelajaran',
-    icon: Icons.calendar_today,
-    route: AppRoutes.jadwal,
-    color: AppColors.primary,
-  ),
-  _QuickAction(
-    label: 'Nilai Siswa',
-    icon: Icons.grade,
-    route: AppRoutes.nilai,
-    color: AppColors.success,
-  ),
-  _QuickAction(
-    label: 'Riwayat Absensi',
-    icon: Icons.how_to_reg,
+  _action(
+    label: 'Absensi',
+    icon: Icons.checklist_outlined,
     route: AppRoutes.absensi,
-    color: AppColors.info,
   ),
-  _QuickAction(
-    label: 'Tugas',
-    icon: Icons.assignment,
-    route: AppRoutes.tugas,
-    color: AppColors.secondary,
-  ),
-  _QuickAction(
-    label: 'Rapor',
-    icon: Icons.book,
-    route: AppRoutes.rapor,
-    color: AppColors.accent,
-  ),
-  _QuickAction(
-    label: 'Notifikasi',
-    icon: Icons.notifications,
-    route: AppRoutes.notifications,
-    color: AppColors.warning,
-  ),
-  _QuickAction(
-    label: 'Materi',
-    icon: Icons.menu_book_outlined,
-    route: AppRoutes.materi,
-    color: AppColors.info,
-  ),
-  _QuickAction(
-    label: 'Forum',
-    icon: Icons.forum_outlined,
-    route: AppRoutes.forum,
-    color: AppColors.secondary,
-  ),
-  _QuickAction(
-    label: 'Ekstrakurikuler',
-    icon: Icons.sports_soccer,
-    route: AppRoutes.ekstrakurikuler,
-    color: AppColors.primaryLight,
-  ),
-  _QuickAction(
-    label: 'Ujian & Ranking',
-    icon: Icons.emoji_events_outlined,
-    route: AppRoutes.ujian,
-    color: AppColors.warning,
-  ),
-  // BK relevan untuk guru BK (dinormalisasi ke role guru); guru biasa tanpa
-  // izin `bk-kasus.view` melihat layar akses ditolak yang menjelaskan.
-  _QuickAction(
-    label: 'BK',
-    icon: Icons.support_agent,
-    route: AppRoutes.bk,
-    color: AppColors.guruColor,
-  ),
-  _QuickAction(
-    label: 'Profil',
-    icon: Icons.account_circle_outlined,
-    route: AppRoutes.profil,
-    color: AppColors.textSecondary,
-  ),
-];
-
-const _siswaActions = [
-  _QuickAction(
-    label: 'Perpustakaan',
-    icon: Icons.local_library_outlined,
-    route: AppRoutes.perpustakaan,
-    color: AppColors.info,
-  ),
-  _QuickAction(
-    label: 'Jadwal Pelajaran',
-    icon: Icons.calendar_today,
-    route: AppRoutes.jadwal,
-    color: AppColors.primary,
-  ),
-  _QuickAction(
-    label: 'Nilai Saya',
-    icon: Icons.grade,
-    route: AppRoutes.nilai,
-    color: AppColors.success,
-  ),
-  _QuickAction(
-    label: 'Absen Harian',
-    icon: Icons.how_to_reg,
-    route: AppRoutes.absensi,
-    color: AppColors.info,
-  ),
-  _QuickAction(
-    label: 'Tugas',
-    icon: Icons.assignment,
-    route: AppRoutes.tugas,
-    color: AppColors.secondary,
-  ),
-  _QuickAction(
-    label: 'Rapor',
-    icon: Icons.book,
-    route: AppRoutes.rapor,
-    color: AppColors.accent,
-  ),
-  _QuickAction(
-    label: 'Notifikasi',
-    icon: Icons.notifications,
-    route: AppRoutes.notifications,
-    color: AppColors.warning,
-  ),
-  _QuickAction(
-    label: 'SPP & Tagihan',
-    icon: Icons.account_balance_wallet_outlined,
-    route: AppRoutes.keuangan,
-    color: AppColors.success,
-  ),
-  _QuickAction(
-    label: 'Materi',
-    icon: Icons.menu_book_outlined,
-    route: AppRoutes.materi,
-    color: AppColors.info,
-  ),
-  _QuickAction(
-    label: 'Forum',
-    icon: Icons.forum_outlined,
-    route: AppRoutes.forum,
-    color: AppColors.secondary,
-  ),
-  _QuickAction(
-    label: 'Ekstrakurikuler',
-    icon: Icons.sports_soccer,
-    route: AppRoutes.ekstrakurikuler,
-    color: AppColors.primaryLight,
-  ),
-  _QuickAction(
-    label: 'Ujian & Ranking',
-    icon: Icons.emoji_events_outlined,
-    route: AppRoutes.ujian,
-    color: AppColors.warning,
-  ),
-  _QuickAction(
-    label: 'BK',
-    icon: Icons.support_agent,
-    route: AppRoutes.bk,
-    color: AppColors.guruColor,
-  ),
-  _QuickAction(
-    label: 'EWS',
-    icon: Icons.warning_amber,
-    route: AppRoutes.ews,
-    color: AppColors.error,
-  ),
-  _QuickAction(
-    label: 'Profil',
-    icon: Icons.account_circle_outlined,
-    route: AppRoutes.profil,
-    color: AppColors.textSecondary,
-  ),
-];
-
-const _waliActions = [
-  _QuickAction(
-    label: 'Perpustakaan',
-    icon: Icons.local_library_outlined,
-    route: AppRoutes.perpustakaan,
-    color: AppColors.info,
-  ),
-  _QuickAction(
-    label: 'Absensi Anak',
-    icon: Icons.checklist,
-    route: AppRoutes.absensi,
-    color: AppColors.info,
-  ),
-  _QuickAction(
-    label: 'Nilai Anak',
-    icon: Icons.grade,
-    route: AppRoutes.nilai,
-    color: AppColors.success,
-  ),
-  _QuickAction(
+  _action(label: 'Nilai', icon: Icons.grade_outlined, route: AppRoutes.nilai),
+  _action(
     label: 'Jadwal',
-    icon: Icons.calendar_today,
+    icon: Icons.calendar_today_outlined,
     route: AppRoutes.jadwal,
-    color: AppColors.primary,
   ),
-  _QuickAction(
-    label: 'Tugas Anak',
-    icon: Icons.assignment,
+  _action(
+    label: 'Tugas',
+    icon: Icons.assignment_outlined,
     route: AppRoutes.tugas,
-    color: AppColors.secondary,
   ),
-  _QuickAction(
-    label: 'Rapor Anak',
-    icon: Icons.book,
+  _action(
+    label: 'Rapor',
+    icon: Icons.auto_stories_outlined,
     route: AppRoutes.rapor,
-    color: AppColors.accent,
   ),
-  _QuickAction(
+  _action(
     label: 'Notifikasi',
-    icon: Icons.notifications,
+    icon: Icons.notifications_outlined,
     route: AppRoutes.notifications,
-    color: AppColors.warning,
   ),
-  _QuickAction(
-    label: 'SPP & Tagihan',
-    icon: Icons.account_balance_wallet_outlined,
-    route: AppRoutes.keuangan,
-    color: AppColors.success,
-  ),
-  _QuickAction(
+  _action(
     label: 'Materi',
     icon: Icons.menu_book_outlined,
     route: AppRoutes.materi,
-    color: AppColors.info,
   ),
-  _QuickAction(
-    label: 'Forum',
-    icon: Icons.forum_outlined,
-    route: AppRoutes.forum,
-    color: AppColors.secondary,
-  ),
-  _QuickAction(
+  _action(label: 'Forum', icon: Icons.forum_outlined, route: AppRoutes.forum),
+  _action(
     label: 'Ekstrakurikuler',
-    icon: Icons.sports_soccer,
+    icon: Icons.sports_soccer_outlined,
     route: AppRoutes.ekstrakurikuler,
-    color: AppColors.primaryLight,
   ),
-  _QuickAction(
+  _action(
+    label: 'Ujian',
+    icon: Icons.assignment_turned_in_outlined,
+    route: AppRoutes.ujian,
+  ),
+  _action(label: 'BK', icon: Icons.support_agent_outlined, route: AppRoutes.bk),
+  _action(
     label: 'EWS',
-    icon: Icons.warning_amber,
+    icon: Icons.warning_amber_rounded,
     route: AppRoutes.ews,
-    color: AppColors.error,
   ),
-  _QuickAction(
+  _action(
     label: 'Profil',
     icon: Icons.account_circle_outlined,
     route: AppRoutes.profil,
-    color: AppColors.textSecondary,
   ),
 ];
 
-const _actionsByRole = {
-  'admin': _adminActions,
-  'guru': _guruActions,
-  'siswa': _siswaActions,
-  'wali': _waliActions,
-};
+final _siswaActions = [
+  _action(
+    label: 'Perpustakaan',
+    icon: Icons.local_library_outlined,
+    route: AppRoutes.perpustakaan,
+  ),
+  _action(
+    label: 'Absensi',
+    icon: Icons.checklist_outlined,
+    route: AppRoutes.absensi,
+  ),
+  _action(label: 'Nilai', icon: Icons.grade_outlined, route: AppRoutes.nilai),
+  _action(
+    label: 'Jadwal',
+    icon: Icons.calendar_today_outlined,
+    route: AppRoutes.jadwal,
+  ),
+  _action(
+    label: 'Tugas',
+    icon: Icons.assignment_outlined,
+    route: AppRoutes.tugas,
+  ),
+  _action(
+    label: 'Rapor',
+    icon: Icons.auto_stories_outlined,
+    route: AppRoutes.rapor,
+  ),
+  _action(
+    label: 'Notifikasi',
+    icon: Icons.notifications_outlined,
+    route: AppRoutes.notifications,
+  ),
+  _action(
+    label: 'Pembayaran SPP',
+    icon: Icons.payments_outlined,
+    route: AppRoutes.keuangan,
+  ),
+  _action(
+    label: 'Materi',
+    icon: Icons.menu_book_outlined,
+    route: AppRoutes.materi,
+  ),
+  _action(label: 'Forum', icon: Icons.forum_outlined, route: AppRoutes.forum),
+  _action(
+    label: 'Ekstrakurikuler',
+    icon: Icons.sports_soccer_outlined,
+    route: AppRoutes.ekstrakurikuler,
+  ),
+  _action(
+    label: 'Ujian',
+    icon: Icons.assignment_turned_in_outlined,
+    route: AppRoutes.ujian,
+  ),
+  _action(
+    label: 'Tes Minat Bakat',
+    icon: Icons.psychology_outlined,
+    route: AppRoutes.tmb,
+  ),
+  _action(
+    label: 'Profil',
+    icon: Icons.account_circle_outlined,
+    route: AppRoutes.profil,
+  ),
+];
+
+final _waliActions = [
+  _action(
+    label: 'Absensi Anak',
+    icon: Icons.checklist_outlined,
+    route: AppRoutes.absensi,
+  ),
+  _action(
+    label: 'Nilai Anak',
+    icon: Icons.grade_outlined,
+    route: AppRoutes.nilai,
+  ),
+  _action(
+    label: 'Jadwal Anak',
+    icon: Icons.calendar_today_outlined,
+    route: AppRoutes.jadwal,
+  ),
+  _action(
+    label: 'Tugas Anak',
+    icon: Icons.assignment_outlined,
+    route: AppRoutes.tugas,
+  ),
+  _action(
+    label: 'Rapor Anak',
+    icon: Icons.auto_stories_outlined,
+    route: AppRoutes.rapor,
+  ),
+  _action(
+    label: 'Notifikasi',
+    icon: Icons.notifications_outlined,
+    route: AppRoutes.notifications,
+  ),
+  _action(
+    label: 'Pembayaran SPP',
+    icon: Icons.payments_outlined,
+    route: AppRoutes.keuangan,
+  ),
+  _action(label: 'Forum', icon: Icons.forum_outlined, route: AppRoutes.forum),
+  _action(
+    label: 'Profil',
+    icon: Icons.account_circle_outlined,
+    route: AppRoutes.profil,
+  ),
+];
 
 class DashboardQuickActions extends StatefulWidget {
   final String role;
@@ -411,11 +334,17 @@ class _DashboardQuickActionsState extends State<DashboardQuickActions> {
 
   @override
   Widget build(BuildContext context) {
-    final actions = (_actionsByRole[widget.role] ?? _adminActions).where((
-      action,
-    ) {
+    final rawActions = switch (widget.role) {
+      'guru' => _guruActions,
+      'siswa' => _siswaActions,
+      'wali' => _waliActions,
+      _ => _adminActions,
+    };
+
+    final actions = rawActions.where((action) {
       if (widget.role == 'wali' &&
           !widget.hasChild &&
+          action.route != AppRoutes.notifications &&
           action.route != AppRoutes.profil) {
         return false;
       }
@@ -425,86 +354,87 @@ class _DashboardQuickActionsState extends State<DashboardQuickActions> {
         permissions: widget.permissions,
       );
     }).toList();
-    final visibleActions = _showAll ? actions : actions.take(6).toList();
+
+    final visibleActions = _showAll ? actions : actions.take(8).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                'Layanan',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ),
-            if (actions.length > 6)
-              TextButton(
-                onPressed: () => setState(() => _showAll = !_showAll),
-                child: Text(_showAll ? 'Tampilkan ringkas' : 'Lihat semua'),
-              ),
-          ],
+        AppSectionHeader(
+          title: 'Layanan & Akses Cepat',
+          eyebrow: 'Fitur',
+          actionLabel: actions.length > 8
+              ? (_showAll ? 'Tampilkan Ringkas' : 'Lihat Semua')
+              : null,
+          onAction: actions.length > 8
+              ? () => setState(() => _showAll = !_showAll)
+              : null,
         ),
-        const SizedBox(height: 8),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              // Lebar maks per sel menentukan jumlah kolom (3 di HP umum,
-              // 2 di layar sempit, lebih banyak di tablet); tinggi absolut
-              // mencegah ikon+label meluber saat sel menyempit.
-              gridDelegate: Responsive.gridDelegate(
-                context,
-                lebarMaks: 120,
-                tinggi: 96,
-              ),
-              itemCount: visibleActions.length,
-              itemBuilder: (context, i) {
-                final action = visibleActions[i];
-                return InkWell(
-                  onTap: () => context.go(action.route),
-                  borderRadius: BorderRadius.circular(14),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    padding: const EdgeInsets.all(10),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFD5E9E4),
-                            borderRadius: BorderRadius.circular(10),
+        const SizedBox(height: AppSpacing.sm),
+        AppSurfaceCard(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final crossAxisCount = constraints.maxWidth < 360
+                  ? 3
+                  : constraints.maxWidth < 600
+                  ? 4
+                  : 6;
+
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  mainAxisSpacing: AppSpacing.sm,
+                  crossAxisSpacing: AppSpacing.xs,
+                  mainAxisExtent: 84,
+                ),
+                itemCount: visibleActions.length,
+                itemBuilder: (context, index) {
+                  final item = visibleActions[index];
+
+                  return InkWell(
+                    onTap: () => context.push(item.route),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: item.tintColor,
+                              borderRadius: BorderRadius.circular(AppRadius.md),
+                            ),
+                            child: Icon(
+                              item.icon,
+                              color: item.iconColor,
+                              size: 22,
+                            ),
                           ),
-                          child: Icon(
-                            action.icon,
-                            color: AppColors.primary,
-                            size: 20,
+                          const SizedBox(height: AppSpacing.xxs),
+                          Text(
+                            item.label,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.inkSoft,
+                              height: 1.2,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          action.label,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 12,
-                              ),
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              },
-            ),
+                  );
+                },
+              );
+            },
           ),
         ),
       ],

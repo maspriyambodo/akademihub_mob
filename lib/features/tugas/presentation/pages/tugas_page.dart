@@ -1,17 +1,18 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:dio/dio.dart';
 import '../../../../core/api/api_client.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive.dart';
+import '../../../../core/widgets/batas_lebar_konten.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../materi/presentation/pages/akademik_publikasi_form_page.dart';
+import '../../domain/entities/tugas_entity.dart';
 import '../bloc/tugas_bloc.dart';
 import '../widgets/tugas_widgets.dart';
-import '../../domain/entities/tugas_entity.dart';
-import 'tugas_detail_page.dart';
 import 'pengumpulan_tugas_page.dart';
-import '../../../materi/presentation/pages/akademik_publikasi_form_page.dart';
+import 'tugas_detail_page.dart';
 
 class TugasPage extends StatelessWidget {
   const TugasPage({super.key});
@@ -20,19 +21,19 @@ class TugasPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => sl<TugasBloc>(),
-      child: const _TugasView(),
+      child: const TugasView(),
     );
   }
 }
 
-class _TugasView extends StatefulWidget {
-  const _TugasView();
+class TugasView extends StatefulWidget {
+  const TugasView({super.key});
 
   @override
-  State<_TugasView> createState() => _TugasViewState();
+  State<TugasView> createState() => _TugasViewState();
 }
 
-class _TugasViewState extends State<_TugasView> {
+class _TugasViewState extends State<TugasView> {
   @override
   void initState() {
     super.initState();
@@ -106,12 +107,16 @@ class _TugasViewState extends State<_TugasView> {
 
   bool _bolehUbah(BuildContext context, TugasEntity tugas) {
     final auth = context.read<AuthBloc>().state;
-    return auth is AuthAuthenticated && auth.user.hasPermission('tugas.update') && _milikGuruSaatIni(context, tugas);
+    return auth is AuthAuthenticated &&
+        auth.user.hasPermission('tugas.update') &&
+        _milikGuruSaatIni(context, tugas);
   }
 
   bool _bolehHapus(BuildContext context, TugasEntity tugas) {
     final auth = context.read<AuthBloc>().state;
-    return auth is AuthAuthenticated && auth.user.hasPermission('tugas.delete') && _milikGuruSaatIni(context, tugas);
+    return auth is AuthAuthenticated &&
+        auth.user.hasPermission('tugas.delete') &&
+        _milikGuruSaatIni(context, tugas);
   }
 
   Future<void> _tambahTugas() async {
@@ -153,8 +158,14 @@ class _TugasViewState extends State<_TugasView> {
         title: const Text('Hapus tugas?'),
         content: Text('"${tugas.judul}" akan dihapus permanen.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Hapus')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Hapus'),
+          ),
         ],
       ),
     );
@@ -166,7 +177,14 @@ class _TugasViewState extends State<_TugasView> {
     } on DioException catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.response?.data is Map ? error.response!.data['message']?.toString() ?? 'Gagal menghapus tugas' : 'Gagal menghapus tugas')),
+          SnackBar(
+            content: Text(
+              error.response?.data is Map
+                  ? error.response!.data['message']?.toString() ??
+                        'Gagal menghapus tugas'
+                  : 'Gagal menghapus tugas',
+            ),
+          ),
         );
       }
     }
@@ -175,6 +193,7 @@ class _TugasViewState extends State<_TugasView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.paper,
       appBar: AppBar(title: const Text('Tugas'), centerTitle: true),
       body: BlocConsumer<TugasBloc, TugasState>(
         listenWhen: (_, current) =>
@@ -211,59 +230,74 @@ class _TugasViewState extends State<_TugasView> {
             );
           }
           if (state is TugasLoaded) {
+            final pagePadding = Responsive.pagePadding(context);
             return Column(
               children: [
                 if (state.isSiswaMode || state.isWaliMode)
                   _FilterBar(state: state),
                 Expanded(
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxWidth: Responsive.lebarKontenMaks(context),
-                      ),
-                      child: RefreshIndicator(
-                        onRefresh: () async {
-                          context.read<TugasBloc>().add(
-                            const TugasRefreshRequested(),
-                          );
-                        },
-                        child: state.items.isEmpty
-                            ? ListView(
-                                physics: const AlwaysScrollableScrollPhysics(),
-                                children: [
-                                  SizedBox(
-                                    height: Responsive.tinggiSheet(
-                                      context,
-                                      rasio: 0.6,
-                                    ),
-                                    child: _EmptyView(
-                                      message: _emptyMessage(state),
-                                    ),
+                  child: BatasLebarKonten(
+                    child: RefreshIndicator(
+                      color: AppColors.primary,
+                      onRefresh: () async {
+                        context.read<TugasBloc>().add(
+                          const TugasRefreshRequested(),
+                        );
+                      },
+                      child: state.items.isEmpty
+                          ? ListView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              children: [
+                                SizedBox(
+                                  height: Responsive.tinggiSheet(
+                                    context,
+                                    rasio: 0.6,
                                   ),
-                                ],
-                              )
-                            : ListView.builder(
-                                physics: const AlwaysScrollableScrollPhysics(),
-                                padding: const EdgeInsets.only(
-                                  top: 6,
-                                  bottom: 20,
+                                  child: _EmptyView(
+                                    message: _emptyMessage(state),
+                                  ),
                                 ),
-                                itemCount: state.items.length,
-                                itemBuilder: (context, index) => TugasCard(
+                              ],
+                            )
+                          : ListView.builder(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              padding: EdgeInsets.fromLTRB(
+                                pagePadding.left,
+                                AppSpacing.xs,
+                                pagePadding.right,
+                                AppSpacing.xxl,
+                              ),
+                              itemCount: state.items.length,
+                              itemBuilder: (context, index) => Padding(
+                                padding: const EdgeInsets.only(
+                                  bottom: AppSpacing.xs,
+                                ),
+                                child: TugasCard(
                                   item: state.items[index],
                                   showStatus:
                                       state.isSiswaMode || state.isWaliMode,
                                   onTap: () =>
                                       _openDetail(context, state, index),
-                                  onEdit: _bolehUbah(context, state.items[index].tugas)
-                                      ? () => _ubahTugas(state.items[index].tugas)
+                                  onEdit:
+                                      _bolehUbah(
+                                        context,
+                                        state.items[index].tugas,
+                                      )
+                                      ? () =>
+                                            _ubahTugas(state.items[index].tugas)
                                       : null,
-                                  onDelete: _bolehHapus(context, state.items[index].tugas)
-                                      ? () => _hapusTugas(state.items[index].tugas)
+                                  onDelete:
+                                      _bolehHapus(
+                                        context,
+                                        state.items[index].tugas,
+                                      )
+                                      ? () => _hapusTugas(
+                                          state.items[index].tugas,
+                                        )
                                       : null,
                                 ),
                               ),
-                      ),
+                            ),
                     ),
                   ),
                 ),
@@ -302,32 +336,44 @@ class _FilterBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white,
-      padding: EdgeInsets.symmetric(
-        horizontal: Responsive.isCompact(context) ? 8 : 12,
-        vertical: 10,
+      decoration: const BoxDecoration(
+        color: AppColors.paperBright,
+        border: Border(bottom: BorderSide(color: AppColors.line)),
+      ),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.xs,
       ),
       child: Row(
         children: [
-          _FilterChip(
-            label: 'Semua',
-            count: state.totalSemua,
-            selected: state.filter == TugasFilter.semua,
-            filter: TugasFilter.semua,
-          ),
-          const SizedBox(width: 8),
-          _FilterChip(
-            label: 'Belum',
-            count: state.totalBelum,
-            selected: state.filter == TugasFilter.belum,
-            filter: TugasFilter.belum,
-          ),
-          const SizedBox(width: 8),
-          _FilterChip(
-            label: 'Sudah',
-            count: state.totalSudah,
-            selected: state.filter == TugasFilter.sudah,
-            filter: TugasFilter.sudah,
+          Expanded(
+            child: Row(
+              children: [
+                _FilterChip(
+                  label: 'Belum (${state.totalBelum})',
+                  selected: state.filter == TugasFilter.belum,
+                  onTap: () => context.read<TugasBloc>().add(
+                    const TugasFilterChanged(TugasFilter.belum),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                _FilterChip(
+                  label: 'Sudah (${state.totalSudah})',
+                  selected: state.filter == TugasFilter.sudah,
+                  onTap: () => context.read<TugasBloc>().add(
+                    const TugasFilterChanged(TugasFilter.sudah),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                _FilterChip(
+                  label: 'Semua (${state.totalSemua})',
+                  selected: state.filter == TugasFilter.semua,
+                  onTap: () => context.read<TugasBloc>().add(
+                    const TugasFilterChanged(TugasFilter.semua),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -337,44 +383,35 @@ class _FilterBar extends StatelessWidget {
 
 class _FilterChip extends StatelessWidget {
   final String label;
-  final int count;
   final bool selected;
-  final TugasFilter filter;
+  final VoidCallback onTap;
 
   const _FilterChip({
     required this.label,
-    required this.count,
     required this.selected,
-    required this.filter,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: () => context.read<TugasBloc>().add(TugasFilterChanged(filter)),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
-          decoration: BoxDecoration(
-            color: selected ? AppColors.primary : AppColors.surface,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: selected ? AppColors.primary : AppColors.divider,
-            ),
-          ),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              '$label ($count)',
-              maxLines: 1,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: selected ? Colors.white : AppColors.textSecondary,
-              ),
-            ),
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: AppSpacing.xxs + 2,
+        ),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.primary : AppColors.paperMuted,
+          borderRadius: BorderRadius.circular(AppRadius.pill),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: selected ? Colors.white : AppColors.inkSoft,
           ),
         ),
       ),
@@ -382,42 +419,7 @@ class _FilterChip extends StatelessWidget {
   }
 }
 
-// ── Error View ───────────────────────────────────────────────────────────────
-
-class _ErrorView extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-  const _ErrorView({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: Responsive.pagePadding(context) + const EdgeInsets.all(16),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, size: 56, color: AppColors.error),
-            const SizedBox(height: 16),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 14),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Coba Lagi'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── Empty View ───────────────────────────────────────────────────────────────
+// ── Empty / Error View ───────────────────────────────────────────────────────
 
 class _EmptyView extends StatelessWidget {
   final String message;
@@ -427,23 +429,75 @@ class _EmptyView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: Responsive.pagePadding(context) + const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(
-              Icons.assignment_outlined,
-              size: 64,
-              color: AppColors.textHint,
+              Icons.assignment_turned_in_outlined,
+              size: 48,
+              color: AppColors.inkMuted,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.textSecondary,
+              style: const TextStyle(color: AppColors.inkSoft, fontSize: 14),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ErrorView extends StatelessWidget {
+  final String message;
+  final VoidCallback onRetry;
+
+  const _ErrorView({required this.message, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: const BoxDecoration(
+                color: AppColors.errorContainer,
+                shape: BoxShape.circle,
               ),
+              child: const Icon(
+                Icons.error_outline_rounded,
+                size: 28,
+                color: AppColors.error,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              'Gagal Memuat Tugas',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: AppColors.ink,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              message,
+              style: const TextStyle(color: AppColors.inkSoft, fontSize: 13),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            FilledButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Coba Lagi'),
             ),
           ],
         ),

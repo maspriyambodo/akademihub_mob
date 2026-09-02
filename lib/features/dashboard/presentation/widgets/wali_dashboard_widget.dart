@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/app_section_header.dart';
+import '../../../../core/widgets/app_status_badge.dart';
+import '../../../../core/widgets/app_surface_card.dart';
 import '../../domain/entities/dashboard_entity.dart';
 import 'dashboard_quick_actions.dart';
 
@@ -20,31 +24,41 @@ class WaliDashboardWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Children cards
+        // 1. Data Siswa Asuhan / Perwalian
+        const AppSectionHeader(
+          title: 'Status Anak Asuhan',
+          eyebrow: 'Keluarga',
+        ),
+        const SizedBox(height: AppSpacing.sm),
         if (children.isEmpty)
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                'Tidak ada data anak ditemukan.',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
-              ),
+          AppSurfaceCard(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Row(
+              children: [
+                const Icon(Icons.info_outline, color: AppColors.inkMuted),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    'Tidak ada data anak yang terhubung dengan akun ini.',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: AppColors.inkSoft),
+                  ),
+                ),
+              ],
             ),
           )
         else
           ...children.map((child) => _ChildCard(child: child)),
 
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
-        // Quick Actions
+        // 2. Akses Cepat Wali
         DashboardQuickActions(
           role: 'wali',
           permissions: permissions,
           hasChild: children.isNotEmpty,
         ),
-        const SizedBox(height: 16),
       ],
     );
   }
@@ -59,131 +73,96 @@ class _ChildCard extends StatelessWidget {
     final absensi = child['absensi_hari_ini']?.toString() ?? 'Belum Absen';
     final tunggakan = (child['tunggakan_spp_count'] as num?)?.toInt() ?? 0;
 
-    Color absensiColor;
-    IconData absensiIcon;
-    if (absensi == 'Hadir') {
-      absensiColor = AppColors.success;
-      absensiIcon = Icons.check_circle;
-    } else if (absensi == 'Belum Absen') {
-      absensiColor = AppColors.textSecondary;
-      absensiIcon = Icons.radio_button_unchecked;
+    final AppStatusTone tone;
+    final IconData absensiIcon;
+    if (absensi.toLowerCase().contains('hadir')) {
+      tone = AppStatusTone.success;
+      absensiIcon = Icons.check_circle_outline;
+    } else if (absensi.toLowerCase().contains('belum')) {
+      tone = AppStatusTone.neutral;
+      absensiIcon = Icons.schedule_outlined;
     } else {
-      absensiColor = AppColors.error;
-      absensiIcon = Icons.warning_amber;
+      tone = AppStatusTone.error;
+      absensiIcon = Icons.warning_amber_rounded;
     }
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: AppSurfaceCard(
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  width: 44,
+                  height: 44,
                   decoration: BoxDecoration(
-                    color: AppColors.info.withAlpha(30),
-                    borderRadius: BorderRadius.circular(10),
+                    color: AppColors.waliContainer,
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: const Icon(
-                    Icons.person,
-                    color: AppColors.info,
-                    size: 22,
+                    Icons.face_outlined,
+                    color: AppColors.waliOnContainer,
+                    size: 24,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         child['nama']?.toString() ?? 'Anak',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.ink,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
                       ),
+                      const SizedBox(height: 2),
                       Text(
                         'Kelas: ${child['kelas'] ?? '-'}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.textSecondary,
+                          color: AppColors.inkSoft,
                         ),
                       ),
                     ],
                   ),
                 ),
+                AppStatusBadge(label: absensi, tone: tone, icon: absensiIcon),
               ],
             ),
-            const SizedBox(height: 12),
-            const Divider(height: 1),
-            const SizedBox(height: 12),
-            _InfoRow(
-              label: 'Kehadiran Hari Ini',
-              value: absensi,
-              valueColor: absensiColor,
-              valueIcon: absensiIcon,
-            ),
-            const SizedBox(height: 8),
-            _InfoRow(
-              label: 'Tunggakan SPP',
-              value: tunggakan == 0 ? 'Lunas' : '$tunggakan bulan',
-              valueColor: tunggakan == 0 ? AppColors.success : AppColors.error,
-              valueIcon: tunggakan == 0
-                  ? Icons.check_circle
-                  : Icons.attach_money,
+            const SizedBox(height: AppSpacing.sm),
+            const Divider(color: AppColors.line),
+            const SizedBox(height: AppSpacing.xs),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Status SPP',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: AppColors.inkSoft),
+                ),
+                AppStatusBadge(
+                  label: tunggakan == 0
+                      ? 'Lunas'
+                      : '$tunggakan Bulan Tunggakan',
+                  tone: tunggakan == 0
+                      ? AppStatusTone.success
+                      : AppStatusTone.warning,
+                  icon: tunggakan == 0
+                      ? Icons.check_circle_outline
+                      : Icons.payments_outlined,
+                ),
+              ],
             ),
           ],
         ),
       ),
-    );
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  final String label;
-  final String value;
-  final Color valueColor;
-  final IconData valueIcon;
-
-  const _InfoRow({
-    required this.label,
-    required this.value,
-    required this.valueColor,
-    required this.valueIcon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            label,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
-          ),
-        ),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(valueIcon, size: 14, color: valueColor),
-            const SizedBox(width: 4),
-            Text(
-              value,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: valueColor,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ],
     );
   }
 }

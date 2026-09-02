@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('admin dashboard ignores PPDB fields in fixture payload', (tester) async {
+  testWidgets('admin dashboard ignores PPDB fields in fixture payload', (
+    tester,
+  ) async {
     final data = const DashboardEntity(
       role: 'admin',
       profile: {'nama': 'Admin Test'},
@@ -21,10 +23,7 @@ void main() {
       MaterialApp(
         home: Scaffold(
           body: SingleChildScrollView(
-            child: AdminDashboardWidget(
-              data: data,
-              permissions: const [],
-            ),
+            child: AdminDashboardWidget(data: data, permissions: const []),
           ),
         ),
       ),

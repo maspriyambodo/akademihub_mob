@@ -112,9 +112,12 @@ void main() {
     );
     await bloc.stream.firstWhere((state) => state is AbsensiLoaded);
     bloc.add(const AbsensiCheckInRequested());
-    final state = await bloc.stream.firstWhere(
-      (state) => state is AbsensiLoaded && state.mutationMessage != null,
-    ) as AbsensiLoaded;
+    final state =
+        await bloc.stream.firstWhere(
+              (state) =>
+                  state is AbsensiLoaded && state.mutationMessage != null,
+            )
+            as AbsensiLoaded;
 
     expect(state.mutationMessage, 'Check-in ditutup oleh sekolah');
     expect(repository.siswaListCalls, 1);
@@ -147,9 +150,12 @@ void main() {
     );
     await bloc.stream.firstWhere((state) => state is AbsensiLoaded);
     bloc.add(const AbsensiCheckInRequested());
-    final state = await bloc.stream.firstWhere(
-      (state) => state is AbsensiLoaded && state.mutationMessage != null,
-    ) as AbsensiLoaded;
+    final state =
+        await bloc.stream.firstWhere(
+              (state) =>
+                  state is AbsensiLoaded && state.mutationMessage != null,
+            )
+            as AbsensiLoaded;
 
     expect(state.mutationMessage, 'Izin lokasi ditolak permanen.');
     expect(state.showContactOfficer, isTrue);

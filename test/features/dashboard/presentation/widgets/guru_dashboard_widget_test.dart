@@ -8,16 +8,15 @@ void main() {
     return MaterialApp(
       home: Scaffold(
         body: SingleChildScrollView(
-          child: GuruDashboardWidget(
-            data: data,
-            permissions: const [],
-          ),
+          child: GuruDashboardWidget(data: data, permissions: const []),
         ),
       ),
     );
   }
 
-  testWidgets('renders total_mapel from Go dashboard-engine fixture', (tester) async {
+  testWidgets('renders total_mapel from Go dashboard-engine fixture', (
+    tester,
+  ) async {
     final data = const DashboardEntity(
       role: 'guru',
       profile: {'nama': 'Guru Test', 'nip': '123456'},
@@ -35,21 +34,24 @@ void main() {
     expect(find.text('7'), findsOneWidget);
   });
 
-  testWidgets('falls back to legacy total_mata_pelajaran when total_mapel is missing', (tester) async {
-    final data = const DashboardEntity(
-      role: 'guru',
-      profile: {'nama': 'Guru Test', 'nip': '123456'},
-      summary: {
-        'total_siswa_wali': 30,
-        'total_mata_pelajaran': 6,
-        'total_kelas_wali': 2,
-        'tugas_belum_dinilai': 5,
-      },
-    );
+  testWidgets(
+    'falls back to legacy total_mata_pelajaran when total_mapel is missing',
+    (tester) async {
+      final data = const DashboardEntity(
+        role: 'guru',
+        profile: {'nama': 'Guru Test', 'nip': '123456'},
+        summary: {
+          'total_siswa_wali': 30,
+          'total_mata_pelajaran': 6,
+          'total_kelas_wali': 2,
+          'tugas_belum_dinilai': 5,
+        },
+      );
 
-    await tester.pumpWidget(buildWidget(data));
+      await tester.pumpWidget(buildWidget(data));
 
-    expect(find.text('Mata Pelajaran'), findsOneWidget);
-    expect(find.text('6'), findsOneWidget);
-  });
+      expect(find.text('Mata Pelajaran'), findsOneWidget);
+      expect(find.text('6'), findsOneWidget);
+    },
+  );
 }

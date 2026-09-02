@@ -3,6 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive.dart';
+import '../../../../core/widgets/app_section_header.dart';
+import '../../../../core/widgets/app_status_badge.dart';
+import '../../../../core/widgets/app_surface_card.dart';
+import '../../../../core/widgets/batas_lebar_konten.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/jadwal_bloc.dart';
 import '../../domain/entities/jadwal_pelajaran_entity.dart';
@@ -15,19 +19,19 @@ class JadwalPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => sl<JadwalBloc>(),
-      child: const _JadwalView(),
+      child: const JadwalView(),
     );
   }
 }
 
-class _JadwalView extends StatefulWidget {
-  const _JadwalView();
+class JadwalView extends StatefulWidget {
+  const JadwalView({super.key});
 
   @override
-  State<_JadwalView> createState() => _JadwalViewState();
+  State<JadwalView> createState() => _JadwalViewState();
 }
 
-class _JadwalViewState extends State<_JadwalView> {
+class _JadwalViewState extends State<JadwalView> {
   void _loadForUser(AuthAuthenticated state) {
     final user = state.user;
     final role = user.role ?? 'unknown';
@@ -67,6 +71,7 @@ class _JadwalViewState extends State<_JadwalView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.paper,
       appBar: AppBar(title: const Text('Jadwal Pelajaran'), centerTitle: true),
       body: BlocListener<AuthBloc, AuthState>(
         listenWhen: (_, state) => state is AuthAuthenticated,
@@ -104,28 +109,24 @@ class _JadwalViewState extends State<_JadwalView> {
                         ),
                       ),
                       Expanded(
-                        child: Center(
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(
-                              maxWidth: Responsive.lebarKontenMaks(context),
-                            ),
-                            child: RefreshIndicator(
-                              onRefresh: () async {
-                                context.read<JadwalBloc>().add(
-                                  const JadwalRefreshRequested(),
-                                );
-                              },
-                              child: state.items.isEmpty
-                                  ? _EmptyScrollView(
-                                      message:
-                                          'Tidak ada jadwal pelajaran pada hari '
-                                          '${hariLabel(state.selectedHari)}',
-                                    )
-                                  : _JadwalList(
-                                      state: state,
-                                      isGuru: authState.user.isGuru,
-                                    ),
-                            ),
+                        child: BatasLebarKonten(
+                          child: RefreshIndicator(
+                            color: AppColors.primary,
+                            onRefresh: () async {
+                              context.read<JadwalBloc>().add(
+                                const JadwalRefreshRequested(),
+                              );
+                            },
+                            child: state.items.isEmpty
+                                ? _EmptyScrollView(
+                                    message:
+                                        'Tidak ada jadwal pelajaran pada hari '
+                                        '${hariLabel(state.selectedHari)}',
+                                  )
+                                : _JadwalList(
+                                    state: state,
+                                    isGuru: authState.user.isGuru,
+                                  ),
                           ),
                         ),
                       ),
@@ -160,11 +161,14 @@ class _HariSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.primary,
-      padding: const EdgeInsets.symmetric(vertical: 10),
+      decoration: const BoxDecoration(
+        color: AppColors.paperBright,
+        border: Border(bottom: BorderSide(color: AppColors.line)),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
         child: Row(
           children: hariList.map((hari) {
             final isSelected = hari == selected;
@@ -174,16 +178,18 @@ class _HariSelector extends StatelessWidget {
               child: GestureDetector(
                 onTap: () => onSelected(hari),
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
+                  duration: const Duration(milliseconds: 180),
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.xs,
                   ),
                   decoration: BoxDecoration(
-                    color: isSelected ? Colors.white : Colors.white24,
-                    borderRadius: BorderRadius.circular(20),
+                    color: isSelected
+                        ? AppColors.primary
+                        : AppColors.paperMuted,
+                    borderRadius: BorderRadius.circular(AppRadius.pill),
                   ),
-                  child: Column(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
@@ -191,21 +197,22 @@ class _HariSelector extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: isSelected ? AppColors.primary : Colors.white,
+                          color: isSelected ? Colors.white : AppColors.inkSoft,
                         ),
                       ),
-                      if (isToday)
+                      if (isToday) ...[
+                        const SizedBox(width: 4),
                         Container(
-                          margin: const EdgeInsets.only(top: 3),
                           width: 5,
                           height: 5,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: isSelected
-                                ? AppColors.primary
-                                : Colors.white,
+                                ? Colors.white
+                                : AppColors.primary,
                           ),
                         ),
+                      ],
                     ],
                   ),
                 ),
@@ -227,20 +234,29 @@ class _JadwalList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pagePadding = Responsive.pagePadding(context);
     return ListView.builder(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.only(top: 8, bottom: 24),
+      padding: EdgeInsets.fromLTRB(
+        pagePadding.left,
+        AppSpacing.sm,
+        pagePadding.right,
+        AppSpacing.xxl,
+      ),
       itemCount: state.items.length + 1,
       itemBuilder: (context, index) {
         if (index == 0) return _ListHeader(state: state);
         final item = state.items[index - 1];
-        return _JadwalCard(
-          item: item,
-          now: state.now,
-          isHariIni: state.isHariIni,
-          showKelas: state.showKelas,
-          isLast: index == state.items.length,
-          canTakeAttendance: isGuru && state.isHariIni,
+        return Padding(
+          padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+          child: _JadwalCard(
+            item: item,
+            now: state.now,
+            isHariIni: state.isHariIni,
+            showKelas: state.showKelas,
+            isLast: index == state.items.length,
+            canTakeAttendance: isGuru && state.isHariIni,
+          ),
         );
       },
     );
@@ -253,60 +269,18 @@ class _ListHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hPad = Responsive.pagePadding(context).left;
     return Padding(
-      padding: EdgeInsets.fromLTRB(hPad, 8, hPad, 4),
-      child: Row(
-        children: [
-          Flexible(
-            child: Text(
-              hariLabel(state.selectedHari),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          if (state.isHariIni)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withAlpha(25),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Text(
-                'Hari ini',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          const Spacer(),
-          const SizedBox(width: 8),
-          Text(
-            '${state.items.length} pelajaran',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 12,
-              color: AppColors.textSecondary,
-            ),
-          ),
-        ],
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm, top: AppSpacing.xs),
+      child: AppSectionHeader(
+        title: hariLabel(state.selectedHari),
+        eyebrow: 'Agenda Kelas',
+        actionLabel: '${state.items.length} Mata Pelajaran',
       ),
     );
   }
 }
 
-// ── Kartu Jadwal (timeline) ──────────────────────────────────────────────────
+// ── Kartu Jadwal ─────────────────────────────────────────────────────────────
 
 class _JadwalCard extends StatelessWidget {
   final JadwalPelajaranEntity item;
@@ -322,293 +296,162 @@ class _JadwalCard extends StatelessWidget {
     required this.isHariIni,
     required this.showKelas,
     required this.isLast,
-    this.canTakeAttendance = false,
+    required this.canTakeAttendance,
   });
 
   @override
   Widget build(BuildContext context) {
     final berlangsung = isHariIni && item.isBerlangsung(now);
-    final selesai = isHariIni && !berlangsung && item.isSelesai(now);
+    final selesai = isHariIni && item.isSelesai(now);
 
-    final Color aksen = berlangsung
-        ? AppColors.success
-        : (selesai ? AppColors.textHint : AppColors.primary);
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // ── Kolom jam + garis timeline ────────────────────────────────
-        SizedBox(
-          width: Responsive.isCompact(context) ? 52 : 62,
-          child: Column(
-            children: [
-              const SizedBox(height: 14),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  item.jamMulai ?? '--:--',
-                  maxLines: 1,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: selesai ? AppColors.textHint : AppColors.textPrimary,
+    return Opacity(
+      opacity: selesai ? 0.65 : 1.0,
+      child: AppSurfaceCard(
+        accentColor: berlangsung ? AppColors.success : null,
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xs,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: berlangsung
+                        ? AppColors.successContainer
+                        : AppColors.primaryLight.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                  ),
+                  child: Text(
+                    item.jamMulai ?? '--:--',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: berlangsung
+                          ? AppColors.successOnContainer
+                          : AppColors.primaryDark,
+                    ),
                   ),
                 ),
-              ),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  item.jamSelesai ?? '--:--',
-                  maxLines: 1,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: AppColors.textSecondary,
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    item.mapelNama ?? 'Mata Pelajaran',
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.ink,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (berlangsung)
+                  const AppStatusBadge(
+                    label: 'Berlangsung',
+                    tone: AppStatusTone.success,
+                  ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Row(
+              children: [
+                const Icon(
+                  Icons.person_outline,
+                  size: 14,
+                  color: AppColors.inkMuted,
+                ),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    item.guruNama ?? 'Guru belum ditentukan',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.inkSoft,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Wrap(
+              spacing: AppSpacing.xs,
+              runSpacing: AppSpacing.xxs,
+              children: [
+                _JadwalChip(
+                  icon: Icons.schedule_outlined,
+                  label: item.durasiMenit != null
+                      ? '${item.rentangJam} (${item.durasiMenit} mnt)'
+                      : item.rentangJam,
+                ),
+                if (item.ruangan != null && item.ruangan!.isNotEmpty)
+                  _JadwalChip(
+                    icon: Icons.meeting_room_outlined,
+                    label: item.ruangan!,
+                  ),
+                if (showKelas &&
+                    item.kelasNama != null &&
+                    item.kelasNama!.isNotEmpty)
+                  _JadwalChip(
+                    icon: Icons.school_outlined,
+                    label: item.kelasNama!,
+                  ),
+              ],
+            ),
+            if (canTakeAttendance) ...[
+              const SizedBox(height: AppSpacing.sm),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.fact_check_outlined, size: 18),
+                  label: const Text('Presensi Cepat'),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          QuickAttendancePage(jadwal: item, tanggal: now),
+                    ),
                   ),
                 ),
               ),
             ],
-          ),
-        ),
-        _TimelineBar(color: aksen, aktif: berlangsung, isLast: isLast),
-        // ── Kartu detail ──────────────────────────────────────────────
-        Expanded(
-          child: Opacity(
-            opacity: selesai ? 0.6 : 1,
-            child: Card(
-              margin: EdgeInsets.fromLTRB(
-                10,
-                6,
-                Responsive.pagePadding(context).right,
-                6,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: BorderSide(
-                  color: berlangsung ? AppColors.success : AppColors.divider,
-                  width: berlangsung ? 1.4 : 1,
-                ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            item.mapelNama ?? 'Mata pelajaran tidak diketahui',
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                        ),
-                        if (berlangsung) ...[
-                          const SizedBox(width: 6),
-                          const _BadgeBerlangsung(),
-                        ],
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    _InfoRow(
-                      icon: Icons.person_outline,
-                      text: item.guruNama ?? 'Guru belum ditentukan',
-                    ),
-                    const SizedBox(height: 4),
-                    LayoutBuilder(
-                      builder: (context, c) => Wrap(
-                        spacing: 6,
-                        runSpacing: 4,
-                        children: [
-                          _Chip(
-                            icon: Icons.schedule,
-                            maxWidth: c.maxWidth,
-                            label: item.durasiMenit != null
-                                ? '${item.rentangJam} · ${item.durasiMenit} mnt'
-                                : item.rentangJam,
-                          ),
-                          if (item.ruangan != null && item.ruangan!.isNotEmpty)
-                            _Chip(
-                              icon: Icons.meeting_room_outlined,
-                              maxWidth: c.maxWidth,
-                              label: item.ruangan!,
-                            ),
-                          if (showKelas &&
-                              item.kelasNama != null &&
-                              item.kelasNama!.isNotEmpty)
-                            _Chip(
-                              icon: Icons.class_outlined,
-                              maxWidth: c.maxWidth,
-                              label: item.kelasNama!,
-                            ),
-                        ],
-                      ),
-                    ),
-                    if (canTakeAttendance) ...[
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton.icon(
-                          icon: const Icon(Icons.fact_check_outlined),
-                          label: const Text('Quick Attendance'),
-                          onPressed: () => Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => QuickAttendancePage(
-                                jadwal: item,
-                                tanggal: now,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _TimelineBar extends StatelessWidget {
-  final Color color;
-  final bool aktif;
-  final bool isLast;
-
-  const _TimelineBar({
-    required this.color,
-    required this.aktif,
-    required this.isLast,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 18,
-      child: Column(
-        children: [
-          Container(width: 2, height: 14, color: AppColors.divider),
-          Container(
-            width: aktif ? 14 : 10,
-            height: aktif ? 14 : 10,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: color,
-              border: aktif
-                  ? Border.all(color: AppColors.cardBg, width: 2)
-                  : null,
-            ),
-          ),
-          SizedBox(
-            height: 112,
-            child: Container(
-              width: 2,
-              color: isLast ? Colors.transparent : AppColors.divider,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _BadgeBerlangsung extends StatelessWidget {
-  const _BadgeBerlangsung();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: AppColors.success.withAlpha(30),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.success.withAlpha(120)),
-      ),
-      child: const Text(
-        'Berlangsung',
-        style: TextStyle(
-          fontSize: 10,
-          color: AppColors.success,
-          fontWeight: FontWeight.w700,
+          ],
         ),
       ),
     );
   }
 }
 
-class _InfoRow extends StatelessWidget {
-  final IconData icon;
-  final String text;
-
-  const _InfoRow({required this.icon, required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, size: 14, color: AppColors.textSecondary),
-        const SizedBox(width: 6),
-        Expanded(
-          child: Text(
-            text,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 12,
-              color: AppColors.textSecondary,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _Chip extends StatelessWidget {
+class _JadwalChip extends StatelessWidget {
   final IconData icon;
   final String label;
 
-  /// Batas lebar chip agar label panjang tidak meluber keluar `Wrap`.
-  final double? maxWidth;
-
-  const _Chip({required this.icon, required this.label, this.maxWidth});
+  const _JadwalChip({required this.icon, required this.label});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: BoxConstraints(
-        maxWidth: maxWidth != null && maxWidth!.isFinite
-            ? maxWidth!
-            : double.infinity,
-      ),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: AppColors.divider),
+        color: AppColors.paperMuted,
+        borderRadius: BorderRadius.circular(AppRadius.sm),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: AppColors.textSecondary),
+          Icon(icon, size: 12, color: AppColors.inkMuted),
           const SizedBox(width: 4),
-          Flexible(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 11,
-                color: AppColors.textSecondary,
-              ),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 11,
+              color: AppColors.inkSoft,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -617,78 +460,8 @@ class _Chip extends StatelessWidget {
   }
 }
 
-// ── Error View ───────────────────────────────────────────────────────────────
+// ── Empty / Error View ───────────────────────────────────────────────────────
 
-class _ErrorView extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-  const _ErrorView({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: Responsive.pagePadding(context) + const EdgeInsets.all(16),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, size: 56, color: AppColors.error),
-            const SizedBox(height: 16),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 14),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Coba Lagi'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── Empty View ───────────────────────────────────────────────────────────────
-
-class _EmptyView extends StatelessWidget {
-  final String message;
-  const _EmptyView({required this.message});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: Responsive.pagePadding(context) + const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.event_busy_outlined,
-              size: 64,
-              color: AppColors.textHint,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Pembungkus [_EmptyView] agar tetap bisa ditarik (pull-to-refresh)
-/// walaupun kontennya tidak melebihi tinggi layar.
 class _EmptyScrollView extends StatelessWidget {
   final String message;
   const _EmptyScrollView({required this.message});
@@ -696,15 +469,91 @@ class _EmptyScrollView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
-      builder: (context, constraints) {
-        return SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: _EmptyView(message: message),
+      builder: (context, constraints) => SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.xl),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.event_busy_outlined,
+                    size: 48,
+                    color: AppColors.inkMuted,
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Text(
+                    message,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: AppColors.inkSoft,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-        );
-      },
+        ),
+      ),
+    );
+  }
+}
+
+class _ErrorView extends StatelessWidget {
+  final String message;
+  final VoidCallback onRetry;
+
+  const _ErrorView({required this.message, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: const BoxDecoration(
+                color: AppColors.errorContainer,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.error_outline_rounded,
+                size: 28,
+                color: AppColors.error,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              'Gagal Memuat Jadwal',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: AppColors.ink,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              message,
+              style: const TextStyle(color: AppColors.inkSoft, fontSize: 13),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            FilledButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Coba Lagi'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

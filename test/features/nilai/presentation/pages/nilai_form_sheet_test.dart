@@ -15,21 +15,23 @@ void main() {
 
   testWidgets('validates score then returns edit value', (tester) async {
     NilaiFormValue? result;
-    await tester.pumpWidget(MaterialApp(
-      home: Scaffold(
-        body: Builder(
-          builder: (context) => TextButton(
-            onPressed: () async {
-              result = await showModalBottomSheet<NilaiFormValue>(
-                context: context,
-                builder: (_) => NilaiFormSheet(items: [item], initial: item),
-              );
-            },
-            child: const Text('open'),
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => TextButton(
+              onPressed: () async {
+                result = await showModalBottomSheet<NilaiFormValue>(
+                  context: context,
+                  builder: (_) => NilaiFormSheet(items: [item], initial: item),
+                );
+              },
+              child: const Text('open'),
+            ),
           ),
         ),
       ),
-    ));
+    );
 
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
@@ -39,7 +41,10 @@ void main() {
     expect(find.text('Masukkan nilai 0 sampai 100'), findsOneWidget);
 
     await tester.enterText(find.byKey(const Key('nilai_form_nilai')), '91.5');
-    await tester.enterText(find.byKey(const Key('nilai_form_keterangan')), 'Direvisi');
+    await tester.enterText(
+      find.byKey(const Key('nilai_form_keterangan')),
+      'Direvisi',
+    );
     await tester.tap(find.byKey(const Key('nilai_form_submit')));
     await tester.pumpAndSettle();
     expect(result?.nilai, 91.5);

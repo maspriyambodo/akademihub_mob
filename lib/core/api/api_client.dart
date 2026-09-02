@@ -117,8 +117,9 @@ class _AuthInterceptor extends Interceptor {
         }
 
         final opts = err.requestOptions;
-        final isSafeMethod =
-            _safeRetryMethods.contains(opts.method.toUpperCase());
+        final isSafeMethod = _safeRetryMethods.contains(
+          opts.method.toUpperCase(),
+        );
         if (!isSafeMethod && !allowPostRetry) {
           return handler.next(err);
         }

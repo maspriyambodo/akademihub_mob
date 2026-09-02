@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/app_surface_card.dart';
 
 class DashboardStatCard extends StatelessWidget {
   final String title;
@@ -19,63 +21,67 @@ class DashboardStatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: Color.alphaBlend(color.withAlpha(18), AppColors.cardBg),
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: color.withAlpha(24)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    color: color.withAlpha(28),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(icon, color: color, size: 20),
+    return AppSurfaceCard(
+      accentColor: color,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: Theme.of(context).textTheme.bodySmall,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                child: Icon(icon, color: color, size: 18),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: Text(
+                  title,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.inkMuted,
+                    fontWeight: FontWeight.w600,
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ],
-            ),
-            const SizedBox(height: 16),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            value,
+            style:
+                (Theme.of(context).extension<AppDataTypography>()?.value ??
+                        Theme.of(context).textTheme.headlineSmall ??
+                        const TextStyle())
+                    .copyWith(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.ink,
+                      letterSpacing: -0.5,
+                    ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          if (description != null) ...[
+            const SizedBox(height: 2),
             Text(
-              value,
-              style:
-                  (Theme.of(context).extension<AppDataTypography>()?.value ??
-                          Theme.of(context).textTheme.headlineSmall ??
-                          const TextStyle())
-                      .copyWith(fontSize: 24, letterSpacing: -0.5),
+              description!,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontSize: 11,
+                color: AppColors.inkSoft,
+              ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            if (description != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                description!,
-                style: Theme.of(context).textTheme.labelSmall,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
           ],
-        ),
+        ],
       ),
     );
   }

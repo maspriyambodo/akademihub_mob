@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive.dart';
+import '../../../../core/widgets/app_surface_card.dart';
 import '../../domain/entities/tugas_item_entity.dart';
 import '../../domain/entities/tugas_siswa_entity.dart';
 
@@ -146,142 +147,121 @@ class TugasCard extends StatelessWidget {
               ? AppColors.warning
               : AppColors.textSecondary);
 
-    return Card(
-      margin: EdgeInsets.symmetric(
-        horizontal: Responsive.pagePadding(context).left,
-        vertical: 5,
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: onTap,
-        child: Padding(
-          padding: EdgeInsets.all(Responsive.isCompact(context) ? 10 : 14),
-          child: Column(
+    return AppSurfaceCard(
+      onTap: onTap,
+      accentColor: sorotDeadline ? AppColors.warning : null,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      color: statusColor.withAlpha(30),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(
-                      Icons.assignment_outlined,
-                      size: 20,
-                      color: statusColor,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          tugas.judul,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          [
-                            tugas.mapelLabel,
-                            if (tugas.kelasNama != null) tugas.kelasNama!,
-                          ].join(' · '),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (showStatus) ...[
-                    const SizedBox(width: 6),
-                    TugasBadge(
-                      label: status.label,
-                      color: statusColor,
-                      maxWidth: 110,
-                    ),
-                  ],
-                  if (onEdit != null || onDelete != null)
-                    PopupMenuButton<String>(
-                      tooltip: 'Aksi tugas',
-                      onSelected: (action) => action == 'edit'
-                          ? onEdit?.call()
-                          : onDelete?.call(),
-                      itemBuilder: (_) => [
-                        if (onEdit != null)
-                          const PopupMenuItem(
-                            value: 'edit',
-                            child: Text('Ubah'),
-                          ),
-                        if (onDelete != null)
-                          const PopupMenuItem(
-                            value: 'delete',
-                            child: Text('Hapus'),
-                          ),
-                      ],
-                    ),
-                ],
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.secondary.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                ),
+                child: const Icon(
+                  Icons.assignment_outlined,
+                  size: 20,
+                  color: AppColors.ink,
+                ),
               ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Icon(
-                    sorotDeadline
-                        ? Icons.warning_amber_rounded
-                        : Icons.schedule,
-                    size: 14,
-                    color: deadlineColor,
-                  ),
-                  const SizedBox(width: 5),
-                  Expanded(
-                    child: Text(
-                      deadline == null
-                          ? 'Tanpa tenggat'
-                          : '${formatTanggalWaktu(deadline)}  (${sisaWaktuLabel(deadline)})',
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      tugas.judul,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: deadlineColor,
-                        fontWeight: sorotDeadline
-                            ? FontWeight.w600
-                            : FontWeight.normal,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.ink,
                       ),
                     ),
-                  ),
-                  if (item.pengumpulan?.sudahDinilai == true) ...[
-                    const SizedBox(width: 6),
-                    TugasBadge(
-                      label: 'Nilai ${item.pengumpulan!.nilaiLabel}',
-                      color: AppColors.success,
-                      icon: Icons.star_rounded,
-                      maxWidth: 110,
+                    const SizedBox(height: 2),
+                    Text(
+                      [
+                        tugas.mapelLabel,
+                        if (tugas.kelasNama != null) tugas.kelasNama!,
+                      ].join(' · '),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.inkSoft,
+                      ),
                     ),
                   ],
-                ],
+                ),
+              ),
+              if (showStatus) ...[
+                const SizedBox(width: AppSpacing.xs),
+                TugasBadge(
+                  label: status.label,
+                  color: statusColor,
+                  maxWidth: 110,
+                ),
+              ],
+              if (onEdit != null || onDelete != null)
+                PopupMenuButton<String>(
+                  tooltip: 'Aksi tugas',
+                  onSelected: (action) =>
+                      action == 'edit' ? onEdit?.call() : onDelete?.call(),
+                  itemBuilder: (_) => [
+                    if (onEdit != null)
+                      const PopupMenuItem(value: 'edit', child: Text('Ubah')),
+                    if (onDelete != null)
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: Text('Hapus'),
+                      ),
+                  ],
+                ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: [
+              Icon(
+                sorotDeadline
+                    ? Icons.warning_amber_rounded
+                    : Icons.schedule_outlined,
+                size: 14,
+                color: deadlineColor,
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  deadline == null
+                      ? 'Tanpa tenggat'
+                      : '${formatTanggalWaktu(deadline)}  (${sisaWaktuLabel(deadline)})',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: deadlineColor,
+                    fontWeight: sorotDeadline
+                        ? FontWeight.w600
+                        : FontWeight.normal,
+                  ),
+                ),
               ),
             ],
           ),
-        ),
+        ],
       ),
     );
   }
 }
 
-// ── Kartu pengumpulan (view guru) ────────────────────────────────────────────
+// ── Kartu pengumpulan (guru melihat daftar pengumpulan per-tugas) ─────────────
 
 class PengumpulanCard extends StatelessWidget {
   final TugasSiswaEntity item;
@@ -294,12 +274,12 @@ class PengumpulanCard extends StatelessWidget {
     final dinilai = item.sudahDinilai;
     final statusColor = dinilai
         ? AppColors.success
-        : (item.isTerlambat ? AppColors.error : AppColors.info);
+        : (item.sudahDikumpulkan ? AppColors.info : AppColors.warning);
 
     return Card(
       margin: EdgeInsets.symmetric(
         horizontal: Responsive.pagePadding(context).left,
-        vertical: 5,
+        vertical: 4,
       ),
       child: Padding(
         padding: EdgeInsets.all(Responsive.isCompact(context) ? 10 : 14),
@@ -398,7 +378,7 @@ class PengumpulanCard extends StatelessWidget {
               ),
             ],
             if (item.fileJawaban != null && item.fileJawaban!.isNotEmpty) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Row(
                 children: [
                   const Icon(
@@ -406,7 +386,7 @@ class PengumpulanCard extends StatelessWidget {
                     size: 14,
                     color: AppColors.primary,
                   ),
-                  const SizedBox(width: 5),
+                  const SizedBox(width: 4),
                   Expanded(
                     child: Text(
                       item.fileJawaban!,

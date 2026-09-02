@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/theme/app_theme.dart';
-import '../../../../core/utils/responsive.dart';
+import '../../../../core/widgets/app_metric_tile.dart';
+import '../../../../core/widgets/app_section_header.dart';
+import '../../../../core/widgets/app_surface_card.dart';
 import '../../domain/entities/dashboard_entity.dart';
-import 'dashboard_stat_card.dart';
 import 'dashboard_quick_actions.dart';
 
 class GuruDashboardWidget extends StatelessWidget {
@@ -21,8 +23,6 @@ class GuruDashboardWidget extends StatelessWidget {
     final recentBkCases = data.recentBkCases ?? [];
 
     final totalSiswaWali = (summary['total_siswa_wali'] as num?)?.toInt() ?? 0;
-    // `total_mapel` adalah field authoritative dari dashboard-engine (Go).
-    // `total_mata_pelajaran` dipertahankan sebagai fallback legacy.
     final totalMapel =
         (summary['total_mapel'] as num?)?.toInt() ??
         (summary['total_mata_pelajaran'] as num?)?.toInt() ??
@@ -41,140 +41,188 @@ class GuruDashboardWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Stat cards
-        GridView(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: Responsive.gridDelegate(context, tinggi: 140),
+        // 1. Ringkasan Guru Metrics
+        const AppSectionHeader(
+          title: 'Aktivitas Mengajar',
+          eyebrow: 'Akademik',
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Column(
           children: [
-            DashboardStatCard(
-              title: 'Siswa Perwalian',
-              value: '$totalSiswaWali',
-              icon: Icons.people,
-              color: AppColors.info,
+            Row(
+              children: [
+                Expanded(
+                  child: AppMetricTile(
+                    label: 'Siswa Perwalian',
+                    value: '$totalSiswaWali',
+                    icon: Icons.people_outline,
+                    tone: AppStatusTone.info,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                Expanded(
+                  child: AppMetricTile(
+                    label: 'Mata Pelajaran',
+                    value: '$totalMapel',
+                    icon: Icons.menu_book_outlined,
+                    tone: AppStatusTone.success,
+                  ),
+                ),
+              ],
             ),
-            DashboardStatCard(
-              title: 'Mata Pelajaran',
-              value: '$totalMapel',
-              icon: Icons.menu_book,
-              color: AppColors.success,
-            ),
-            DashboardStatCard(
-              title: 'Kelas Wali',
-              value: '$totalKelasWali',
-              icon: Icons.school,
-              color: AppColors.primary,
-            ),
-            DashboardStatCard(
-              title: 'Tugas Belum Dinilai',
-              value: '$tugasBelumDinilai',
-              icon: Icons.assignment_late,
-              color: AppColors.warning,
+            const SizedBox(height: AppSpacing.xs),
+            Row(
+              children: [
+                Expanded(
+                  child: AppMetricTile(
+                    label: 'Kelas Wali',
+                    value: '$totalKelasWali',
+                    icon: Icons.school_outlined,
+                    tone: AppStatusTone.neutral,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                Expanded(
+                  child: AppMetricTile(
+                    label: 'Tugas Belum Dinilai',
+                    value: '$tugasBelumDinilai',
+                    icon: Icons.assignment_late_outlined,
+                    tone: tugasBelumDinilai > 0
+                        ? AppStatusTone.warning
+                        : AppStatusTone.neutral,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: AppSpacing.lg),
 
-        // Attendance status card
-        DashboardStatCard(
-          title: 'Sudah Absen Hari Ini',
-          value: sudahAbsen ? 'Ya' : 'Belum',
-          icon: sudahAbsen ? Icons.check_circle : Icons.radio_button_unchecked,
-          color: sudahAbsen ? AppColors.success : AppColors.textSecondary,
-          description: sudahAbsen
-              ? 'Status kehadiran guru hari ini sudah tercatat'
-              : 'Silakan lakukan absen melalui menu Absensi',
+        // 2. Status Presensi Guru Hari Ini
+        const AppSectionHeader(
+          title: 'Presensi Hari Ini',
+          eyebrow: 'Kehadiran',
         ),
-        const SizedBox(height: 16),
-
-        // Recent BK Cases
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Kasus BK Terbaru',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+        const SizedBox(height: AppSpacing.sm),
+        AppSurfaceCard(
+          accentColor: sudahAbsen ? AppColors.success : AppColors.warning,
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: sudahAbsen
+                      ? AppColors.successContainer
+                      : AppColors.warningContainer,
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
-                const SizedBox(height: 12),
-                if (recentBkCases.isEmpty)
-                  Text(
-                    'Tidak ada kasus BK terbaru.',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textSecondary,
+                child: Icon(
+                  sudahAbsen
+                      ? Icons.check_circle_outline
+                      : Icons.schedule_outlined,
+                  color: sudahAbsen
+                      ? AppColors.successOnContainer
+                      : AppColors.warningOnContainer,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      sudahAbsen
+                          ? 'Presensi Sudah Tercatat'
+                          : 'Belum Melakukan Presensi',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.ink,
+                      ),
                     ),
-                  )
-                else
-                  ...recentBkCases.map((k) => _BkCaseRow(kasus: k)),
-              ],
-            ),
+                    const SizedBox(height: 2),
+                    Text(
+                      sudahAbsen
+                          ? 'Kehadiran guru Anda hari ini telah tervalidasi.'
+                          : 'Silakan lakukan presensi melalui menu Absensi.',
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: AppColors.inkSoft),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
 
-        // Quick Actions
+        // 3. Layanan & Akses Cepat
         DashboardQuickActions(role: 'guru', permissions: permissions),
-        const SizedBox(height: 16),
-      ],
-    );
-  }
-}
+        const SizedBox(height: AppSpacing.lg),
 
-class _BkCaseRow extends StatelessWidget {
-  final Map<String, dynamic> kasus;
-  const _BkCaseRow({required this.kasus});
-
-  @override
-  Widget build(BuildContext context) {
-    final siswa = kasus['siswa'] as Map<String, dynamic>?;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: AppColors.error.withAlpha(30),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Icon(
-              Icons.warning_amber,
-              color: AppColors.error,
-              size: 14,
-            ),
+        // 4. Kasus BK Terbaru (bila ada)
+        if (recentBkCases.isNotEmpty) ...[
+          const AppSectionHeader(
+            title: 'Kasus BK Terkait',
+            eyebrow: 'Konseling',
           ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  siswa?['nama'] ?? 'Siswa',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
+          const SizedBox(height: AppSpacing.sm),
+          ...recentBkCases.take(3).map((k) {
+            final siswa = k['siswa'] as Map<String, dynamic>?;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+              child: AppSurfaceCard(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: AppColors.errorContainer,
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
+                      ),
+                      child: const Icon(
+                        Icons.warning_amber_rounded,
+                        color: AppColors.errorOnContainer,
+                        size: 18,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            siswa?['nama'] ?? 'Siswa',
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.ink,
+                                ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            k['deskripsi'] ?? k['judul'] ?? 'Kasus BK',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: AppColors.inkSoft),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                Text(
-                  kasus['deskripsi'] ?? kasus['judul'] ?? 'Kasus BK',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.textSecondary,
-                    fontSize: 11,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
+              ),
+            );
+          }),
         ],
-      ),
+      ],
     );
   }
 }

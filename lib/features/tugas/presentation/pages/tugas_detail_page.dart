@@ -126,10 +126,10 @@ class _TugasDetailPageState extends State<TugasDetailPage> {
                 onBukaLampiran: _bukaLampiran,
               ),
               if (_submitting)
-                const Positioned.fill(
+                Positioned.fill(
                   child: ColoredBox(
-                    color: Color(0x33000000),
-                    child: Center(child: CircularProgressIndicator()),
+                    color: AppColors.ink.withValues(alpha: 0.2),
+                    child: const Center(child: CircularProgressIndicator()),
                   ),
                 ),
             ],

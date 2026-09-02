@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/batas_lebar_konten.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/dashboard_bloc.dart';
-import '../widgets/siswa_dashboard_widget.dart';
-import '../widgets/guru_dashboard_widget.dart';
-import '../widgets/wali_dashboard_widget.dart';
 import '../widgets/admin_dashboard_widget.dart';
+import '../widgets/guru_dashboard_widget.dart';
+import '../widgets/siswa_dashboard_widget.dart';
+import '../widgets/wali_dashboard_widget.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -28,143 +29,195 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    final user = (context.watch<AuthBloc>().state as AuthAuthenticated?)?.user;
+    final authState = context.watch<AuthBloc>().state;
+    final user = authState is AuthAuthenticated ? authState.user : null;
     final role = user?.role ?? 'admin';
+    final roleColors = AppColors.role(role);
+
     final roleLabel = switch (role) {
-      'siswa' => 'Ruang Siswa',
-      'guru' => 'Ruang Guru',
-      'wali' => 'Ruang Wali',
-      _ => 'Ruang Admin',
+      'siswa' => 'RUANG SISWA',
+      'guru' => 'RUANG GURU',
+      'wali' => 'RUANG WALI',
+      _ => 'RUANG ADMIN',
     };
 
-    final roleColor = switch (role) {
-      'siswa' => AppColors.siswaColor,
-      'guru' => AppColors.guruColor,
-      'wali' => AppColors.waliColor,
-      _ => AppColors.adminColor,
-    };
+    final topInset = MediaQuery.paddingOf(context).top;
+    final pagePadding = Responsive.pagePadding(context);
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              roleLabel,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-              ),
-            ),
-            if (user != null)
-              Text(
-                'Halo, ${user.name}',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.white.withAlpha(220),
-                ),
-              ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined, color: Colors.white),
-            tooltip: 'Notifikasi',
-            onPressed: () => context.push(AppRoutes.notifications),
-          ),
-          IconButton(
-            icon: const Icon(
-              Icons.account_circle_outlined,
-              color: Colors.white,
-            ),
-            tooltip: 'Profil',
-            onPressed: () => context.go(AppRoutes.profil),
-          ),
-        ],
-      ),
+      backgroundColor: AppColors.paper,
       body: Stack(
         children: [
-          Container(
-            height: 220,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  AppColors.primaryDark,
-                  Color.alphaBlend(
-                    roleColor.withAlpha(145),
+          // Educational Hero Header
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              height: 200 + topInset,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
                     AppColors.primaryDark,
-                  ),
-                ],
-              ),
-              borderRadius: const BorderRadius.vertical(
-                bottom: Radius.circular(36),
-              ),
-            ),
-          ),
-          SafeArea(
-            child: BlocBuilder<DashboardBloc, DashboardState>(
-              builder: (context, state) {
-                if (state is DashboardLoading || state is DashboardInitial) {
-                  return const _LoadingSkeleton();
-                }
-
-                if (state is DashboardError) {
-                  return _ErrorView(
-                    message: state.message,
-                    onRetry: () => context.read<DashboardBloc>().add(
-                      DashboardLoadRequested(),
+                    Color.alphaBlend(
+                      roleColors.accent.withValues(alpha: 0.6),
+                      AppColors.primaryDark,
                     ),
-                  );
-                }
-
-                if (state is DashboardLoaded) {
-                  final data = state.data;
-                  final pad = Responsive.pagePadding(context);
-                  return RefreshIndicator(
-                    onRefresh: () async {
-                      context.read<DashboardBloc>().add(
-                        DashboardRefreshRequested(),
-                      );
-                    },
-                    child: BatasLebarKonten(
-                      child: ListView(
-                        padding: pad.copyWith(top: kToolbarHeight + 20),
+                  ],
+                ),
+              ),
+              child: Stack(
+                children: [
+                  const Positioned.fill(
+                    child: ExcludeSemantics(child: _HeroPatternPainter()),
+                  ),
+                  SafeArea(
+                    bottom: false,
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        pagePadding.left,
+                        AppSpacing.sm,
+                        pagePadding.right,
+                        AppSpacing.md,
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (data.role == 'siswa')
-                            SiswaDashboardWidget(
-                              data: data,
-                              permissions: user?.permissions ?? const [],
-                            )
-                          else if (data.role == 'guru')
-                            GuruDashboardWidget(
-                              data: data,
-                              permissions: user?.permissions ?? const [],
-                            )
-                          else if (data.role == 'wali')
-                            WaliDashboardWidget(
-                              data: data,
-                              permissions: user?.permissions ?? const [],
-                            )
-                          else
-                            AdminDashboardWidget(
-                              data: data,
-                              permissions: user?.permissions ?? const [],
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  roleLabel,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 1.2,
+                                    color: roleColors.container,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  user != null
+                                      ? 'Halo, ${user.name}'
+                                      : 'AkademiHub',
+                                  style: const TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
                             ),
+                          ),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.notifications_outlined,
+                              color: Colors.white,
+                            ),
+                            tooltip: 'Notifikasi',
+                            onPressed: () =>
+                                context.push(AppRoutes.notifications),
+                          ),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.account_circle_outlined,
+                              color: Colors.white,
+                            ),
+                            tooltip: 'Profil',
+                            onPressed: () => context.go(AppRoutes.profil),
+                          ),
                         ],
                       ),
                     ),
-                  );
-                }
+                  ),
+                ],
+              ),
+            ),
+          ),
 
-                return const SizedBox.shrink();
-              },
+          // Scrollable Content with Overlap
+          Positioned.fill(
+            top: 130 + topInset,
+            child: Container(
+              decoration: const BoxDecoration(
+                color: AppColors.paper,
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(AppRadius.xl),
+                ),
+              ),
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(AppRadius.xl),
+                ),
+                child: BatasLebarKonten(
+                  child: BlocBuilder<DashboardBloc, DashboardState>(
+                    builder: (context, state) {
+                      if (state is DashboardLoading ||
+                          state is DashboardInitial) {
+                        return const _DashboardSkeleton();
+                      }
+
+                      if (state is DashboardError) {
+                        return _DashboardError(
+                          message: state.message,
+                          onRetry: () => context.read<DashboardBloc>().add(
+                            DashboardRefreshRequested(),
+                          ),
+                        );
+                      }
+
+                      if (state is DashboardLoaded) {
+                        final data = state.data;
+                        final perms = user?.permissions ?? [];
+
+                        return RefreshIndicator(
+                          color: AppColors.primary,
+                          onRefresh: () async {
+                            context.read<DashboardBloc>().add(
+                              DashboardRefreshRequested(),
+                            );
+                          },
+                          child: SingleChildScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: EdgeInsets.fromLTRB(
+                              pagePadding.left,
+                              AppSpacing.lg,
+                              pagePadding.right,
+                              pagePadding.bottom + 96,
+                            ),
+                            child: switch (role) {
+                              'siswa' => SiswaDashboardWidget(
+                                data: data,
+                                permissions: perms,
+                              ),
+                              'guru' => GuruDashboardWidget(
+                                data: data,
+                                permissions: perms,
+                              ),
+                              'wali' => WaliDashboardWidget(
+                                data: data,
+                                permissions: perms,
+                              ),
+                              _ => AdminDashboardWidget(
+                                data: data,
+                                permissions: perms,
+                              ),
+                            },
+                          ),
+                        );
+                      }
+
+                      return const SizedBox.shrink();
+                    },
+                  ),
+                ),
+              ),
             ),
           ),
         ],
@@ -173,111 +226,137 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 }
 
-class _LoadingSkeleton extends StatelessWidget {
-  const _LoadingSkeleton();
+class _HeroPatternPainter extends StatelessWidget {
+  const _HeroPatternPainter();
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(painter: _HeroPattern());
+  }
+}
+
+class _HeroPattern extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.05)
+      ..strokeWidth = 1.0;
+
+    canvas.drawLine(
+      Offset(0, size.height * 0.4),
+      Offset(size.width, size.height * 0.4),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(0, size.height * 0.7),
+      Offset(size.width, size.height * 0.7),
+      paint,
+    );
+
+    final circlePaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.04)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(
+      Offset(size.width * 0.9, size.height * 0.25),
+      64,
+      circlePaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _DashboardSkeleton extends StatelessWidget {
+  const _DashboardSkeleton();
 
   @override
   Widget build(BuildContext context) {
     final pad = Responsive.pagePadding(context);
-    return BatasLebarKonten(
-      child: ListView(
-        padding: pad,
-        children: [
-          Container(
-            height: 28,
-            width: 200,
-            decoration: BoxDecoration(
-              color: AppColors.divider,
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            height: 16,
-            width: 140,
-            decoration: BoxDecoration(
-              color: AppColors.surfaceMuted,
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-          const SizedBox(height: 24),
-          GridView(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: Responsive.gridDelegate(context, tinggi: 140),
-            children: List.generate(
-              4,
-              (_) => Container(
+    return ListView(
+      padding: EdgeInsets.fromLTRB(pad.left, AppSpacing.lg, pad.right, 96),
+      children: [
+        Row(
+          children: List.generate(
+            2,
+            (_) => Expanded(
+              child: Container(
+                height: 90,
+                margin: const EdgeInsets.symmetric(horizontal: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceMuted,
-                  borderRadius: BorderRadius.circular(16),
+                  color: AppColors.paperBright,
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
                 ),
               ),
             ),
           ),
-          const SizedBox(height: 16),
-          Container(
-            height: 120,
-            decoration: BoxDecoration(
-              color: AppColors.surfaceMuted,
-              borderRadius: BorderRadius.circular(16),
-            ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Container(
+          height: 140,
+          decoration: BoxDecoration(
+            color: AppColors.paperBright,
+            borderRadius: BorderRadius.circular(AppRadius.lg),
           ),
-          const SizedBox(height: 16),
-          Container(
-            height: 200,
-            decoration: BoxDecoration(
-              color: AppColors.surfaceMuted,
-              borderRadius: BorderRadius.circular(16),
-            ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Container(
+          height: 180,
+          decoration: BoxDecoration(
+            color: AppColors.paperBright,
+            borderRadius: BorderRadius.circular(AppRadius.lg),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
 
-class _ErrorView extends StatelessWidget {
+class _DashboardError extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
 
-  const _ErrorView({required this.message, required this.onRetry});
+  const _DashboardError({required this.message, required this.onRetry});
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.all(16),
+              width: 56,
+              height: 56,
               decoration: const BoxDecoration(
-                color: Color(0xFFF3DDDB),
+                color: AppColors.errorContainer,
                 shape: BoxShape.circle,
               ),
               child: const Icon(
-                Icons.wifi_off_rounded,
-                size: 32,
+                Icons.cloud_off_rounded,
+                size: 28,
                 color: AppColors.error,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.md),
             Text(
-              'Dashboard belum dapat dimuat',
-              style: Theme.of(context).textTheme.titleMedium,
+              'Dashboard Belum Dapat Dimuat',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: AppColors.ink,
+              ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.xs),
             Text(
               message,
               style: Theme.of(
                 context,
-              ).textTheme.bodySmall?.copyWith(color: Colors.grey),
+              ).textTheme.bodySmall?.copyWith(color: AppColors.inkSoft),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.lg),
             FilledButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh),

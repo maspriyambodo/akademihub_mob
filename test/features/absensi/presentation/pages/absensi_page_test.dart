@@ -16,10 +16,13 @@ import 'package:flutter_test/flutter_test.dart';
 
 AbsensiSiswaEntity _att(int id, [String s = 'Hadir']) {
   final now = DateTime.now();
-  final today = '${now.year}-${now.month.toString().padLeft(2, '0')}-'
+  final today =
+      '${now.year}-${now.month.toString().padLeft(2, '0')}-'
       '${now.day.toString().padLeft(2, '0')}';
   return AbsensiSiswaEntity(
-    id: id, tanggal: today, statusAbsensi: s,
+    id: id,
+    tanggal: today,
+    statusAbsensi: s,
     jamMasuk: s == 'Hadir' ? '07:00:00' : null,
   );
 }
@@ -35,12 +38,10 @@ AbsensiBloc _bloc([_FakeRepo? r]) {
     locationService: _FakeLocationService(),
   );
 }
+
 Widget _wrap(AbsensiBloc b) {
   return MaterialApp(
-    home: BlocProvider<AbsensiBloc>.value(
-      value: b,
-      child: const _TestShell(),
-    ),
+    home: BlocProvider<AbsensiBloc>.value(value: b, child: const _TestShell()),
   );
 }
 
@@ -55,9 +56,14 @@ void main() {
       addTearDown(b.close);
       await tester.pumpWidget(_wrap(b));
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
-      b.add(AbsensiLoadRequested(
-        role: 'siswa', profileId: 1, bulan: bulan, tahun: tahun,
-      ));
+      b.add(
+        AbsensiLoadRequested(
+          role: 'siswa',
+          profileId: 1,
+          bulan: bulan,
+          tahun: tahun,
+        ),
+      );
       await tester.pumpAndSettle();
       expect(find.text('Hadir'), findsWidgets);
       expect(find.text('Sakit'), findsWidgets);
@@ -67,9 +73,14 @@ void main() {
       final b = _bloc();
       addTearDown(b.close);
       await tester.pumpWidget(_wrap(b));
-      b.add(AbsensiLoadRequested(
-        role: 'siswa', profileId: 1, bulan: bulan, tahun: tahun,
-      ));
+      b.add(
+        AbsensiLoadRequested(
+          role: 'siswa',
+          profileId: 1,
+          bulan: bulan,
+          tahun: tahun,
+        ),
+      );
       await tester.pumpAndSettle();
       final btn = find.ancestor(
         of: find.text('Check-out'),
@@ -83,9 +94,14 @@ void main() {
       final b = _bloc(_FakeRepo(status: 'Sakit'));
       addTearDown(b.close);
       await tester.pumpWidget(_wrap(b));
-      b.add(AbsensiLoadRequested(
-        role: 'siswa', profileId: 1, bulan: bulan, tahun: tahun,
-      ));
+      b.add(
+        AbsensiLoadRequested(
+          role: 'siswa',
+          profileId: 1,
+          bulan: bulan,
+          tahun: tahun,
+        ),
+      );
       await tester.pumpAndSettle();
       expect(find.textContaining('Status: Sakit'), findsOneWidget);
     });
@@ -94,14 +110,23 @@ void main() {
       final b = _bloc();
       addTearDown(b.close);
       await tester.pumpWidget(_wrap(b));
-      b.emit(AbsensiLoaded(
-        summary: const AbsensiSummaryEntity(
-          hadir: 1, izin: 0, sakit: 0, alpha: 0, total: 1,
+      b.emit(
+        AbsensiLoaded(
+          summary: const AbsensiSummaryEntity(
+            hadir: 1,
+            izin: 0,
+            sakit: 0,
+            alpha: 0,
+            total: 1,
+          ),
+          siswaItems: [_att(1)],
+          guruItems: const [],
+          bulan: bulan,
+          tahun: tahun,
+          role: 'siswa',
+          mutationMessage: 'Di luar jangkauan',
         ),
-        siswaItems: [_att(1)], guruItems: const [],
-        bulan: bulan, tahun: tahun, role: 'siswa',
-        mutationMessage: 'Di luar jangkauan',
-      ));
+      );
       await tester.pumpAndSettle();
       expect(find.text('Di luar jangkauan'), findsOneWidget);
       expect(find.text('1 catatan'), findsOneWidget);
@@ -119,7 +144,6 @@ void main() {
   });
 }
 
-
 // ── Minimal shell mirroring AbsensiPage layout for testability ───────────────
 
 class _TestShell extends StatelessWidget {
@@ -132,10 +156,12 @@ class _TestShell extends StatelessWidget {
         if (state is AbsensiLoaded && state.mutationMessage != null) {
           ScaffoldMessenger.of(ctx)
             ..hideCurrentSnackBar()
-            ..showSnackBar(SnackBar(
-              content: Text(state.mutationMessage!),
-              behavior: SnackBarBehavior.floating,
-            ));
+            ..showSnackBar(
+              SnackBar(
+                content: Text(state.mutationMessage!),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
         }
       },
       listenWhen: (prev, curr) {
@@ -145,38 +171,60 @@ class _TestShell extends StatelessWidget {
       },
       builder: (ctx, state) {
         if (state is AbsensiLoading || state is AbsensiInitial) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
         }
         if (state is AbsensiError) {
-          return Scaffold(body: Center(child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(state.message),
-              FilledButton(
-                onPressed: () => ctx.read<AbsensiBloc>().add(const AbsensiRefreshRequested()),
-                child: const Text('Coba Lagi'),
+          return Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(state.message),
+                  FilledButton(
+                    onPressed: () => ctx.read<AbsensiBloc>().add(
+                      const AbsensiRefreshRequested(),
+                    ),
+                    child: const Text('Coba Lagi'),
+                  ),
+                ],
               ),
-            ],
-          )));
+            ),
+          );
         }
-        final loaded = state is AbsensiActionInProgress ? state.previous
-            : state is AbsensiLoaded ? state : null;
+        final loaded = state is AbsensiActionInProgress
+            ? state.previous
+            : state is AbsensiLoaded
+            ? state
+            : null;
         if (loaded == null) return const SizedBox.shrink();
         final items = loaded.siswaItems;
-        return Scaffold(body: Column(children: [
-          if (loaded.role == 'siswa') _Panel(loaded),
-          Row(children: [
-            const Text('Hadir'), const SizedBox(width: 4),
-            const Text('Sakit'), const SizedBox(width: 4),
-            const Text('Izin'), const SizedBox(width: 4),
-            const Text('Alpha'),
-          ]),
-          Text('${items.length} catatan'),
-          Expanded(child: ListView.builder(
-            itemCount: items.length,
-            itemBuilder: (_, i) => Text(items[i].statusAbsensi),
-          )),
-        ]));
+        return Scaffold(
+          body: Column(
+            children: [
+              if (loaded.role == 'siswa') _Panel(loaded),
+              Row(
+                children: [
+                  const Text('Hadir'),
+                  const SizedBox(width: 4),
+                  const Text('Sakit'),
+                  const SizedBox(width: 4),
+                  const Text('Izin'),
+                  const SizedBox(width: 4),
+                  const Text('Alpha'),
+                ],
+              ),
+              Text('${items.length} catatan'),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: items.length,
+                  itemBuilder: (_, i) => Text(items[i].statusAbsensi),
+                ),
+              ),
+            ],
+          ),
+        );
       },
     );
   }
@@ -188,16 +236,19 @@ class _Panel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final a = state.currentAttendance;
-    final isFinal = a != null
-        && !a.statusAbsensi.toLowerCase().contains('hadir')
-        && a.statusAbsensi.isNotEmpty;
+    final isFinal =
+        a != null &&
+        !a.statusAbsensi.toLowerCase().contains('hadir') &&
+        a.statusAbsensi.isNotEmpty;
     if (isFinal) return Text('Status: ${a.statusAbsensi}');
     final checkedIn = a?.jamMasuk != null;
     final checkedOut = a?.jamPulang != null;
     if (checkedOut) return const Text('Selesai');
     return FilledButton(
       onPressed: () => context.read<AbsensiBloc>().add(
-        checkedIn ? const AbsensiCheckOutRequested() : const AbsensiCheckInRequested(),
+        checkedIn
+            ? const AbsensiCheckOutRequested()
+            : const AbsensiCheckInRequested(),
       ),
       style: FilledButton.styleFrom(minimumSize: const Size(0, 48)),
       child: Text(checkedIn ? 'Check-out' : 'Check-in'),
@@ -212,28 +263,34 @@ class _FakeRepo implements AbsensiRepository {
   _FakeRepo({this.status = 'Hadir'});
 
   @override
-  Future<result.Result<AbsensiSiswaEntity>> checkIn(AttendanceLocation l) async =>
-      result.success(_att(99, status));
+  Future<result.Result<AbsensiSiswaEntity>> checkIn(
+    AttendanceLocation l,
+  ) async => result.success(_att(99, status));
   @override
-  Future<result.Result<AbsensiSiswaEntity>> checkOut(AttendanceLocation l) async =>
-      result.success(_att(99, status));
+  Future<result.Result<AbsensiSiswaEntity>> checkOut(
+    AttendanceLocation l,
+  ) async => result.success(_att(99, status));
   @override
-  Future<result.Result<List<AbsensiGuruEntity>>> getAbsensiGuruList(int id) async =>
-      result.success(const []);
+  Future<result.Result<List<AbsensiGuruEntity>>> getAbsensiGuruList(
+    int id,
+  ) async => result.success(const []);
   @override
   Future<result.Result<List<AbsensiSiswaEntity>>> getAbsensiSiswaGeneral({
-    String? tanggalFrom, String? tanggalTo,
+    String? tanggalFrom,
+    String? tanggalTo,
   }) async => result.success(const []);
   @override
-  Future<result.Result<List<AbsensiSiswaEntity>>> getAbsensiSiswaList(int id) async =>
-      result.success([_att(1, status)]);
+  Future<result.Result<List<AbsensiSiswaEntity>>> getAbsensiSiswaList(
+    int id,
+  ) async => result.success([_att(1, status)]);
 }
 
 class _FakeLocationService extends AttendanceLocationService {
   @override
   Future<AttendanceLocation> capture() async => AttendanceLocation(
-    latitude: -6.2, longitude: 106.8, accuracyMeter: 10,
+    latitude: -6.2,
+    longitude: 106.8,
+    accuracyMeter: 10,
     capturedAt: DateTime.now(),
   );
 }
-

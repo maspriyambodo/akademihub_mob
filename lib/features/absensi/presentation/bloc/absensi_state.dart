@@ -83,8 +83,7 @@ class AbsensiLoaded extends AbsensiState {
       mutationErrorCode: clearMutationErrorCode
           ? null
           : (mutationErrorCode ?? this.mutationErrorCode),
-      mutationErrorDetails:
-          mutationErrorDetails ?? this.mutationErrorDetails,
+      mutationErrorDetails: mutationErrorDetails ?? this.mutationErrorDetails,
       settingsTarget: clearSettingsTarget
           ? null
           : (settingsTarget ?? this.settingsTarget),

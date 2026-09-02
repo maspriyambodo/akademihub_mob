@@ -70,25 +70,26 @@ class _MainShellState extends State<MainShell> {
           (tab) =>
               location == tab.route || location.startsWith('${tab.route}/'),
         );
-        final selectedIndex = currentIndex < 0 ? tabs.length - 1 : currentIndex;
+        final selectedIndex = currentIndex < 0 ? 0 : currentIndex;
         void goTo(int index) => context.go(tabs[index].route);
 
         return LayoutBuilder(
           builder: (context, constraints) {
-            // Layout berdasarkan ruang jendela, bukan tipe perangkat.
             final lebar = constraints.maxWidth;
             final useRail = lebar >= Responsive.expandedWidth;
 
             if (useRail) {
               return Scaffold(
+                backgroundColor: AppColors.paper,
                 body: Row(
                   children: [
                     NavigationRail(
+                      backgroundColor: AppColors.primaryDark,
                       selectedIndex: selectedIndex,
                       onDestinationSelected: goTo,
                       labelType: NavigationRailLabelType.all,
                       leading: Padding(
-                        padding: const EdgeInsets.only(bottom: 20),
+                        padding: const EdgeInsets.only(bottom: 20, top: 12),
                         child: Semantics(
                           label: 'AkademiHub',
                           child: const CircleAvatar(
@@ -102,14 +103,24 @@ class _MainShellState extends State<MainShell> {
                       destinations: tabs
                           .map(
                             (t) => NavigationRailDestination(
-                              icon: Icon(t.icon),
-                              selectedIcon: Icon(t.selectedIcon),
+                              icon: Semantics(
+                                label: t.label,
+                                child: Icon(t.icon),
+                              ),
+                              selectedIcon: Semantics(
+                                label: t.label,
+                                child: Icon(t.selectedIcon),
+                              ),
                               label: Text(t.label),
                             ),
                           )
                           .toList(),
                     ),
-                    const VerticalDivider(width: 1, thickness: 1),
+                    const VerticalDivider(
+                      width: 1,
+                      thickness: 1,
+                      color: AppColors.line,
+                    ),
                     Expanded(child: widget.child),
                   ],
                 ),
@@ -117,19 +128,42 @@ class _MainShellState extends State<MainShell> {
             }
 
             return Scaffold(
+              backgroundColor: AppColors.paper,
+              extendBody: true,
               body: widget.child,
-              bottomNavigationBar: NavigationBar(
-                selectedIndex: selectedIndex,
-                onDestinationSelected: goTo,
-                destinations: tabs
-                    .map(
-                      (t) => NavigationDestination(
-                        icon: Icon(t.icon),
-                        selectedIcon: Icon(t.selectedIcon),
-                        label: t.label,
-                      ),
-                    )
-                    .toList(),
+              bottomNavigationBar: SafeArea(
+                top: false,
+                minimum: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                child: Container(
+                  height: 70,
+                  decoration: BoxDecoration(
+                    color: AppColors.paperBright.withValues(alpha: 0.96),
+                    borderRadius: BorderRadius.circular(AppRadius.xl),
+                    border: Border.all(
+                      color: AppColors.line.withValues(alpha: 0.55),
+                    ),
+                    boxShadow: AppElevation.level2,
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: NavigationBar(
+                    height: 70,
+                    elevation: 0,
+                    backgroundColor: Colors.transparent,
+                    surfaceTintColor: Colors.transparent,
+                    selectedIndex: selectedIndex,
+                    onDestinationSelected: goTo,
+                    destinations: tabs
+                        .map(
+                          (t) => NavigationDestination(
+                            icon: Icon(t.icon),
+                            selectedIcon: Icon(t.selectedIcon),
+                            label: t.label,
+                            tooltip: t.label,
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ),
               ),
             );
           },

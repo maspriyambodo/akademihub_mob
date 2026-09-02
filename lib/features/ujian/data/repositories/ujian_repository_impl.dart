@@ -192,7 +192,11 @@ class UjianRepositoryImpl implements UjianRepository {
         await _outbox.acknowledge(operation);
       } on DioException catch (e) {
         final code = e.response?.statusCode ?? 0;
-        if (code >= 400 && code < 500 && code != 401 && code != 408 && code != 429) {
+        if (code >= 400 &&
+            code < 500 &&
+            code != 401 &&
+            code != 408 &&
+            code != 429) {
           // Non-retryable client error — drop to prevent infinite loop.
           await _outbox.acknowledge(operation);
         } else {

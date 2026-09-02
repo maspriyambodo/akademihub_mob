@@ -186,7 +186,14 @@ class _MateriViewState extends State<_MateriView> {
     } on DioException catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.response?.data is Map ? error.response!.data['message']?.toString() ?? 'Gagal menghapus materi' : 'Gagal menghapus materi')),
+          SnackBar(
+            content: Text(
+              error.response?.data is Map
+                  ? error.response!.data['message']?.toString() ??
+                        'Gagal menghapus materi'
+                  : 'Gagal menghapus materi',
+            ),
+          ),
         );
       }
     }
@@ -228,7 +235,7 @@ class _MateriViewState extends State<_MateriView> {
                         const MateriRefreshRequested(),
                       );
                     },
-                          child: state.items.isEmpty
+                    child: state.items.isEmpty
                         ? ListView(
                             physics: const AlwaysScrollableScrollPhysics(),
                             children: [

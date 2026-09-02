@@ -6,6 +6,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive.dart';
+import '../../../../core/widgets/app_surface_card.dart';
+import '../../../../core/widgets/batas_lebar_konten.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../domain/entities/rapor_entity.dart';
 import '../bloc/rapor_bloc.dart';
@@ -19,19 +21,19 @@ class RaporPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => sl<RaporBloc>(),
-      child: const _RaporView(),
+      child: const RaporView(),
     );
   }
 }
 
-class _RaporView extends StatefulWidget {
-  const _RaporView();
+class RaporView extends StatefulWidget {
+  const RaporView({super.key});
 
   @override
-  State<_RaporView> createState() => _RaporViewState();
+  State<RaporView> createState() => _RaporViewState();
 }
 
-class _RaporViewState extends State<_RaporView> {
+class _RaporViewState extends State<RaporView> {
   final TextEditingController _searchController = TextEditingController();
   Timer? _debounce;
 
@@ -139,7 +141,7 @@ class _RaporViewState extends State<_RaporView> {
             onPressed: () => Navigator.pop(context, false),
             child: const Text('Batal'),
           ),
-          TextButton(
+          FilledButton(
             onPressed: () => Navigator.pop(context, true),
             child: const Text('Hapus'),
           ),
@@ -153,10 +155,10 @@ class _RaporViewState extends State<_RaporView> {
 
   @override
   Widget build(BuildContext context) {
-    // Role siswa hanya melihat rapornya sendiri → kolom pencarian tidak perlu.
     final showSearch = _role.isNotEmpty && _role != 'siswa';
 
     return Scaffold(
+      backgroundColor: AppColors.paper,
       appBar: AppBar(title: const Text('Rapor'), centerTitle: true),
       floatingActionButton: !_canCreate
           ? null
@@ -215,46 +217,47 @@ class _RaporViewState extends State<_RaporView> {
                 }
                 if (state is RaporLoaded) {
                   final pad = Responsive.pagePadding(context);
-                  return Center(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxWidth: Responsive.lebarKontenMaks(context),
-                      ),
-                      child: RefreshIndicator(
-                        onRefresh: () async {
-                          context.read<RaporBloc>().add(
-                            const RaporRefreshRequested(),
-                          );
-                        },
-                        child: state.items.isEmpty
-                            ? ListView(
-                                physics: const AlwaysScrollableScrollPhysics(),
-                                children: [
-                                  SizedBox(
-                                    height: Responsive.tinggiSheet(
-                                      context,
-                                      rasio: 0.6,
-                                    ),
-                                    child: _EmptyView(
-                                      message: state.search.trim().isNotEmpty
-                                          ? 'Tidak ada rapor yang cocok dengan pencarian'
-                                          : 'Belum ada data rapor',
-                                    ),
+                  return BatasLebarKonten(
+                    child: RefreshIndicator(
+                      color: AppColors.primary,
+                      onRefresh: () async {
+                        context.read<RaporBloc>().add(
+                          const RaporRefreshRequested(),
+                        );
+                      },
+                      child: state.items.isEmpty
+                          ? ListView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              children: [
+                                SizedBox(
+                                  height: Responsive.tinggiSheet(
+                                    context,
+                                    rasio: 0.6,
                                   ),
-                                ],
-                              )
-                            : ListView.builder(
-                                physics: const AlwaysScrollableScrollPhysics(),
-                                padding: EdgeInsets.fromLTRB(
-                                  pad.left,
-                                  12,
-                                  pad.right,
-                                  24,
+                                  child: _EmptyView(
+                                    message: state.search.isNotEmpty
+                                        ? 'Tidak ada rapor yang cocok'
+                                        : 'Belum ada data rapor',
+                                  ),
                                 ),
-                                itemCount: state.items.length,
-                                itemBuilder: (_, i) {
-                                  final item = state.items[i];
-                                  return _RaporCard(
+                              ],
+                            )
+                          : ListView.builder(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              padding: EdgeInsets.fromLTRB(
+                                pad.left,
+                                AppSpacing.sm,
+                                pad.right,
+                                AppSpacing.xxl,
+                              ),
+                              itemCount: state.items.length,
+                              itemBuilder: (_, i) {
+                                final item = state.items[i];
+                                return Padding(
+                                  padding: const EdgeInsets.only(
+                                    bottom: AppSpacing.xs,
+                                  ),
+                                  child: _RaporCard(
                                     rapor: item,
                                     showSiswa: !state.isSiswaMode,
                                     onTap: () => _openDetail(item),
@@ -267,10 +270,10 @@ class _RaporViewState extends State<_RaporView> {
                                     onDelete: state.canDelete
                                         ? () => _delete(item)
                                         : null,
-                                  );
-                                },
-                              ),
-                      ),
+                                  ),
+                                );
+                              },
+                            ),
                     ),
                   );
                 }
@@ -299,17 +302,26 @@ class _SearchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hPad = Responsive.pagePadding(context).left;
+    final pagePadding = Responsive.pagePadding(context);
     return Container(
-      color: AppColors.primary,
-      padding: EdgeInsets.fromLTRB(hPad, 8, hPad, 12),
+      color: AppColors.paperBright,
+      padding: EdgeInsets.fromLTRB(
+        pagePadding.left,
+        AppSpacing.xs,
+        pagePadding.right,
+        AppSpacing.xs,
+      ),
       child: TextField(
         controller: controller,
         onChanged: onChanged,
         textInputAction: TextInputAction.search,
         decoration: InputDecoration(
           hintText: 'Cari nama siswa...',
-          prefixIcon: const Icon(Icons.search, size: 20),
+          prefixIcon: const Icon(
+            Icons.search,
+            size: 20,
+            color: AppColors.inkMuted,
+          ),
           suffixIcon: ValueListenableBuilder<TextEditingValue>(
             valueListenable: controller,
             builder: (_, value, child) => value.text.isEmpty
@@ -321,8 +333,8 @@ class _SearchField extends StatelessWidget {
           ),
           isDense: true,
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 12,
+            horizontal: AppSpacing.sm,
+            vertical: AppSpacing.xs,
           ),
         ),
       ),
@@ -350,197 +362,153 @@ class _RaporCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final rata = rapor.rataRata;
+    final tone = _toneFromScore(rata);
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: onTap,
-        child: Padding(
-          padding: EdgeInsets.all(Responsive.isCompact(context) ? 10 : 14),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Nilai rata-rata
-              Container(
-                width: Responsive.isCompact(context) ? 52 : 60,
-                height: Responsive.isCompact(context) ? 52 : 60,
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                decoration: BoxDecoration(
-                  color: _nilaiColor(rata).withAlpha(25),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: _nilaiColor(rata).withAlpha(70)),
-                ),
-                alignment: Alignment.center,
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        rata != null ? rata.toStringAsFixed(1) : '-',
-                        maxLines: 1,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: _nilaiColor(rata),
-                        ),
-                      ),
-                      Text(
-                        'rata-rata',
-                        maxLines: 1,
-                        style: TextStyle(fontSize: 8, color: _nilaiColor(rata)),
-                      ),
-                    ],
+    return AppSurfaceCard(
+      onTap: onTap,
+      accentColor: AppColors.semantic(tone).accent,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 54,
+            height: 54,
+            decoration: BoxDecoration(
+              color: AppColors.semantic(tone).container,
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+            ),
+            alignment: Alignment.center,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  rata != null ? rata.toStringAsFixed(1) : '-',
+                  maxLines: 1,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.semantic(tone).onContainer,
                   ),
                 ),
-              ),
-              SizedBox(width: Responsive.isCompact(context) ? 10 : 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (showSiswa) ...[
-                      Text(
-                        rapor.siswaNama ?? 'Siswa',
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                    ],
-                    Text(
-                      rapor.labelPeriode,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: showSiswa ? 12 : 14,
-                        fontWeight: showSiswa
-                            ? FontWeight.w400
-                            : FontWeight.w600,
-                        color: showSiswa
-                            ? AppColors.textSecondary
-                            : AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    LayoutBuilder(
-                      builder: (context, c) => Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
-                        children: [
-                          if (rapor.kelas != null && rapor.kelas!.isNotEmpty)
-                            _Chip(
-                              icon: Icons.class_outlined,
-                              label: rapor.kelas!,
-                              color: AppColors.info,
-                              maxWidth: c.maxWidth,
-                            ),
-                          if (rapor.siswaNis != null && showSiswa)
-                            _Chip(
-                              icon: Icons.badge_outlined,
-                              label: 'NIS ${rapor.siswaNis}',
-                              color: AppColors.textSecondary,
-                              maxWidth: c.maxWidth,
-                            ),
-                          if (rapor.peringkat != null)
-                            _Chip(
-                              icon: Icons.emoji_events_outlined,
-                              label: 'Peringkat ${rapor.peringkat}',
-                              color: AppColors.warning,
-                              maxWidth: c.maxWidth,
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
+                Text(
+                  'Rata-rata',
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.semantic(tone).onContainer,
+                  ),
                 ),
-              ),
-              if (onEdit != null || onDelete != null)
-                PopupMenuButton<String>(
-                  onSelected: (value) =>
-                      value == 'edit' ? onEdit?.call() : onDelete?.call(),
-                  itemBuilder: (_) => [
-                    if (onEdit != null)
-                      const PopupMenuItem(value: 'edit', child: Text('Ubah')),
-                    if (onDelete != null)
-                      const PopupMenuItem(
-                        value: 'delete',
-                        child: Text('Hapus'),
-                      ),
-                  ],
-                )
-              else
-                const Icon(
-                  Icons.chevron_right,
-                  color: AppColors.textHint,
-                  size: 22,
-                ),
-            ],
+              ],
+            ),
           ),
-        ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (showSiswa) ...[
+                  Text(
+                    rapor.siswaNama ?? 'Siswa',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                ],
+                Text(
+                  rapor.labelPeriode,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: showSiswa ? 12 : 14,
+                    fontWeight: showSiswa ? FontWeight.normal : FontWeight.w700,
+                    color: showSiswa ? AppColors.inkSoft : AppColors.ink,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Wrap(
+                  spacing: AppSpacing.xs,
+                  runSpacing: AppSpacing.xxs,
+                  children: [
+                    if (rapor.kelas != null && rapor.kelas!.isNotEmpty)
+                      _Chip(icon: Icons.school_outlined, label: rapor.kelas!),
+                    if (rapor.siswaNis != null && showSiswa)
+                      _Chip(
+                        icon: Icons.badge_outlined,
+                        label: 'NIS ${rapor.siswaNis}',
+                      ),
+                    if (rapor.peringkat != null)
+                      _Chip(
+                        icon: Icons.emoji_events_outlined,
+                        label: 'Peringkat ${rapor.peringkat}',
+                        accentColor: AppColors.secondary,
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          if (onEdit != null || onDelete != null)
+            PopupMenuButton<String>(
+              tooltip: 'Aksi rapor',
+              onSelected: (action) {
+                if (action == 'edit') onEdit?.call();
+                if (action == 'delete') onDelete?.call();
+              },
+              itemBuilder: (_) => [
+                if (onEdit != null)
+                  const PopupMenuItem(value: 'edit', child: Text('Ubah')),
+                if (onDelete != null)
+                  const PopupMenuItem(value: 'delete', child: Text('Hapus')),
+              ],
+            ),
+        ],
       ),
     );
   }
+}
 
-  Color _nilaiColor(double? nilai) {
-    if (nilai == null) return AppColors.textSecondary;
-    if (nilai >= 90) return AppColors.success;
-    if (nilai >= 75) return AppColors.info;
-    if (nilai >= 60) return AppColors.warning;
-    return AppColors.error;
-  }
+AppStatusTone _toneFromScore(double? score) {
+  if (score == null) return AppStatusTone.neutral;
+  if (score >= 85) return AppStatusTone.success;
+  if (score >= 75) return AppStatusTone.info;
+  if (score >= 60) return AppStatusTone.warning;
+  return AppStatusTone.error;
 }
 
 class _Chip extends StatelessWidget {
   final IconData icon;
   final String label;
-  final Color color;
+  final Color? accentColor;
 
-  /// Batas lebar chip agar label panjang tidak meluber keluar `Wrap`.
-  final double? maxWidth;
-
-  const _Chip({
-    required this.icon,
-    required this.label,
-    required this.color,
-    this.maxWidth,
-  });
+  const _Chip({required this.icon, required this.label, this.accentColor});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: BoxConstraints(
-        maxWidth: maxWidth != null && maxWidth!.isFinite
-            ? maxWidth!
-            : double.infinity,
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withAlpha(25),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withAlpha(70)),
+        color: accentColor != null
+            ? accentColor!.withValues(alpha: 0.12)
+            : AppColors.paperMuted,
+        borderRadius: BorderRadius.circular(AppRadius.sm),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: color),
+          Icon(icon, size: 12, color: accentColor ?? AppColors.inkMuted),
           const SizedBox(width: 4),
-          Flexible(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 10,
-                color: color,
-                fontWeight: FontWeight.w600,
-              ),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              color: accentColor ?? AppColors.inkSoft,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -549,42 +517,7 @@ class _Chip extends StatelessWidget {
   }
 }
 
-// ── Error View ───────────────────────────────────────────────────────────────
-
-class _ErrorView extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-  const _ErrorView({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: Responsive.pagePadding(context) + const EdgeInsets.all(16),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, size: 56, color: AppColors.error),
-            const SizedBox(height: 16),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 14),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Coba Lagi'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── Empty View ───────────────────────────────────────────────────────────────
+// ── Empty / Error View ───────────────────────────────────────────────────────
 
 class _EmptyView extends StatelessWidget {
   final String message;
@@ -593,27 +526,79 @@ class _EmptyView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(
-            Icons.assignment_outlined,
-            size: 64,
-            color: AppColors.textHint,
-          ),
-          const SizedBox(height: 12),
-          Padding(
-            padding: Responsive.pagePadding(context) + const EdgeInsets.all(16),
-            child: Text(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.description_outlined,
+              size: 48,
+              color: AppColors.inkMuted,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.textSecondary,
+              style: const TextStyle(color: AppColors.inkSoft, fontSize: 14),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ErrorView extends StatelessWidget {
+  final String message;
+  final VoidCallback onRetry;
+
+  const _ErrorView({required this.message, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: const BoxDecoration(
+                color: AppColors.errorContainer,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.error_outline_rounded,
+                size: 28,
+                color: AppColors.error,
               ),
             ),
-          ),
-        ],
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              'Gagal Memuat Rapor',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: AppColors.ink,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              message,
+              style: const TextStyle(color: AppColors.inkSoft, fontSize: 13),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            FilledButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Coba Lagi'),
+            ),
+          ],
+        ),
       ),
     );
   }

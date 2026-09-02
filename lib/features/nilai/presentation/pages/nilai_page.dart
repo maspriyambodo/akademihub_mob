@@ -3,6 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive.dart';
+import '../../../../core/widgets/app_metric_tile.dart';
+import '../../../../core/widgets/app_section_header.dart';
+import '../../../../core/widgets/app_status_badge.dart';
+import '../../../../core/widgets/app_surface_card.dart';
+import '../../../../core/widgets/batas_lebar_konten.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/nilai_bloc.dart';
 import '../../domain/entities/nilai_entity.dart';
@@ -15,19 +20,19 @@ class NilaiPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => sl<NilaiBloc>(),
-      child: const _NilaiView(),
+      child: const NilaiView(),
     );
   }
 }
 
-class _NilaiView extends StatefulWidget {
-  const _NilaiView();
+class NilaiView extends StatefulWidget {
+  const NilaiView({super.key});
 
   @override
-  State<_NilaiView> createState() => _NilaiViewState();
+  State<NilaiView> createState() => _NilaiViewState();
 }
 
-class _NilaiViewState extends State<_NilaiView> {
+class _NilaiViewState extends State<NilaiView> {
   final TextEditingController _searchController = TextEditingController();
   bool _canCreate = false;
   bool _canUpdate = false;
@@ -66,6 +71,7 @@ class _NilaiViewState extends State<_NilaiView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.paper,
       appBar: AppBar(title: const Text('Nilai'), centerTitle: true),
       floatingActionButton: _canCreate
           ? FloatingActionButton.extended(
@@ -220,17 +226,13 @@ class _LoadedView extends StatelessWidget {
             onChanged: (value) => bloc.add(NilaiSemesterChanged(value)),
           ),
         Expanded(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxWidth: Responsive.lebarKontenMaks(context),
-              ),
-              child: RefreshIndicator(
-                onRefresh: () async {
-                  bloc.add(const NilaiRefreshRequested());
-                },
-                child: _buildContent(context),
-              ),
+          child: BatasLebarKonten(
+            child: RefreshIndicator(
+              color: AppColors.primary,
+              onRefresh: () async {
+                bloc.add(const NilaiRefreshRequested());
+              },
+              child: _buildContent(context),
             ),
           ),
         ),
@@ -240,19 +242,37 @@ class _LoadedView extends StatelessWidget {
 
   Widget _buildContent(BuildContext context) {
     final items = state.items;
-    final hPad = Responsive.pagePadding(context).left;
+    final pagePadding = Responsive.pagePadding(context);
 
     return CustomScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
         if (state.isRingkasanMode)
-          SliverToBoxAdapter(child: _SummaryHeader(summary: state.summary)),
+          SliverPadding(
+            padding: EdgeInsets.fromLTRB(
+              pagePadding.left,
+              AppSpacing.md,
+              pagePadding.right,
+              0,
+            ),
+            sliver: SliverToBoxAdapter(
+              child: _SummaryHeader(summary: state.summary),
+            ),
+          ),
         if (state.isUjianMode)
-          SliverToBoxAdapter(
-            child: _UjianBanner(
-              label: state.selectedUjian?.label ?? 'Ujian terpilih',
-              subtitle: state.selectedUjian?.subtitle ?? '',
-              jumlah: items.length,
+          SliverPadding(
+            padding: EdgeInsets.fromLTRB(
+              pagePadding.left,
+              AppSpacing.md,
+              pagePadding.right,
+              0,
+            ),
+            sliver: SliverToBoxAdapter(
+              child: _UjianBanner(
+                label: state.selectedUjian?.label ?? 'Ujian terpilih',
+                subtitle: state.selectedUjian?.subtitle ?? '',
+                jumlah: items.length,
+              ),
             ),
           ),
         if (items.isEmpty)
@@ -261,34 +281,51 @@ class _LoadedView extends StatelessWidget {
             child: _EmptyView(message: _emptyMessage()),
           )
         else if (state.isRingkasanMode)
-          _buildGroupedList(items)
+          SliverPadding(
+            padding: EdgeInsets.fromLTRB(
+              pagePadding.left,
+              AppSpacing.md,
+              pagePadding.right,
+              AppSpacing.xxl,
+            ),
+            sliver: _buildGroupedList(items),
+          )
         else ...[
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 4),
-              child: Text(
-                '${items.length} catatan nilai',
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: AppColors.textSecondary,
-                ),
+          SliverPadding(
+            padding: EdgeInsets.fromLTRB(
+              pagePadding.left,
+              AppSpacing.md,
+              pagePadding.right,
+              AppSpacing.xs,
+            ),
+            sliver: SliverToBoxAdapter(
+              child: AppSectionHeader(
+                title: 'Daftar Nilai',
+                eyebrow: 'Penilaian Siswa',
+                actionLabel: '${items.length} Catatan',
               ),
             ),
           ),
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (_, i) => _NilaiSiswaTile(
-                item: items[i],
-                canUpdate: canUpdate,
-                canDelete: canDelete,
-                onEdit: onEdit,
-                onDelete: onDelete,
+          SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: pagePadding.left),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (_, i) => Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                  child: _NilaiSiswaTile(
+                    item: items[i],
+                    canUpdate: canUpdate,
+                    canDelete: canDelete,
+                    onEdit: onEdit,
+                    onDelete: onDelete,
+                  ),
+                ),
+                childCount: items.length,
               ),
-              childCount: items.length,
             ),
           ),
         ],
-        const SliverPadding(padding: EdgeInsets.only(bottom: 16)),
+        const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.xxl)),
       ],
     );
   }
@@ -297,10 +334,13 @@ class _LoadedView extends StatelessWidget {
     final groups = _groupByMapel(items);
     return SliverList(
       delegate: SliverChildBuilderDelegate(
-        (_, i) => _MapelGroupCard(
-          mapel: groups[i].key,
-          items: groups[i].value,
-          showSiswa: state.role != 'siswa',
+        (_, i) => Padding(
+          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+          child: _MapelGroupCard(
+            mapel: groups[i].key,
+            items: groups[i].value,
+            showSiswa: state.role != 'siswa',
+          ),
         ),
         childCount: groups.length,
       ),
@@ -337,14 +377,12 @@ List<MapEntry<String, List<NilaiEntity>>> _groupByMapel(
 
 // ── Helper warna & format ─────────────────────────────────────────────────────
 
-/// Ambang warna nilai. Backend belum menyediakan kolom KKM pada tabel
-/// `trx_nilai`/`trx_ujian`/`mst_mapel`, jadi ambang default dipakai.
-Color _nilaiColor(double? nilai) {
-  if (nilai == null) return AppColors.textSecondary;
-  if (nilai >= 85) return AppColors.success;
-  if (nilai >= 75) return AppColors.info;
-  if (nilai >= 60) return AppColors.warning;
-  return AppColors.error;
+AppStatusTone _nilaiTone(double? nilai) {
+  if (nilai == null) return AppStatusTone.neutral;
+  if (nilai >= 85) return AppStatusTone.success;
+  if (nilai >= 75) return AppStatusTone.info;
+  if (nilai >= 60) return AppStatusTone.warning;
+  return AppStatusTone.error;
 }
 
 String _predikat(double? nilai) {
@@ -394,17 +432,22 @@ class _SearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hPad = Responsive.pagePadding(context).left;
+    final pagePadding = Responsive.pagePadding(context);
     return Container(
-      color: Colors.white,
-      padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 12),
+      color: AppColors.paperBright,
+      padding: EdgeInsets.fromLTRB(
+        pagePadding.left,
+        AppSpacing.xs,
+        pagePadding.right,
+        AppSpacing.xs,
+      ),
       child: TextField(
         controller: controller,
         onChanged: onChanged,
         textInputAction: TextInputAction.search,
         decoration: InputDecoration(
           hintText: 'Cari nama siswa / mata pelajaran',
-          prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
+          prefixIcon: const Icon(Icons.search, color: AppColors.inkMuted),
           suffixIcon: controller.text.isEmpty
               ? null
               : IconButton(
@@ -416,8 +459,8 @@ class _SearchBar extends StatelessWidget {
                 ),
           isDense: true,
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 12,
+            horizontal: AppSpacing.sm,
+            vertical: AppSpacing.xs,
           ),
         ),
       ),
@@ -440,22 +483,28 @@ class _UjianSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hPad = Responsive.pagePadding(context).left;
+    final pagePadding = Responsive.pagePadding(context);
     return Container(
-      color: Colors.white,
-      padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 12),
+      color: AppColors.paperBright,
+      padding: EdgeInsets.fromLTRB(
+        pagePadding.left,
+        0,
+        pagePadding.right,
+        AppSpacing.xs,
+      ),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
         decoration: BoxDecoration(
-          border: Border.all(color: AppColors.divider),
-          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.line),
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          color: AppColors.paper,
         ),
         child: DropdownButtonHideUnderline(
           child: DropdownButton<int?>(
             value: selectedId,
             isExpanded: true,
             hint: const Text('Pilih ujian', style: TextStyle(fontSize: 13)),
-            icon: const Icon(Icons.expand_more, color: AppColors.textSecondary),
+            icon: const Icon(Icons.expand_more, color: AppColors.inkMuted),
             items: [
               const DropdownMenuItem<int?>(
                 value: null,
@@ -493,16 +542,9 @@ class _UjianBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hPad = Responsive.pagePadding(context).left;
-    return Container(
-      width: double.infinity,
-      margin: EdgeInsets.fromLTRB(hPad, 12, hPad, 0),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.primary.withAlpha(20),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.primary.withAlpha(60)),
-      ),
+    return AppSurfaceCard(
+      accentColor: AppColors.primary,
+      padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -511,9 +553,9 @@ class _UjianBanner extends StatelessWidget {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: AppColors.primary,
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: AppColors.ink,
             ),
           ),
           if (subtitle.isNotEmpty) ...[
@@ -522,19 +564,13 @@ class _UjianBanner extends StatelessWidget {
               subtitle,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 12,
-                color: AppColors.textSecondary,
-              ),
+              style: const TextStyle(fontSize: 12, color: AppColors.inkSoft),
             ),
           ],
           const SizedBox(height: 4),
           Text(
             '$jumlah siswa dinilai',
-            style: const TextStyle(
-              fontSize: 12,
-              color: AppColors.textSecondary,
-            ),
+            style: const TextStyle(fontSize: 12, color: AppColors.inkMuted),
           ),
         ],
       ),
@@ -557,93 +593,43 @@ class _SemesterFilter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hPad = Responsive.pagePadding(context).left;
+    final pagePadding = Responsive.pagePadding(context);
     return Container(
-      color: Colors.white,
-      padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton(
-              onPressed: selected == null ? null : () => onChanged(null),
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.primary,
-                padding: EdgeInsets.zero,
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      color: AppColors.paperBright,
+      padding: EdgeInsets.fromLTRB(
+        pagePadding.left,
+        0,
+        pagePadding.right,
+        AppSpacing.xs,
+      ),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+        decoration: BoxDecoration(
+          border: Border.all(color: AppColors.line),
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          color: AppColors.paper,
+        ),
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<String?>(
+            value: selected,
+            isExpanded: true,
+            icon: const Icon(Icons.expand_more, color: AppColors.inkMuted),
+            hint: const Text('Pilih semester', style: TextStyle(fontSize: 13)),
+            items: [
+              const DropdownMenuItem<String?>(
+                value: null,
+                child: Text('Semua semester', style: TextStyle(fontSize: 13)),
               ),
-              child: Text(
-                'Semua',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: selected == null
-                      ? FontWeight.w700
-                      : FontWeight.w500,
+              ...options.map(
+                (o) => DropdownMenuItem<String?>(
+                  value: o,
+                  child: Text(o, style: const TextStyle(fontSize: 13)),
                 ),
               ),
-            ),
+            ],
+            onChanged: onChanged,
           ),
-          const SizedBox(height: 6),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.divider),
-              borderRadius: BorderRadius.circular(12),
-              color: AppColors.cardBg,
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String?>(
-                value: selected,
-                isExpanded: true,
-                isDense: false,
-                borderRadius: BorderRadius.circular(12),
-                icon: const Icon(
-                  Icons.expand_more,
-                  color: AppColors.textSecondary,
-                ),
-                hint: const Text(
-                  'Pilih semester',
-                  style: TextStyle(fontSize: 13, color: AppColors.textHint),
-                ),
-                selectedItemBuilder: (context) => [
-                  for (final o in options)
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        o,
-                        softWrap: true,
-                        maxLines: 3,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.textPrimary,
-                          height: 1.25,
-                        ),
-                      ),
-                    ),
-                ],
-                items: [
-                  for (final o in options)
-                    DropdownMenuItem<String?>(
-                      value: o,
-                      child: Text(
-                        o,
-                        softWrap: true,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          height: 1.3,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                    ),
-                ],
-                onChanged: onChanged,
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -658,79 +644,66 @@ class _SummaryHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final rata = summary.rataRata;
-    final color = _nilaiColor(rata);
-    final hPad = Responsive.pagePadding(context).left;
-    final compact = Responsive.isCompact(context);
-    final diameter = compact ? 64.0 : 76.0;
+    final tone = _nilaiTone(rata);
 
-    return Container(
-      margin: EdgeInsets.fromLTRB(hPad, 12, hPad, 4),
-      padding: EdgeInsets.all(compact ? 12 : 16),
-      decoration: BoxDecoration(
-        color: AppColors.cardBg,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.divider),
-      ),
+    return AppSurfaceCard(
+      accentColor: AppColors.semantic(tone).accent,
+      padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
         children: [
           Row(
             children: [
               Container(
-                width: diameter,
-                height: diameter,
+                width: 64,
+                height: 64,
                 alignment: Alignment.center,
-                padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: color.withAlpha(25),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: color.withAlpha(90), width: 2),
+                  color: AppColors.semantic(tone).container,
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        _formatNilai(rata),
-                        maxLines: 1,
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: color,
-                        ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _formatNilai(rata),
+                      maxLines: 1,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.semantic(tone).onContainer,
                       ),
-                      Text(
-                        _predikat(rata),
-                        maxLines: 1,
-                        style: TextStyle(fontSize: 11, color: color),
+                    ),
+                    Text(
+                      'Predikat ${_predikat(rata)}',
+                      maxLines: 1,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.semantic(tone).onContainer,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-              SizedBox(width: compact ? 10 : 16),
+              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'Rata-rata Nilai',
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: Responsive.fontSize(context, 15),
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.ink,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
-                      '${summary.total} catatan nilai',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      '${summary.total} catatan nilai terdaftar',
                       style: const TextStyle(
                         fontSize: 12,
-                        color: AppColors.textSecondary,
+                        color: AppColors.inkSoft,
                       ),
                     ),
                   ],
@@ -738,92 +711,39 @@ class _SummaryHeader extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 14),
-          const Divider(height: 1, color: AppColors.divider),
-          const SizedBox(height: 12),
-          // Tiga angka ringkasan — pakai Wrap supaya turun baris di layar
-          // sangat sempit alih-alih meluber.
-          LayoutBuilder(
-            builder: (context, c) {
-              const spacing = 8.0;
-              final perBaris = c.maxWidth >= 260 ? 3 : 1;
-              final lebarSel =
-                  (c.maxWidth - spacing * (perBaris - 1)) / perBaris;
-              return Wrap(
-                spacing: spacing,
-                runSpacing: spacing,
-                children: [
-                  SizedBox(
-                    width: lebarSel,
-                    child: _MiniStat(
-                      label: 'Mapel',
-                      value: '${summary.jumlahMapel}',
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  SizedBox(
-                    width: lebarSel,
-                    child: _MiniStat(
-                      label: 'Tertinggi',
-                      value: _formatNilai(summary.tertinggi),
-                      color: AppColors.success,
-                    ),
-                  ),
-                  SizedBox(
-                    width: lebarSel,
-                    child: _MiniStat(
-                      label: 'Terendah',
-                      value: _formatNilai(summary.terendah),
-                      color: AppColors.error,
-                    ),
-                  ),
-                ],
-              );
-            },
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            children: [
+              Expanded(
+                child: AppMetricTile(
+                  label: 'Mapel',
+                  value: '${summary.jumlahMapel}',
+                  icon: Icons.menu_book_outlined,
+                  tone: AppStatusTone.neutral,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: AppMetricTile(
+                  label: 'Tertinggi',
+                  value: _formatNilai(summary.tertinggi),
+                  icon: Icons.arrow_upward_rounded,
+                  tone: AppStatusTone.success,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: AppMetricTile(
+                  label: 'Terendah',
+                  value: _formatNilai(summary.terendah),
+                  icon: Icons.arrow_downward_rounded,
+                  tone: AppStatusTone.error,
+                ),
+              ),
+            ],
           ),
         ],
       ),
-    );
-  }
-}
-
-class _MiniStat extends StatelessWidget {
-  final String label;
-  final String value;
-  final Color color;
-
-  const _MiniStat({
-    required this.label,
-    required this.value,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(
-            value,
-            maxLines: 1,
-            style: TextStyle(
-              fontSize: Responsive.fontSize(context, 18),
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          label,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
-        ),
-      ],
     );
   }
 }
@@ -850,48 +770,35 @@ class _MapelGroupCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final rata = _rataMapel;
+    final tone = _nilaiTone(rata);
 
-    return Card(
-      margin: EdgeInsets.symmetric(
-        horizontal: Responsive.pagePadding(context).left,
-        vertical: 6,
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 6),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 4,
-                  height: 20,
-                  decoration: BoxDecoration(
-                    color: _nilaiColor(rata),
-                    borderRadius: BorderRadius.circular(2),
+    return AppSurfaceCard(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  mapel,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.ink,
                   ),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    mapel,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                _NilaiBadge(nilai: rata, label: 'Rata'),
-              ],
-            ),
-            const SizedBox(height: 6),
-            ...items.map((item) => _NilaiRow(item: item, showSiswa: showSiswa)),
-          ],
-        ),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              AppStatusBadge(label: 'Rata: ${_formatNilai(rata)}', tone: tone),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          const Divider(height: 1, color: AppColors.line),
+          ...items.map((item) => _NilaiRow(item: item, showSiswa: showSiswa)),
+        ],
       ),
     );
   }
@@ -913,7 +820,7 @@ class _NilaiRow extends StatelessWidget {
     final semester = item.semesterDetailLabel ?? item.semesterLabel;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -923,78 +830,36 @@ class _NilaiRow extends StatelessWidget {
               children: [
                 Text(
                   item.judul,
-                  softWrap: true,
                   style: const TextStyle(
                     fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.textPrimary,
-                    height: 1.3,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.ink,
                   ),
                 ),
                 if (showSiswa && item.siswaNama != null) ...[
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 1),
                   Text(
                     item.siswaNama!,
-                    softWrap: true,
                     style: const TextStyle(
                       fontSize: 12,
-                      color: AppColors.textSecondary,
-                      height: 1.3,
+                      color: AppColors.inkSoft,
                     ),
                   ),
                 ],
-                if (jenis != null) ...[
+                if (jenis != null || semester != null || tanggal != null) ...[
                   const SizedBox(height: 2),
                   Text(
-                    jenis,
-                    softWrap: true,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textSecondary,
-                      height: 1.3,
-                    ),
-                  ),
-                ],
-                if (semester != null) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    semester,
-                    softWrap: true,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textSecondary,
-                      height: 1.3,
-                    ),
-                  ),
-                ],
-                if (tanggal != null) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    tanggal,
-                    softWrap: true,
+                    [?jenis, ?semester, ?tanggal].join(' · '),
                     style: const TextStyle(
                       fontSize: 11,
-                      color: AppColors.textHint,
-                      height: 1.3,
-                    ),
-                  ),
-                ],
-                if (item.keterangan != null && item.keterangan!.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    item.keterangan!,
-                    softWrap: true,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: AppColors.textHint,
-                      height: 1.3,
+                      color: AppColors.inkMuted,
                     ),
                   ),
                 ],
               ],
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: AppSpacing.xs),
           _NilaiBadge(nilai: item.nilai),
         ],
       ),
@@ -1010,6 +875,7 @@ class _NilaiSiswaTile extends StatelessWidget {
   final bool canDelete;
   final ValueChanged<NilaiEntity> onEdit;
   final ValueChanged<NilaiEntity> onDelete;
+
   const _NilaiSiswaTile({
     required this.item,
     required this.canUpdate,
@@ -1020,7 +886,6 @@ class _NilaiSiswaTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = _nilaiColor(item.nilai);
     final mapel = (item.mapelNama != null && item.mapelNama!.trim().isNotEmpty)
         ? item.mapelNama!.trim()
         : item.judul;
@@ -1033,177 +898,85 @@ class _NilaiSiswaTile extends StatelessWidget {
         ? item.kelasNama!.trim()
         : null;
 
-    return Card(
-      margin: EdgeInsets.symmetric(
-        horizontal: Responsive.pagePadding(context).left,
-        vertical: 5,
-      ),
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: Responsive.isCompact(context) ? 12 : 16,
-          vertical: 12,
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CircleAvatar(
-              backgroundColor: color.withAlpha(30),
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  _predikat(item.nilai),
-                  style: TextStyle(
-                    color: color,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
+    final tone = _nilaiTone(item.nilai);
+
+    return AppSurfaceCard(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.semantic(tone).container,
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+            ),
+            child: Center(
+              child: Text(
+                _predikat(item.nilai),
+                style: TextStyle(
+                  color: AppColors.semantic(tone).onContainer,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 16,
                 ),
               ),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.siswaNama ?? item.judul,
-                    softWrap: true,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                      height: 1.25,
-                    ),
-                  ),
-                  if (item.siswaNis != null && item.siswaNis!.isNotEmpty) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      'NIS ${item.siswaNis}',
-                      softWrap: true,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 6),
-                  Text(
-                    mapel,
-                    softWrap: true,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.textPrimary,
-                      height: 1.3,
-                    ),
-                  ),
-                  if (jenis != null) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      jenis,
-                      softWrap: true,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                        height: 1.3,
-                      ),
-                    ),
-                  ],
-                  if (semester != null) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      semester,
-                      softWrap: true,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                        height: 1.3,
-                      ),
-                    ),
-                  ],
-                  if (kelas != null) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      kelas,
-                      softWrap: true,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: AppColors.textHint,
-                        height: 1.3,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            const SizedBox(width: 10),
-            Column(
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _NilaiBadge(nilai: item.nilai),
-                if (canUpdate || canDelete)
-                  PopupMenuButton<String>(
-                    tooltip: 'Aksi nilai',
-                    onSelected: (action) =>
-                        action == 'edit' ? onEdit(item) : onDelete(item),
-                    itemBuilder: (_) => [
-                      if (canUpdate)
-                        const PopupMenuItem(value: 'edit', child: Text('Ubah')),
-                      if (canDelete)
-                        const PopupMenuItem(
-                          value: 'delete',
-                          child: Text('Hapus'),
-                        ),
-                    ],
+                Text(
+                  item.siswaNama ?? item.judul,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.ink,
                   ),
+                ),
+                if (item.siswaNis != null && item.siswaNis!.isNotEmpty) ...[
+                  const SizedBox(height: 1),
+                  Text(
+                    'NIS ${item.siswaNis}',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.inkSoft,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 4),
+                Text(
+                  [mapel, ?jenis, ?kelas, ?semester].join(' · '),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.inkMuted,
+                  ),
+                ),
               ],
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── Badge nilai ───────────────────────────────────────────────────────────────
-
-class _NilaiBadge extends StatelessWidget {
-  final double? nilai;
-  final String? label;
-
-  const _NilaiBadge({required this.nilai, this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    final color = _nilaiColor(nilai);
-    return Container(
-      constraints: const BoxConstraints(maxWidth: 92),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withAlpha(30),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withAlpha(100)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (label != null)
-            Text(
-              label!,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 9, color: color.withAlpha(200)),
-            ),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              _formatNilai(nilai),
-              maxLines: 1,
-              style: TextStyle(
-                fontSize: 14,
-                color: color,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          Column(
+            children: [
+              _NilaiBadge(nilai: item.nilai),
+              if (canUpdate || canDelete)
+                PopupMenuButton<String>(
+                  tooltip: 'Aksi nilai',
+                  onSelected: (action) =>
+                      action == 'edit' ? onEdit(item) : onDelete(item),
+                  itemBuilder: (_) => [
+                    if (canUpdate)
+                      const PopupMenuItem(value: 'edit', child: Text('Ubah')),
+                    if (canDelete)
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: Text('Hapus'),
+                      ),
+                  ],
+                ),
+            ],
           ),
         ],
       ),
@@ -1211,11 +984,28 @@ class _NilaiBadge extends StatelessWidget {
   }
 }
 
+class _NilaiBadge extends StatelessWidget {
+  final double? nilai;
+
+  const _NilaiBadge({required this.nilai});
+
+  @override
+  Widget build(BuildContext context) {
+    final tone = _nilaiTone(nilai);
+    final text = _formatNilai(nilai);
+
+    return AppStatusBadge(label: text, tone: tone);
+  }
+}
+
+// ── Form Nilai Sheet ─────────────────────────────────────────────────────────
+
 class NilaiFormValue {
   final int? siswaId;
   final int? ujianId;
   final double nilai;
   final String? keterangan;
+
   const NilaiFormValue({
     this.siswaId,
     this.ujianId,
@@ -1227,6 +1017,7 @@ class NilaiFormValue {
 class NilaiFormSheet extends StatefulWidget {
   final List<NilaiEntity> items;
   final NilaiEntity? initial;
+
   const NilaiFormSheet({super.key, required this.items, this.initial});
 
   @override
@@ -1235,157 +1026,112 @@ class NilaiFormSheet extends StatefulWidget {
 
 class _NilaiFormSheetState extends State<NilaiFormSheet> {
   final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _nilai;
-  late final TextEditingController _keterangan;
-  int? _siswaId;
-  int? _ujianId;
+  final _nilaiController = TextEditingController();
+  final _keteranganController = TextEditingController();
+  int? _selectedSiswaId;
+  int? _selectedUjianId;
 
   @override
   void initState() {
     super.initState();
-    final initial = widget.initial;
-    _siswaId = initial?.siswaId;
-    _ujianId = initial?.ujianId;
-    _nilai = TextEditingController(text: initial?.nilai?.toString() ?? '');
-    _keterangan = TextEditingController(text: initial?.keterangan ?? '');
+    if (widget.initial != null) {
+      _nilaiController.text = widget.initial!.nilai?.toString() ?? '';
+      _keteranganController.text = widget.initial!.keterangan ?? '';
+      _selectedSiswaId = widget.initial!.siswaId;
+      _selectedUjianId = widget.initial!.ujianId;
+    }
   }
 
   @override
   void dispose() {
-    _nilai.dispose();
-    _keterangan.dispose();
+    _nilaiController.dispose();
+    _keteranganController.dispose();
     super.dispose();
+  }
+
+  void _submit() {
+    if (!_formKey.currentState!.validate()) return;
+    final nilai = double.tryParse(_nilaiController.text.trim());
+    if (nilai == null) return;
+
+    Navigator.pop(
+      context,
+      NilaiFormValue(
+        siswaId: _selectedSiswaId,
+        ujianId: _selectedUjianId,
+        nilai: nilai,
+        keterangan: _keteranganController.text.trim().isEmpty
+            ? null
+            : _keteranganController.text.trim(),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final siswa = <int, String>{
-      for (final item in widget.items)
-        if (item.siswaId != null && item.siswaNama != null)
-          item.siswaId!:
-              '${item.siswaNama}${item.siswaNis == null ? '' : ' (${item.siswaNis})'}',
-    };
-    final ujian = <int, String>{
-      for (final item in widget.items)
-        if (item.ujianId != null) item.ujianId!: item.judul,
-    };
-    final isEdit = widget.initial != null;
-    return SafeArea(
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(
-          20,
-          20,
-          20,
-          MediaQuery.viewInsetsOf(context).bottom + 20,
-        ),
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  isEdit ? 'Ubah Nilai' : 'Tambah Nilai',
-                  style: Theme.of(context).textTheme.titleLarge,
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+        left: AppSpacing.md,
+        right: AppSpacing.md,
+        top: AppSpacing.md,
+      ),
+      child: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                widget.initial == null ? 'Tambah Nilai' : 'Ubah Nilai',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.ink,
                 ),
-                const SizedBox(height: 16),
-                if (!isEdit) ...[
-                  DropdownButtonFormField<int>(
-                    key: const Key('nilai_form_siswa'),
-                    initialValue: _siswaId,
-                    isExpanded: true,
-                    decoration: const InputDecoration(labelText: 'Siswa'),
-                    items: siswa.entries
-                        .map(
-                          (entry) => DropdownMenuItem(
-                            value: entry.key,
-                            child: Text(
-                              entry.value,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (value) => setState(() => _siswaId = value),
-                    validator: (value) => value == null
-                        ? 'Pilih siswa dari daftar tersedia'
-                        : null,
-                  ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<int>(
-                    key: const Key('nilai_form_ujian'),
-                    initialValue: _ujianId,
-                    isExpanded: true,
-                    decoration: const InputDecoration(labelText: 'Ujian'),
-                    items: ujian.entries
-                        .map(
-                          (entry) => DropdownMenuItem(
-                            value: entry.key,
-                            child: Text(
-                              entry.value,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (value) => setState(() => _ujianId = value),
-                    validator: (value) => value == null
-                        ? 'Pilih ujian dari daftar tersedia'
-                        : null,
-                  ),
-                  const SizedBox(height: 12),
-                ],
-                TextFormField(
-                  key: const Key('nilai_form_nilai'),
-                  controller: _nilai,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  decoration: const InputDecoration(
-                    labelText: 'Nilai',
-                    hintText: '0 - 100',
-                  ),
-                  validator: (value) {
-                    final score = double.tryParse(
-                      (value ?? '').replaceAll(',', '.'),
-                    );
-                    return score == null || score < 0 || score > 100
-                        ? 'Masukkan nilai 0 sampai 100'
-                        : null;
-                  },
+              ),
+              const SizedBox(height: AppSpacing.md),
+              TextFormField(
+                key: const Key('nilai_form_nilai'),
+                controller: _nilaiController,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
                 ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  key: const Key('nilai_form_keterangan'),
-                  controller: _keterangan,
-                  maxLength: 1000,
-                  maxLines: 3,
-                  decoration: const InputDecoration(
-                    labelText: 'Keterangan (opsional)',
-                  ),
+                decoration: const InputDecoration(
+                  labelText: 'Nilai (0 - 100)',
+                  hintText: 'Contoh: 85',
                 ),
-                const SizedBox(height: 8),
-                FilledButton(
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) {
+                    return 'Masukkan nilai 0 sampai 100';
+                  }
+                  final n = double.tryParse(v.trim());
+                  if (n == null || n < 0 || n > 100) {
+                    return 'Masukkan nilai 0 sampai 100';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              TextFormField(
+                key: const Key('nilai_form_keterangan'),
+                controller: _keteranganController,
+                decoration: const InputDecoration(
+                  labelText: 'Keterangan (opsional)',
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
                   key: const Key('nilai_form_submit'),
-                  onPressed: () {
-                    if (!_formKey.currentState!.validate()) return;
-                    Navigator.pop(
-                      context,
-                      NilaiFormValue(
-                        siswaId: _siswaId,
-                        ujianId: _ujianId,
-                        nilai: double.parse(_nilai.text.replaceAll(',', '.')),
-                        keterangan: _keterangan.text.trim().isEmpty
-                            ? null
-                            : _keterangan.text.trim(),
-                      ),
-                    );
-                  },
-                  child: Text(isEdit ? 'Simpan Perubahan' : 'Simpan Nilai'),
+                  onPressed: _submit,
+                  child: const Text('Simpan'),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+            ],
           ),
         ),
       ),
@@ -1393,42 +1139,7 @@ class _NilaiFormSheetState extends State<NilaiFormSheet> {
   }
 }
 
-// ── Error View ────────────────────────────────────────────────────────────────
-
-class _ErrorView extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-  const _ErrorView({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: Responsive.pagePadding(context) + const EdgeInsets.all(16),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, size: 56, color: AppColors.error),
-            const SizedBox(height: 16),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 14),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Coba Lagi'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── Empty View ────────────────────────────────────────────────────────────────
+// ── Empty / Error View ───────────────────────────────────────────────────────
 
 class _EmptyView extends StatelessWidget {
   final String message;
@@ -1438,23 +1149,75 @@ class _EmptyView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: Responsive.pagePadding(context) + const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(
-              Icons.assignment_outlined,
-              size: 64,
-              color: AppColors.textHint,
+              Icons.grade_outlined,
+              size: 48,
+              color: AppColors.inkMuted,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.textSecondary,
+              style: const TextStyle(color: AppColors.inkSoft, fontSize: 14),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ErrorView extends StatelessWidget {
+  final String message;
+  final VoidCallback onRetry;
+
+  const _ErrorView({required this.message, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: const BoxDecoration(
+                color: AppColors.errorContainer,
+                shape: BoxShape.circle,
               ),
+              child: const Icon(
+                Icons.error_outline_rounded,
+                size: 28,
+                color: AppColors.error,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              'Gagal Memuat Nilai',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: AppColors.ink,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              message,
+              style: const TextStyle(color: AppColors.inkSoft, fontSize: 13),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            FilledButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Coba Lagi'),
             ),
           ],
         ),

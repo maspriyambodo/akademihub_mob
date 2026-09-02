@@ -224,9 +224,8 @@ class MateriCard extends StatelessWidget {
                   if (onEdit != null || onDelete != null)
                     PopupMenuButton<String>(
                       tooltip: 'Aksi materi',
-                      onSelected: (action) => action == 'edit'
-                          ? onEdit?.call()
-                          : onDelete?.call(),
+                      onSelected: (action) =>
+                          action == 'edit' ? onEdit?.call() : onDelete?.call(),
                       itemBuilder: (_) => [
                         if (onEdit != null)
                           const PopupMenuItem(
