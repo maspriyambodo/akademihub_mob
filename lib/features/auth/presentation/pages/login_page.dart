@@ -447,6 +447,72 @@ class _LoginForm extends StatelessWidget {
                     );
                   },
                 ),
+                const SizedBox(height: AppSpacing.md),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Divider(
+                        color: AppColors.line.withValues(alpha: 0.6),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.sm,
+                      ),
+                      child: Text(
+                        'atau',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: AppColors.inkMuted,
+                            ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Divider(
+                        color: AppColors.line.withValues(alpha: 0.6),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.md),
+                BlocBuilder<AuthBloc, AuthState>(
+                  builder: (context, state) {
+                    final isLoading = state is AuthLoading;
+                    return OutlinedButton(
+                      onPressed: isLoading
+                          ? null
+                          : () {
+                              context
+                                  .read<AuthBloc>()
+                                  .add(AuthGoogleLoginRequested());
+                            },
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(
+                          color: AppColors.line.withValues(alpha: 0.8),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: AppSpacing.sm + 2,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                        ),
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _GoogleLogoIcon(),
+                          SizedBox(width: AppSpacing.sm),
+                          Flexible(
+                            child: Text(
+                              'Masuk dengan Google',
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
               ],
             ),
           ),
@@ -502,6 +568,70 @@ class _EducationalBookLinePainter extends CustomPainter {
       size.height * 0.25,
     );
     canvas.drawPath(path, curvePaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+
+class _GoogleLogoIcon extends StatelessWidget {
+  const _GoogleLogoIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(
+      width: 18,
+      height: 18,
+      child: CustomPaint(
+        painter: _GoogleLogoPainter(),
+      ),
+    );
+  }
+}
+
+class _GoogleLogoPainter extends CustomPainter {
+  const _GoogleLogoPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2;
+    final strokeWidth = size.width * 0.22;
+    final rect = Rect.fromCircle(center: center, radius: radius - strokeWidth / 2);
+
+    final bluePaint = Paint()
+      ..color = const Color(0xFF4285F4)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth;
+
+    final greenPaint = Paint()
+      ..color = const Color(0xFF34A853)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth;
+
+    final yellowPaint = Paint()
+      ..color = const Color(0xFFFBBC05)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth;
+
+    final redPaint = Paint()
+      ..color = const Color(0xFFEA4335)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth;
+
+    canvas.drawArc(rect, -0.4, 1.4, false, bluePaint);
+    canvas.drawArc(rect, 1.0, 1.3, false, greenPaint);
+    canvas.drawArc(rect, 2.3, 1.2, false, yellowPaint);
+    canvas.drawArc(rect, 3.5, 1.5, false, redPaint);
+
+    final barPaint = Paint()
+      ..color = const Color(0xFF4285F4)
+      ..style = PaintingStyle.fill;
+    canvas.drawRect(
+      Rect.fromLTWH(center.dx - 1, center.dy - strokeWidth / 2, radius, strokeWidth),
+      barPaint,
+    );
   }
 
   @override

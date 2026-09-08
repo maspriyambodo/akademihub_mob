@@ -11,6 +11,7 @@ import 'package:akademihub_mob/features/auth/domain/usecases/login_usecase.dart'
 import 'package:akademihub_mob/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:akademihub_mob/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:dio/dio.dart';
+import 'package:akademihub_mob/features/auth/domain/usecases/login_with_google_usecase.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -30,12 +31,16 @@ class _FakeAuthRepository implements AuthRepository {
 
   @override
   Future<Result<UserEntity>> getCurrentUser() async => success(user);
+
+  @override
+  Future<Result<UserEntity>> loginWithGoogle() async => success(user);
 }
 
 AuthBloc _createAuthBloc(UserEntity user) {
   final repo = _FakeAuthRepository(user);
   return AuthBloc(
     loginUseCase: LoginUseCase(repo),
+    loginWithGoogleUseCase: LoginWithGoogleUseCase(repo),
     logoutUseCase: LogoutUseCase(repo),
     getCurrentUserUseCase: GetCurrentUserUseCase(repo),
     tokenStorage: TokenStorage(const FlutterSecureStorage()),

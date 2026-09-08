@@ -6,6 +6,7 @@ import 'package:akademihub_mob/features/auth/domain/entities/user_entity.dart';
 import 'package:akademihub_mob/features/auth/domain/repositories/auth_repository.dart';
 import 'package:akademihub_mob/features/auth/domain/usecases/get_current_user_usecase.dart';
 import 'package:akademihub_mob/features/auth/domain/usecases/login_usecase.dart';
+import 'package:akademihub_mob/features/auth/domain/usecases/login_with_google_usecase.dart';
 import 'package:akademihub_mob/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:akademihub_mob/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:akademihub_mob/features/jadwal/domain/entities/jadwal_pelajaran_entity.dart';
@@ -35,6 +36,10 @@ class _FakeAuthRepository implements AuthRepository {
 
   @override
   Future<app_result.Result<UserEntity>> getCurrentUser() async =>
+      app_result.success(user);
+
+  @override
+  Future<app_result.Result<UserEntity>> loginWithGoogle() async =>
       app_result.success(user);
 }
 
@@ -93,6 +98,7 @@ void main() {
 
     final authBloc = AuthBloc(
       loginUseCase: LoginUseCase(_FakeAuthRepository(user)),
+      loginWithGoogleUseCase: LoginWithGoogleUseCase(_FakeAuthRepository(user)),
       logoutUseCase: LogoutUseCase(_FakeAuthRepository(user)),
       getCurrentUserUseCase: GetCurrentUserUseCase(_FakeAuthRepository(user)),
       tokenStorage: TokenStorage(const FlutterSecureStorage()),

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../../../../core/api/api_client.dart';
 import '../../../../core/config/app_config.dart';
 import '../../../../core/error/exceptions.dart';
@@ -52,6 +53,51 @@ class AuthRepositoryImpl implements AuthRepository {
     } on Object {
       await _tokenStorage.clearTokens();
       return fail(const ServerFailure('Format respons login tidak valid'));
+    }
+  }
+
+  bool _googleSignInInitialized = false;
+
+  @override
+  Future<Result<UserEntity>> loginWithGoogle() async {
+    try {
+      if (!_googleSignInInitialized) {
+        await GoogleSignIn.instance.initialize();
+        _googleSignInInitialized = true;
+      }
+      final account = await GoogleSignIn.instance.authenticate();
+      final idToken = account.authentication.idToken;
+
+      if (idToken == null || idToken.isEmpty) {
+        return fail(const AuthFailure('Gagal mendapatkan token autentikasi Google'));
+      }
+
+      final data = await _remoteDataSource.loginGoogle(
+        idToken: idToken,
+      );
+
+      final token = data['access_token'] as String;
+      final refreshToken = data['refresh_token'] as String?;
+      await _tokenStorage.saveTokens(
+        accessToken: token,
+        refreshToken: refreshToken,
+        origin: AppConfig.extractOrigin(_apiClient.dio.options.baseUrl),
+      );
+      final user = await _remoteDataSource.getCurrentUser();
+      await _answerOutbox.bindSession(
+        userId: user.id,
+        tenantUuid: user.tenant?.uuid,
+      );
+      return success(_userModelToEntity(user));
+    } on DioException catch (e) {
+      await _tokenStorage.clearTokens();
+      return fail(_mapException(mapDioException(e)));
+    } on AppException catch (e) {
+      await _tokenStorage.clearTokens();
+      return fail(_mapException(e));
+    } on Object catch (e) {
+      await _tokenStorage.clearTokens();
+      return fail(AuthFailure('Gagal login Google: $e'));
     }
   }
 
