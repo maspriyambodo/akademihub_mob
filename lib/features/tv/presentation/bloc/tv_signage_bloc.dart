@@ -13,8 +13,8 @@ class TvSignageBloc extends Bloc<TvSignageEvent, TvSignageState> {
   bool _isPaused = false;
 
   TvSignageBloc({required TvRepository repository})
-      : _repository = repository,
-        super(const TvSignageInitial()) {
+    : _repository = repository,
+      super(const TvSignageInitial()) {
     on<TvSignageStarted>(_onStarted);
     on<TvSignageRefreshRequested>(_onRefreshRequested);
     on<TvSignageNextSlideTicked>(_onNextSlideTicked);
@@ -37,11 +37,13 @@ class TvSignageBloc extends Bloc<TvSignageEvent, TvSignageState> {
     final cachedResult = await _repository.readCachedSnapshot();
     if (cachedResult.isSuccess && cachedResult.requireData != null) {
       final cached = cachedResult.requireData!;
-      emit(TvSignageReady(
-        snapshot: cached,
-        isOffline: true,
-        lastSyncedAt: cached.generatedAt,
-      ));
+      emit(
+        TvSignageReady(
+          snapshot: cached,
+          isOffline: true,
+          lastSyncedAt: cached.generatedAt,
+        ),
+      );
       _scheduleSlideTimer(cached.settings.slideDurationSeconds);
     } else {
       emit(const TvSignageLoading());
@@ -59,29 +61,35 @@ class TvSignageBloc extends Bloc<TvSignageEvent, TvSignageState> {
   }
 
   Future<void> _fetchSnapshot(Emitter<TvSignageState> emit) async {
-    final currentEtag = state is TvSignageReady ? (state as TvSignageReady).etag : null;
+    final currentEtag = state is TvSignageReady
+        ? (state as TvSignageReady).etag
+        : null;
     final result = await _repository.getSnapshot(etag: currentEtag);
 
     if (result.isSuccess) {
       final fetch = result.requireData;
       if (fetch is TvSnapshotModified) {
         final newSnapshot = fetch.snapshot;
-        emit(TvSignageReady(
-          snapshot: newSnapshot,
-          currentSlideIndex: 0,
-          isOffline: false,
-          lastSyncedAt: DateTime.now().toUtc(),
-          etag: fetch.etag,
-        ));
+        emit(
+          TvSignageReady(
+            snapshot: newSnapshot,
+            currentSlideIndex: 0,
+            isOffline: false,
+            lastSyncedAt: DateTime.now().toUtc(),
+            etag: fetch.etag,
+          ),
+        );
         _scheduleSlideTimer(newSnapshot.settings.slideDurationSeconds);
         _scheduleSyncTimer(newSnapshot.refreshAfter);
       } else if (fetch is TvSnapshotNotModified) {
         if (state is TvSignageReady) {
           final readyState = state as TvSignageReady;
-          emit(readyState.copyWith(
-            isOffline: false,
-            lastSyncedAt: DateTime.now().toUtc(),
-          ));
+          emit(
+            readyState.copyWith(
+              isOffline: false,
+              lastSyncedAt: DateTime.now().toUtc(),
+            ),
+          );
           _scheduleSyncTimer(readyState.snapshot.refreshAfter);
         }
       }

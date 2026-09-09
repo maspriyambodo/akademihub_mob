@@ -462,8 +462,8 @@ class _LoginForm extends StatelessWidget {
                       child: Text(
                         'atau',
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: AppColors.inkMuted,
-                            ),
+                          color: AppColors.inkMuted,
+                        ),
                       ),
                     ),
                     Expanded(
@@ -481,9 +481,9 @@ class _LoginForm extends StatelessWidget {
                       onPressed: isLoading
                           ? null
                           : () {
-                              context
-                                  .read<AuthBloc>()
-                                  .add(AuthGoogleLoginRequested());
+                              context.read<AuthBloc>().add(
+                                AuthGoogleLoginRequested(),
+                              );
                             },
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(
@@ -574,7 +574,6 @@ class _EducationalBookLinePainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-
 class _GoogleLogoIcon extends StatelessWidget {
   const _GoogleLogoIcon();
 
@@ -583,9 +582,7 @@ class _GoogleLogoIcon extends StatelessWidget {
     return const SizedBox(
       width: 18,
       height: 18,
-      child: CustomPaint(
-        painter: _GoogleLogoPainter(),
-      ),
+      child: CustomPaint(painter: _GoogleLogoPainter()),
     );
   }
 }
@@ -598,7 +595,10 @@ class _GoogleLogoPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2;
     final strokeWidth = size.width * 0.22;
-    final rect = Rect.fromCircle(center: center, radius: radius - strokeWidth / 2);
+    final rect = Rect.fromCircle(
+      center: center,
+      radius: radius - strokeWidth / 2,
+    );
 
     final bluePaint = Paint()
       ..color = const Color(0xFF4285F4)
@@ -629,7 +629,12 @@ class _GoogleLogoPainter extends CustomPainter {
       ..color = const Color(0xFF4285F4)
       ..style = PaintingStyle.fill;
     canvas.drawRect(
-      Rect.fromLTWH(center.dx - 1, center.dy - strokeWidth / 2, radius, strokeWidth),
+      Rect.fromLTWH(
+        center.dx - 1,
+        center.dy - strokeWidth / 2,
+        radius,
+        strokeWidth,
+      ),
       barPaint,
     );
   }

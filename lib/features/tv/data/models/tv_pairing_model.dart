@@ -60,8 +60,9 @@ class TvPairingStatusModel extends TvPairingStatus {
     };
 
     final expiresAtStr = json['expires_at'] as String?;
-    final expiresAt =
-        expiresAtStr != null ? DateTime.parse(expiresAtStr).toUtc() : null;
+    final expiresAt = expiresAtStr != null
+        ? DateTime.parse(expiresAtStr).toUtc()
+        : null;
 
     final deviceToken = json['device_token'] as String?;
     final deviceMap = json['device'] as Map<String, dynamic>?;

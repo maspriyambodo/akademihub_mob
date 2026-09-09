@@ -81,11 +81,7 @@ class _TvClockHeaderState extends State<TvClockHeader> {
                     ),
                   )
                 else
-                  const Icon(
-                    Icons.school,
-                    color: Color(0xFFE9A23B),
-                    size: 36,
-                  ),
+                  const Icon(Icons.school, color: Color(0xFFE9A23B), size: 36),
                 const SizedBox(width: 14),
                 Flexible(
                   child: Text(
@@ -118,10 +114,7 @@ class _TvClockHeaderState extends State<TvClockHeader> {
                   ),
                   Text(
                     dateStr,
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 13,
-                    ),
+                    style: const TextStyle(color: Colors.white70, fontSize: 13),
                   ),
                 ],
               ),

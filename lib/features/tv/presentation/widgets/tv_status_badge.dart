@@ -46,7 +46,9 @@ class TvStatusBadge extends StatelessWidget {
                     : const Color(0xFF087F75).withAlpha(40),
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(
-                  color: isOffline ? const Color(0xFFB43C46) : const Color(0xFF087F75),
+                  color: isOffline
+                      ? const Color(0xFFB43C46)
+                      : const Color(0xFF087F75),
                   width: 1,
                 ),
               ),
@@ -58,14 +60,18 @@ class TvStatusBadge extends StatelessWidget {
                     height: 7,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: isOffline ? const Color(0xFFB43C46) : const Color(0xFF087F75),
+                      color: isOffline
+                          ? const Color(0xFFB43C46)
+                          : const Color(0xFF087F75),
                     ),
                   ),
                   const SizedBox(width: 6),
                   Text(
                     isOffline ? 'OFFLINE (CACHE)' : 'TERHUBUNG',
                     style: TextStyle(
-                      color: isOffline ? const Color(0xFFFFA39E) : const Color(0xFF87E8DE),
+                      color: isOffline
+                          ? const Color(0xFFFFA39E)
+                          : const Color(0xFF87E8DE),
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                     ),
@@ -88,7 +94,11 @@ class TvStatusBadge extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.people_alt_outlined, color: Color(0xFFE9A23B), size: 16),
+                const Icon(
+                  Icons.people_alt_outlined,
+                  color: Color(0xFFE9A23B),
+                  size: 16,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   'Hadir: ${attendance!.present}/${attendance!.total}',

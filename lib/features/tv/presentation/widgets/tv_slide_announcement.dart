@@ -8,7 +8,8 @@ class TvSlideAnnouncement extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isUrgent = announcement.priority.toLowerCase() == 'urgent' ||
+    final isUrgent =
+        announcement.priority.toLowerCase() == 'urgent' ||
         announcement.priority.toLowerCase() == 'high';
 
     return Container(
@@ -32,9 +33,14 @@ class TvSlideAnnouncement extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
-                        color: isUrgent ? const Color(0xFFB43C46) : const Color(0xFF087F75),
+                        color: isUrgent
+                            ? const Color(0xFFB43C46)
+                            : const Color(0xFF087F75),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
@@ -75,7 +81,8 @@ class TvSlideAnnouncement extends StatelessWidget {
               ],
             ),
           ),
-          if (announcement.imageUrl != null && announcement.imageUrl!.isNotEmpty) ...[
+          if (announcement.imageUrl != null &&
+              announcement.imageUrl!.isNotEmpty) ...[
             const SizedBox(width: 24),
             Expanded(
               flex: 2,
@@ -84,7 +91,8 @@ class TvSlideAnnouncement extends StatelessWidget {
                 child: Image.network(
                   announcement.imageUrl!,
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+                  errorBuilder: (context, error, stackTrace) =>
+                      const SizedBox.shrink(),
                 ),
               ),
             ),

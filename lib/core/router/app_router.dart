@@ -256,80 +256,88 @@ GoRouter createAppRouter({bool? isTv}) {
       for (final alias in AppRoutes.ewsAliases)
         GoRoute(path: alias, redirect: (_, _) => AppRoutes.ews),
       ShellRoute(
-      builder: (context, state, child) => MainShell(child: child),
-      routes: [
-        GoRoute(
-          path: AppRoutes.dashboard,
-          builder: (_, _) => const DashboardPage(),
-        ),
-        GoRoute(
-          path: AppRoutes.absensi,
-          builder: (_, _) => const AbsensiPage(),
-        ),
-        GoRoute(path: AppRoutes.jadwal, builder: (_, _) => const JadwalPage()),
-        GoRoute(path: AppRoutes.nilai, builder: (_, _) => const NilaiPage()),
-        GoRoute(path: AppRoutes.tugas, builder: (_, _) => const TugasPage()),
-        GoRoute(path: AppRoutes.rapor, builder: (_, _) => const RaporPage()),
-        GoRoute(
-          path: AppRoutes.notifications,
-          builder: (_, _) => const NotificationsPage(),
-        ),
-        GoRoute(
-          path: AppRoutes.keuangan,
-          builder: (_, _) => const KeuanganPage(),
-        ),
-        GoRoute(path: AppRoutes.profil, builder: (_, _) => const ProfilPage()),
-        GoRoute(path: AppRoutes.materi, builder: (_, _) => const MateriPage()),
-        GoRoute(path: AppRoutes.forum, builder: (_, _) => const ForumPage()),
-        GoRoute(
-          path: AppRoutes.ekstrakurikuler,
-          builder: (_, _) => const EkstrakurikulerPage(),
-        ),
-        GoRoute(
-          path: AppRoutes.kalender,
-          builder: (_, _) => const KalenderPage(),
-        ),
-        GoRoute(path: AppRoutes.bk, builder: (_, _) => const BkPage()),
-        GoRoute(path: AppRoutes.ujian, builder: (_, _) => const UjianPage()),
-        GoRoute(path: AppRoutes.tmb, builder: (_, _) => const TmbPage()),
-        GoRoute(path: AppRoutes.ews, builder: (_, _) => const EwsPage()),
-        GoRoute(
-          path: AppRoutes.perpustakaan,
-          builder: (_, _) => const PerpustakaanPage(),
-        ),
-        GoRoute(
-          path: AppRoutes.organisasi,
-          builder: (_, _) => const OrganisasiPage(),
-        ),
-      ],
-    ),
-    GoRoute(
-      path: AppRoutes.siswaInsight,
-      builder: (context, state) {
-        final id = int.tryParse(state.pathParameters['id'] ?? '');
-        if (id == null || id <= 0) {
-          return const _SiswaInsightMissingId();
-        }
-        // Validate ownership: only allow the student's own ID, admin/guru
-        // with permission, or a guardian's bound child ID.
-        final authState = context.read<AuthBloc>().state;
-        if (authState is AuthAuthenticated) {
-          final user = authState.user;
-          final profile = user.profile;
-          final ownSiswaId = profile?['siswa_id'] ?? profile?['id'];
-          final isSelf = user.isSiswa && ownSiswaId == id;
-          final hasPermission = user.hasPermission('siswa.view');
-          if (!isSelf && !hasPermission) {
-            return const _SiswaInsightAccessDenied();
+        builder: (context, state, child) => MainShell(child: child),
+        routes: [
+          GoRoute(
+            path: AppRoutes.dashboard,
+            builder: (_, _) => const DashboardPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.absensi,
+            builder: (_, _) => const AbsensiPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.jadwal,
+            builder: (_, _) => const JadwalPage(),
+          ),
+          GoRoute(path: AppRoutes.nilai, builder: (_, _) => const NilaiPage()),
+          GoRoute(path: AppRoutes.tugas, builder: (_, _) => const TugasPage()),
+          GoRoute(path: AppRoutes.rapor, builder: (_, _) => const RaporPage()),
+          GoRoute(
+            path: AppRoutes.notifications,
+            builder: (_, _) => const NotificationsPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.keuangan,
+            builder: (_, _) => const KeuanganPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.profil,
+            builder: (_, _) => const ProfilPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.materi,
+            builder: (_, _) => const MateriPage(),
+          ),
+          GoRoute(path: AppRoutes.forum, builder: (_, _) => const ForumPage()),
+          GoRoute(
+            path: AppRoutes.ekstrakurikuler,
+            builder: (_, _) => const EkstrakurikulerPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.kalender,
+            builder: (_, _) => const KalenderPage(),
+          ),
+          GoRoute(path: AppRoutes.bk, builder: (_, _) => const BkPage()),
+          GoRoute(path: AppRoutes.ujian, builder: (_, _) => const UjianPage()),
+          GoRoute(path: AppRoutes.tmb, builder: (_, _) => const TmbPage()),
+          GoRoute(path: AppRoutes.ews, builder: (_, _) => const EwsPage()),
+          GoRoute(
+            path: AppRoutes.perpustakaan,
+            builder: (_, _) => const PerpustakaanPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.organisasi,
+            builder: (_, _) => const OrganisasiPage(),
+          ),
+        ],
+      ),
+      GoRoute(
+        path: AppRoutes.siswaInsight,
+        builder: (context, state) {
+          final id = int.tryParse(state.pathParameters['id'] ?? '');
+          if (id == null || id <= 0) {
+            return const _SiswaInsightMissingId();
           }
-        }
-        return SiswaInsightPage(siswaId: id);
-      },
-    ),
-  ],
-);
+          // Validate ownership: only allow the student's own ID, admin/guru
+          // with permission, or a guardian's bound child ID.
+          final authState = context.read<AuthBloc>().state;
+          if (authState is AuthAuthenticated) {
+            final user = authState.user;
+            final profile = user.profile;
+            final ownSiswaId = profile?['siswa_id'] ?? profile?['id'];
+            final isSelf = user.isSiswa && ownSiswaId == id;
+            final hasPermission = user.hasPermission('siswa.view');
+            if (!isSelf && !hasPermission) {
+              return const _SiswaInsightAccessDenied();
+            }
+          }
+          return SiswaInsightPage(siswaId: id);
+        },
+      ),
+    ],
+  );
 }
-
 
 class _SiswaInsightMissingId extends StatelessWidget {
   const _SiswaInsightMissingId();
@@ -421,4 +429,3 @@ GoRouter get router => _appRouter ??= createAppRouter();
 void resetAppRouter({bool? isTv}) {
   _appRouter = createAppRouter(isTv: isTv);
 }
-

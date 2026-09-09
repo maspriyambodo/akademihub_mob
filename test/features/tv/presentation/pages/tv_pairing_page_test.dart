@@ -15,13 +15,15 @@ class _FakeTvRepo implements TvRepository {
 
   @override
   Future<Result<TvPairingSession>> createPairingSession() async {
-    return success(TvPairingSession(
-      sessionId: 'sess-abc',
-      userCode: 'XK99ZZ',
-      verificationUrl: 'https://app.akademihub.id/tv-pair',
-      expiresAt: DateTime.now().toUtc().add(const Duration(minutes: 10)),
-      pollInterval: const Duration(seconds: 5),
-    ));
+    return success(
+      TvPairingSession(
+        sessionId: 'sess-abc',
+        userCode: 'XK99ZZ',
+        verificationUrl: 'https://app.akademihub.id/tv-pair',
+        expiresAt: DateTime.now().toUtc().add(const Duration(minutes: 10)),
+        pollInterval: const Duration(seconds: 5),
+      ),
+    );
   }
 
   @override
@@ -58,11 +60,7 @@ void main() {
 
   group('TvPairingPage', () {
     testWidgets('renders user pairing code and instructions', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: TvPairingPage(),
-        ),
-      );
+      await tester.pumpWidget(const MaterialApp(home: TvPairingPage()));
 
       // Initial loading state
       expect(find.byKey(const Key('tv_pairing_page')), findsOneWidget);
@@ -73,7 +71,10 @@ void main() {
 
       expect(find.text('XK99ZZ'), findsOneWidget);
       expect(find.textContaining('HUBUNGKAN LAYAR ANDROID TV'), findsOneWidget);
-      expect(find.textContaining('https://app.akademihub.id/tv-pair'), findsOneWidget);
+      expect(
+        find.textContaining('https://app.akademihub.id/tv-pair'),
+        findsOneWidget,
+      );
       expect(find.text('Menunggu persetujuan admin...'), findsOneWidget);
     });
   });

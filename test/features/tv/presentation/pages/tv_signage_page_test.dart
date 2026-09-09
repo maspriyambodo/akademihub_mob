@@ -21,11 +21,14 @@ class _FakeTvRepoForPage implements TvRepository {
   @override
   Future<bool> hasDeviceToken() async => true;
   @override
-  Future<Result<TvPairingSession>> createPairingSession() async => const ResultFailure(ServerFailure(''));
+  Future<Result<TvPairingSession>> createPairingSession() async =>
+      const ResultFailure(ServerFailure(''));
   @override
-  Future<Result<TvPairingStatus>> getPairingStatus(String sessionId) async => const ResultFailure(ServerFailure(''));
+  Future<Result<TvPairingStatus>> getPairingStatus(String sessionId) async =>
+      const ResultFailure(ServerFailure(''));
   @override
-  Future<Result<TvSnapshotFetch>> getSnapshot({String? etag}) async => success(TvSnapshotModified(snapshot));
+  Future<Result<TvSnapshotFetch>> getSnapshot({String? etag}) async =>
+      success(TvSnapshotModified(snapshot));
   @override
   Future<Result<TvSnapshot?>> readCachedSnapshot() async => success(null);
   @override
@@ -42,10 +45,22 @@ void main() {
     'school': {'name': 'SMAN 1 Teladan', 'timezone': 'Asia/Jakarta'},
     'settings': {'slide_duration_seconds': 10, 'show_attendance': true},
     'schedule': [
-      {'id': 1, 'subject': 'Biologi Terapan', 'teacher': 'Dr. Siti', 'class': 'XI A', 'starts_at': '07:30', 'ends_at': '09:00'}
+      {
+        'id': 1,
+        'subject': 'Biologi Terapan',
+        'teacher': 'Dr. Siti',
+        'class': 'XI A',
+        'starts_at': '07:30',
+        'ends_at': '09:00',
+      },
     ],
     'announcements': [
-      {'id': 1, 'title': 'Lomba Robotik Nasional', 'body': 'Pendaftaran di lab fisika.', 'priority': 'urgent'}
+      {
+        'id': 1,
+        'title': 'Lomba Robotik Nasional',
+        'body': 'Pendaftaran di lab fisika.',
+        'priority': 'urgent',
+      },
     ],
     'calendar': [],
   });
@@ -54,7 +69,9 @@ void main() {
     if (sl.isRegistered<TvSignageBloc>()) {
       sl.unregister<TvSignageBloc>();
     }
-    sl.registerFactory<TvSignageBloc>(() => TvSignageBloc(repository: _FakeTvRepoForPage(sampleSnapshot)));
+    sl.registerFactory<TvSignageBloc>(
+      () => TvSignageBloc(repository: _FakeTvRepoForPage(sampleSnapshot)),
+    );
   });
 
   tearDown(() {
@@ -64,30 +81,27 @@ void main() {
   });
 
   group('TvSignagePage', () {
-    testWidgets('renders clock header, status badge, slide schedule, and ticker', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: TvSignagePage(),
-        ),
-      );
+    testWidgets(
+      'renders clock header, status badge, slide schedule, and ticker',
+      (tester) async {
+        await tester.pumpWidget(const MaterialApp(home: TvSignagePage()));
 
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 100));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
 
-      expect(find.byType(TvClockHeader), findsOneWidget);
-      expect(find.byType(TvStatusBadge), findsOneWidget);
-      expect(find.byType(TvTicker), findsOneWidget);
-      expect(find.text('SMAN 1 Teladan'), findsOneWidget);
-      expect(find.text('Biologi Terapan'), findsOneWidget);
-      expect(find.textContaining('Lomba Robotik Nasional'), findsOneWidget);
-    });
+        expect(find.byType(TvClockHeader), findsOneWidget);
+        expect(find.byType(TvStatusBadge), findsOneWidget);
+        expect(find.byType(TvTicker), findsOneWidget);
+        expect(find.text('SMAN 1 Teladan'), findsOneWidget);
+        expect(find.text('Biologi Terapan'), findsOneWidget);
+        expect(find.textContaining('Lomba Robotik Nasional'), findsOneWidget);
+      },
+    );
 
-    testWidgets('opens settings dialog when settings button is tapped', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: TvSignagePage(),
-        ),
-      );
+    testWidgets('opens settings dialog when settings button is tapped', (
+      tester,
+    ) async {
+      await tester.pumpWidget(const MaterialApp(home: TvSignagePage()));
 
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
@@ -103,6 +117,34 @@ void main() {
       expect(find.text('Pengaturan Perangkat TV'), findsOneWidget);
       expect(find.text('TV Lobby Display'), findsOneWidget);
       expect(find.text('Putuskan Tautan Layar'), findsOneWidget);
+    });
+
+    testWidgets('renders without overflow on 1280x720 (720p)', (tester) async {
+      tester.view.physicalSize = const Size(1280, 720);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      await tester.pumpWidget(const MaterialApp(home: TvSignagePage()));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(TvSignagePage), findsOneWidget);
+    });
+
+    testWidgets('renders without overflow on 1920x1080 (1080p)', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1920, 1080);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      await tester.pumpWidget(const MaterialApp(home: TvSignagePage()));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(TvSignagePage), findsOneWidget);
     });
   });
 }

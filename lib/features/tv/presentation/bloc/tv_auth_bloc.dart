@@ -16,8 +16,8 @@ class TvAuthBloc extends Bloc<TvAuthEvent, TvAuthState> {
   static const List<int> _backoffSchedule = [5, 10, 20, 30];
 
   TvAuthBloc({required TvRepository repository})
-      : _repository = repository,
-        super(const TvAuthInitial()) {
+    : _repository = repository,
+      super(const TvAuthInitial()) {
     on<TvAuthStarted>(_onStarted);
     on<TvPairingRequested>(_onPairingRequested);
     on<TvPairingPollTicked>(_onPollTicked);
@@ -72,7 +72,9 @@ class TvAuthBloc extends Bloc<TvAuthEvent, TvAuthState> {
       return;
     }
 
-    final result = await _repository.getPairingStatus(currentState.session.sessionId);
+    final result = await _repository.getPairingStatus(
+      currentState.session.sessionId,
+    );
     if (result.isSuccess) {
       _consecutiveFailures = 0;
       final status = result.requireData;
@@ -80,10 +82,12 @@ class TvAuthBloc extends Bloc<TvAuthEvent, TvAuthState> {
       switch (status.state) {
         case TvPairingState.approved:
           _cancelTimer();
-          emit(TvAuthPaired(
-            deviceId: status.deviceId,
-            deviceMode: status.deviceMode,
-          ));
+          emit(
+            TvAuthPaired(
+              deviceId: status.deviceId,
+              deviceMode: status.deviceMode,
+            ),
+          );
           break;
 
         case TvPairingState.pending:
@@ -92,10 +96,12 @@ class TvAuthBloc extends Bloc<TvAuthEvent, TvAuthState> {
             _cancelTimer();
             emit(TvPairingExpired(session: currentState.session));
           } else {
-            emit(TvPairingPending(
-              session: currentState.session,
-              attempt: currentState.attempt + 1,
-            ));
+            emit(
+              TvPairingPending(
+                session: currentState.session,
+                attempt: currentState.attempt + 1,
+              ),
+            );
             _schedulePoll(currentState.session.pollInterval);
           }
           break;
@@ -171,7 +177,9 @@ class TvAuthBloc extends Bloc<TvAuthEvent, TvAuthState> {
     _cancelTimer();
     if (_isPaused || isClosed) return;
 
-    final duration = interval.inSeconds < 3 ? const Duration(seconds: 3) : interval;
+    final duration = interval.inSeconds < 3
+        ? const Duration(seconds: 3)
+        : interval;
     _pollTimer = Timer(duration, () {
       if (!isClosed) {
         add(const TvPairingPollTicked());

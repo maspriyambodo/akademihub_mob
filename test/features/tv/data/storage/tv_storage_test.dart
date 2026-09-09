@@ -30,28 +30,33 @@ void main() {
       expect(id2, id1);
     });
 
-    test('saveDeviceCredentials and clearSession retains installation ID', () async {
-      final currentOrigin = AppConfig.extractOrigin(AppConfig.apiBaseUrl) ?? 'http://127.0.0.1:8002';
-      final installId = await storage.getOrCreateInstallationId();
+    test(
+      'saveDeviceCredentials and clearSession retains installation ID',
+      () async {
+        final currentOrigin =
+            AppConfig.extractOrigin(AppConfig.apiBaseUrl) ??
+            'http://127.0.0.1:8002';
+        final installId = await storage.getOrCreateInstallationId();
 
-      await storage.saveDeviceCredentials(
-        token: 'test-token',
-        deviceId: 123,
-        mode: 'signage',
-        origin: currentOrigin,
-      );
+        await storage.saveDeviceCredentials(
+          token: 'test-token',
+          deviceId: 123,
+          mode: 'signage',
+          origin: currentOrigin,
+        );
 
-      expect(await storage.hasDeviceToken(), isTrue);
-      expect(await storage.getDeviceId(), 123);
-      expect(await storage.getDeviceMode(), 'signage');
+        expect(await storage.hasDeviceToken(), isTrue);
+        expect(await storage.getDeviceId(), 123);
+        expect(await storage.getDeviceMode(), 'signage');
 
-      await storage.clearSession();
+        await storage.clearSession();
 
-      expect(await storage.hasDeviceToken(), isFalse);
-      expect(await storage.getDeviceId(), isNull);
-      // installation ID MUST be preserved!
-      expect(await storage.getOrCreateInstallationId(), installId);
-    });
+        expect(await storage.hasDeviceToken(), isFalse);
+        expect(await storage.getDeviceId(), isNull);
+        // installation ID MUST be preserved!
+        expect(await storage.getOrCreateInstallationId(), installId);
+      },
+    );
 
     test('origin mismatch clears session', () async {
       await storage.saveDeviceCredentials(
@@ -75,8 +80,13 @@ void main() {
       expect(storage.getCachedEtag(), '"etag123"');
 
       // Mock expired timestamp (>24h ago)
-      final pastDate = DateTime.now().toUtc().subtract(const Duration(hours: 25));
-      await prefs.setString(TvStorage.keySnapshotCachedAt, pastDate.toIso8601String());
+      final pastDate = DateTime.now().toUtc().subtract(
+        const Duration(hours: 25),
+      );
+      await prefs.setString(
+        TvStorage.keySnapshotCachedAt,
+        pastDate.toIso8601String(),
+      );
 
       expect(storage.getCachedSnapshotJson(), isNull);
       expect(storage.getCachedEtag(), isNull);

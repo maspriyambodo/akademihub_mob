@@ -107,7 +107,11 @@ class _TvPairingView extends StatelessWidget {
             'Buka menu Kelola TV pada mobile app admin lalu masukkan kode di atas.\n'
             'Atau buka: ${session.verificationUrl}',
             textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.white, fontSize: 16, height: 1.5),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              height: 1.5,
+            ),
           ),
           const SizedBox(height: 24),
           const Row(
@@ -116,7 +120,10 @@ class _TvPairingView extends StatelessWidget {
               SizedBox(
                 width: 16,
                 height: 16,
-                child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFFE9A23B)),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Color(0xFFE9A23B),
+                ),
               ),
               SizedBox(width: 12),
               Text(
@@ -129,9 +136,14 @@ class _TvPairingView extends StatelessWidget {
       );
     }
 
-    if (state is TvPairingExpired || state is TvPairingDenied || state is TvAuthFailure) {
+    if (state is TvPairingExpired ||
+        state is TvPairingDenied ||
+        state is TvAuthFailure) {
       final (title, message) = switch (state) {
-        TvPairingExpired() => ('Kode Kedaluwarsa', 'Kode pairing telah kedaluwarsa.'),
+        TvPairingExpired() => (
+          'Kode Kedaluwarsa',
+          'Kode pairing telah kedaluwarsa.',
+        ),
         TvPairingDenied(:final message) => ('Permintaan Ditolak', message),
         TvAuthFailure(:final message) => ('Gagal Menghubungkan', message),
         _ => ('', ''),
@@ -144,7 +156,11 @@ class _TvPairingView extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             title,
-            style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 12),
           Text(
@@ -155,7 +171,8 @@ class _TvPairingView extends StatelessWidget {
           const SizedBox(height: 24),
           TvFocusable(
             autofocus: true,
-            onSelect: () => context.read<TvAuthBloc>().add(const TvPairingRetryRequested()),
+            onSelect: () =>
+                context.read<TvAuthBloc>().add(const TvPairingRetryRequested()),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               decoration: BoxDecoration(
@@ -164,7 +181,11 @@ class _TvPairingView extends StatelessWidget {
               ),
               child: const Text(
                 'Coba Lagi',
-                style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
@@ -175,4 +196,3 @@ class _TvPairingView extends StatelessWidget {
     return const SizedBox.shrink();
   }
 }
-

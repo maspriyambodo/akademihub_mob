@@ -49,18 +49,20 @@ class TvSignageReady extends TvSignageState {
 
   @override
   List<Object?> get props => [
-        snapshot,
-        currentSlideIndex,
-        isOffline,
-        lastSyncedAt,
-        etag,
-      ];
+    snapshot,
+    currentSlideIndex,
+    isOffline,
+    lastSyncedAt,
+    etag,
+  ];
 }
 
 class TvSignageOffline extends TvSignageState {
   final String message;
 
-  const TvSignageOffline([this.message = 'Tidak ada koneksi dan belum ada cache layar']);
+  const TvSignageOffline([
+    this.message = 'Tidak ada koneksi dan belum ada cache layar',
+  ]);
 
   @override
   List<Object?> get props => [message];

@@ -19,12 +19,12 @@ class TvPairingSession extends Equatable {
 
   @override
   List<Object?> get props => [
-        sessionId,
-        userCode,
-        verificationUrl,
-        expiresAt,
-        pollInterval,
-      ];
+    sessionId,
+    userCode,
+    verificationUrl,
+    expiresAt,
+    pollInterval,
+  ];
 }
 
 enum TvPairingState { pending, approved, denied, expired }
@@ -48,11 +48,11 @@ class TvPairingStatus extends Equatable {
 
   @override
   List<Object?> get props => [
-        state,
-        expiresAt,
-        deviceToken,
-        deviceId,
-        deviceName,
-        deviceMode,
-      ];
+    state,
+    expiresAt,
+    deviceToken,
+    deviceId,
+    deviceName,
+    deviceMode,
+  ];
 }

@@ -19,11 +19,7 @@ class _MockHttpClientAdapter implements HttpClientAdapter {
     Future<void>? cancelFuture,
   ) async {
     request = options;
-    return ResponseBody.fromString(
-      responseBody,
-      statusCode,
-      headers: headers,
-    );
+    return ResponseBody.fromString(responseBody, statusCode, headers: headers);
   }
 
   @override
@@ -43,9 +39,11 @@ void main() {
   });
 
   group('TvRemoteDataSource', () {
-    test('createPairingSession sends POST /tv/pairing/sessions with correct body', () async {
-      adapter.statusCode = 201;
-      adapter.responseBody = '''
+    test(
+      'createPairingSession sends POST /tv/pairing/sessions with correct body',
+      () async {
+        adapter.statusCode = 201;
+        adapter.responseBody = '''
       {
         "success": true,
         "data": {
@@ -58,26 +56,29 @@ void main() {
       }
       ''';
 
-      final result = await dataSource.createPairingSession(
-        installationId: 'inst-uuid-1',
-        deviceName: 'Lobby TV',
-        appVersion: '1.0.0+1',
-      );
+        final result = await dataSource.createPairingSession(
+          installationId: 'inst-uuid-1',
+          deviceName: 'Lobby TV',
+          appVersion: '1.0.0+1',
+        );
 
-      expect(adapter.request?.path, '/tv/pairing/sessions');
-      expect(adapter.request?.method, 'POST');
-      expect(adapter.request?.data, {
-        'installation_id': 'inst-uuid-1',
-        'device_name': 'Lobby TV',
-        'app_version': '1.0.0+1',
-      });
-      expect(result.sessionId, 'sess-uuid-1');
-      expect(result.userCode, 'AB7K9Q');
-    });
+        expect(adapter.request?.path, '/tv/pairing/sessions');
+        expect(adapter.request?.method, 'POST');
+        expect(adapter.request?.data, {
+          'installation_id': 'inst-uuid-1',
+          'device_name': 'Lobby TV',
+          'app_version': '1.0.0+1',
+        });
+        expect(result.sessionId, 'sess-uuid-1');
+        expect(result.userCode, 'AB7K9Q');
+      },
+    );
 
-    test('getPairingStatus sends GET /tv/pairing/sessions/{id} with X-TV-Installation-ID', () async {
-      adapter.statusCode = 200;
-      adapter.responseBody = '''
+    test(
+      'getPairingStatus sends GET /tv/pairing/sessions/{id} with X-TV-Installation-ID',
+      () async {
+        adapter.statusCode = 200;
+        adapter.responseBody = '''
       {
         "success": true,
         "data": {
@@ -92,44 +93,51 @@ void main() {
       }
       ''';
 
-      final result = await dataSource.getPairingStatus(
-        sessionId: 'sess-uuid-1',
-        installationId: 'inst-uuid-1',
-      );
+        final result = await dataSource.getPairingStatus(
+          sessionId: 'sess-uuid-1',
+          installationId: 'inst-uuid-1',
+        );
 
-      expect(adapter.request?.path, '/tv/pairing/sessions/sess-uuid-1');
-      expect(adapter.request?.method, 'GET');
-      expect(adapter.request?.headers['X-TV-Installation-ID'], 'inst-uuid-1');
-      expect(result.state, TvPairingState.approved);
-      expect(result.deviceToken, 'raw-token-42');
-      expect(result.deviceId, 10);
-    });
+        expect(adapter.request?.path, '/tv/pairing/sessions/sess-uuid-1');
+        expect(adapter.request?.method, 'GET');
+        expect(adapter.request?.headers['X-TV-Installation-ID'], 'inst-uuid-1');
+        expect(result.state, TvPairingState.approved);
+        expect(result.deviceToken, 'raw-token-42');
+        expect(result.deviceId, 10);
+      },
+    );
 
-    test('unpairCurrent sends DELETE /tv/devices/current with Bearer token', () async {
-      adapter.statusCode = 200;
-      adapter.responseBody = '{"success": true}';
+    test(
+      'unpairCurrent sends DELETE /tv/devices/current with Bearer token',
+      () async {
+        adapter.statusCode = 200;
+        adapter.responseBody = '{"success": true}';
 
-      await dataSource.unpairCurrent(deviceToken: 'token-abc');
+        await dataSource.unpairCurrent(deviceToken: 'token-abc');
 
-      expect(adapter.request?.path, '/tv/devices/current');
-      expect(adapter.request?.method, 'DELETE');
-      expect(adapter.request?.headers['Authorization'], 'Bearer token-abc');
-    });
+        expect(adapter.request?.path, '/tv/devices/current');
+        expect(adapter.request?.method, 'DELETE');
+        expect(adapter.request?.headers['Authorization'], 'Bearer token-abc');
+      },
+    );
 
-    test('getSnapshot sends GET /tv/snapshot with Bearer and optional ETag', () async {
-      adapter.statusCode = 304;
-      adapter.responseBody = '';
+    test(
+      'getSnapshot sends GET /tv/snapshot with Bearer and optional ETag',
+      () async {
+        adapter.statusCode = 304;
+        adapter.responseBody = '';
 
-      final response = await dataSource.getSnapshot(
-        deviceToken: 'token-xyz',
-        etag: '"etag-12345"',
-      );
+        final response = await dataSource.getSnapshot(
+          deviceToken: 'token-xyz',
+          etag: '"etag-12345"',
+        );
 
-      expect(adapter.request?.path, '/tv/snapshot');
-      expect(adapter.request?.method, 'GET');
-      expect(adapter.request?.headers['Authorization'], 'Bearer token-xyz');
-      expect(adapter.request?.headers['If-None-Match'], '"etag-12345"');
-      expect(response.statusCode, 304);
-    });
+        expect(adapter.request?.path, '/tv/snapshot');
+        expect(adapter.request?.method, 'GET');
+        expect(adapter.request?.headers['Authorization'], 'Bearer token-xyz');
+        expect(adapter.request?.headers['If-None-Match'], '"etag-12345"');
+        expect(response.statusCode, 304);
+      },
+    );
   });
 }

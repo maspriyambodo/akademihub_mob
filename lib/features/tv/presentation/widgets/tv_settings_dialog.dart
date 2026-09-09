@@ -71,7 +71,10 @@ class TvSettingsDialog extends StatelessWidget {
                   onSelect: () => _confirmUnpair(context),
                   borderRadius: BorderRadius.circular(10),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFB43C46),
                       borderRadius: BorderRadius.circular(10),
@@ -105,8 +108,18 @@ class TvSettingsDialog extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 15)),
-        Text(value, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white70, fontSize: 15),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 15,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ],
     );
   }
@@ -116,7 +129,10 @@ class TvSettingsDialog extends StatelessWidget {
       context: context,
       builder: (confirmContext) => AlertDialog(
         backgroundColor: const Color(0xFF102A43),
-        title: const Text('Konfirmasi Putus Tautan', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Konfirmasi Putus Tautan',
+          style: TextStyle(color: Colors.white),
+        ),
         content: const Text(
           'Apakah Anda yakin ingin memutuskan layar ini dari sekolah?\n'
           'Anda harus melakukan pairing ulang untuk menghubungkannya kembali.',
@@ -128,13 +144,18 @@ class TvSettingsDialog extends StatelessWidget {
             child: const Text('Batal', style: TextStyle(color: Colors.white70)),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFB43C46)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFB43C46),
+            ),
             onPressed: () {
               Navigator.of(confirmContext).pop();
               Navigator.of(context).pop();
               onUnpair();
             },
-            child: const Text('Ya, Putuskan', style: TextStyle(color: Colors.white)),
+            child: const Text(
+              'Ya, Putuskan',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),

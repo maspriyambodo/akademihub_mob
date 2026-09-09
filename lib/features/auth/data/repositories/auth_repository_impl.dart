@@ -69,12 +69,12 @@ class AuthRepositoryImpl implements AuthRepository {
       final idToken = account.authentication.idToken;
 
       if (idToken == null || idToken.isEmpty) {
-        return fail(const AuthFailure('Gagal mendapatkan token autentikasi Google'));
+        return fail(
+          const AuthFailure('Gagal mendapatkan token autentikasi Google'),
+        );
       }
 
-      final data = await _remoteDataSource.loginGoogle(
-        idToken: idToken,
-      );
+      final data = await _remoteDataSource.loginGoogle(idToken: idToken);
 
       final token = data['access_token'] as String;
       final refreshToken = data['refresh_token'] as String?;

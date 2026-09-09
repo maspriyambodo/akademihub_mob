@@ -38,22 +38,34 @@ class TvSlideCalendar extends StatelessWidget {
                 )
               : ListView.separated(
                   itemCount: calendar.length,
-                  separatorBuilder: (context, index) => const SizedBox(height: 12),
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 12),
                   itemBuilder: (context, index) {
                     final item = calendar[index];
-                    final dateRange = DateFormat('dd MMM yyyy').format(item.startsAt.toLocal());
+                    final dateRange = DateFormat(
+                      'dd MMM yyyy',
+                    ).format(item.startsAt.toLocal());
 
                     return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 14,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFF102A43),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFF243B53), width: 1.5),
+                        border: Border.all(
+                          color: const Color(0xFF243B53),
+                          width: 1.5,
+                        ),
                       ),
                       child: Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 8,
+                            ),
                             decoration: BoxDecoration(
                               color: const Color(0xFF243B53),
                               borderRadius: BorderRadius.circular(8),
@@ -80,14 +92,20 @@ class TvSlideCalendar extends StatelessWidget {
                           ),
                           if (item.allDay)
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
                               decoration: BoxDecoration(
                                 color: const Color(0xFF087F75).withAlpha(60),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: const Text(
                                 'Sepanjang Hari',
-                                style: TextStyle(color: Color(0xFFBFE8DF), fontSize: 11),
+                                style: TextStyle(
+                                  color: Color(0xFFBFE8DF),
+                                  fontSize: 11,
+                                ),
                               ),
                             ),
                         ],

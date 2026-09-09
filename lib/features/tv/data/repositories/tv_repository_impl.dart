@@ -17,8 +17,8 @@ class TvRepositoryImpl implements TvRepository {
   const TvRepositoryImpl({
     required TvRemoteDataSource remoteDataSource,
     required TvStorage storage,
-  })  : _remoteDataSource = remoteDataSource,
-        _storage = storage;
+  }) : _remoteDataSource = remoteDataSource,
+       _storage = storage;
 
   @override
   Future<Result<TvPairingSession>> createPairingSession() async {

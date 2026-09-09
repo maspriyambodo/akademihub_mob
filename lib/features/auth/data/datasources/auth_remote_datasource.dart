@@ -3,7 +3,10 @@ import '../models/user_model.dart';
 
 abstract class AuthRemoteDataSource {
   Future<Map<String, dynamic>> login(String username, String password);
-  Future<Map<String, dynamic>> loginGoogle({String? idToken, String? serverAuthCode});
+  Future<Map<String, dynamic>> loginGoogle({
+    String? idToken,
+    String? serverAuthCode,
+  });
   Future<void> logout();
   Future<UserModel> getCurrentUser();
   Future<void> registerFcmToken(String token);
@@ -34,10 +37,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     if (idToken != null) payload['id_token'] = idToken;
     if (serverAuthCode != null) payload['code'] = serverAuthCode;
 
-    final response = await _dio.post(
-      '/auth/google',
-      data: payload,
-    );
+    final response = await _dio.post('/auth/google', data: payload);
     final body = response.data as Map<String, dynamic>;
     return Map<String, dynamic>.from(body['data'] as Map<String, dynamic>);
   }

@@ -85,17 +85,42 @@ class _TvSignageView extends StatelessWidget {
           children: [
             const Icon(Icons.cloud_off, color: Color(0xFFE9A23B), size: 64),
             const SizedBox(height: 16),
-            const Text('Mode Offline', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+            const Text(
+              'Mode Offline',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const SizedBox(height: 12),
-            Text(state.message, style: const TextStyle(color: Colors.white70, fontSize: 16)),
+            Text(
+              state.message,
+              style: const TextStyle(color: Colors.white70, fontSize: 16),
+            ),
             const SizedBox(height: 24),
             TvFocusable(
               autofocus: true,
-              onSelect: () => context.read<TvSignageBloc>().add(const TvSignageRefreshRequested()),
+              onSelect: () => context.read<TvSignageBloc>().add(
+                const TvSignageRefreshRequested(),
+              ),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                decoration: BoxDecoration(color: const Color(0xFF087F75), borderRadius: BorderRadius.circular(10)),
-                child: const Text('Muat Ulang', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF087F75),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Text(
+                  'Muat Ulang',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
           ],
@@ -107,7 +132,10 @@ class _TvSignageView extends StatelessWidget {
       final snapshot = state.snapshot;
       return Column(
         children: [
-          TvClockHeader(school: snapshot.school, onOpenSettings: () => _openSettings(context, snapshot.device)),
+          TvClockHeader(
+            school: snapshot.school,
+            onOpenSettings: () => _openSettings(context, snapshot.device),
+          ),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -116,10 +144,14 @@ class _TvSignageView extends StatelessWidget {
                   TvStatusBadge(
                     device: snapshot.device,
                     isOffline: state.isOffline,
-                    attendance: snapshot.settings.showAttendance ? snapshot.attendance : null,
+                    attendance: snapshot.settings.showAttendance
+                        ? snapshot.attendance
+                        : null,
                   ),
                   const SizedBox(height: 16),
-                  Expanded(child: _buildSlide(snapshot, state.currentSlideIndex)),
+                  Expanded(
+                    child: _buildSlide(snapshot, state.currentSlideIndex),
+                  ),
                 ],
               ),
             ),
@@ -134,20 +166,32 @@ class _TvSignageView extends StatelessWidget {
 
   Widget _buildSlide(TvSnapshot snapshot, int slideIndex) {
     final slides = <Widget>[];
-    if (snapshot.schedule.isNotEmpty) slides.add(TvSlideSchedule(schedule: snapshot.schedule));
+    if (snapshot.schedule.isNotEmpty) {
+      slides.add(TvSlideSchedule(schedule: snapshot.schedule));
+    }
     for (final ann in snapshot.announcements) {
       slides.add(TvSlideAnnouncement(announcement: ann));
     }
-    if (snapshot.calendar.isNotEmpty) slides.add(TvSlideCalendar(calendar: snapshot.calendar));
+    if (snapshot.calendar.isNotEmpty) {
+      slides.add(TvSlideCalendar(calendar: snapshot.calendar));
+    }
 
     if (slides.isEmpty) {
-      return const Center(child: Text('Tidak ada agenda.', style: TextStyle(color: Colors.white60, fontSize: 20)));
+      return const Center(
+        child: Text(
+          'Tidak ada agenda.',
+          style: TextStyle(color: Colors.white60, fontSize: 20),
+        ),
+      );
     }
 
     final safeIndex = slideIndex % slides.length;
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 500),
-      child: KeyedSubtree(key: ValueKey('slide_$safeIndex'), child: slides[safeIndex]),
+      child: KeyedSubtree(
+        key: ValueKey('slide_$safeIndex'),
+        child: slides[safeIndex],
+      ),
     );
   }
 
@@ -155,8 +199,8 @@ class _TvSignageView extends StatelessWidget {
     TvSettingsDialog.show(
       context,
       device: device,
-      onUnpair: () => context.read<TvSignageBloc>().add(const TvSignageUnpairConfirmed()),
+      onUnpair: () =>
+          context.read<TvSignageBloc>().add(const TvSignageUnpairConfirmed()),
     );
   }
 }
-

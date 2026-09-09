@@ -215,9 +215,7 @@ Future<void> configureDependencies({bool? isTelevision}) async {
   await migrateLegacyTenantState(prefs, secureStorage);
 
   // ── TV Feature ────────────────────────────────────────────────────────────
-  sl.registerLazySingleton(
-    () => TvStorage(secureStorage: sl(), prefs: prefs),
-  );
+  sl.registerLazySingleton(() => TvStorage(secureStorage: sl(), prefs: prefs));
   final tvDio = Dio(
     BaseOptions(
       baseUrl: AppConfig.apiBaseUrl,
@@ -724,4 +722,3 @@ void setTvDeviceForTesting(bool isTv) {
   }
   sl.registerSingleton<bool>(isTv, instanceName: 'isTv');
 }
-

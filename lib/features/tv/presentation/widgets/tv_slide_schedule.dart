@@ -50,12 +50,18 @@ class TvSlideSchedule extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: const Color(0xFF102A43),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFF243B53), width: 1.5),
+                        border: Border.all(
+                          color: const Color(0xFF243B53),
+                          width: 1.5,
+                        ),
                       ),
                       child: Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
                             decoration: BoxDecoration(
                               color: const Color(0xFF087F75),
                               borderRadius: BorderRadius.circular(8),
@@ -63,9 +69,27 @@ class TvSlideSchedule extends StatelessWidget {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Text(item.startsAt, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                                const Text('-', style: TextStyle(color: Colors.white70, fontSize: 12)),
-                                Text(item.endsAt, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                Text(
+                                  item.startsAt,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const Text(
+                                  '-',
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                Text(
+                                  item.endsAt,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -79,12 +103,27 @@ class TvSlideSchedule extends StatelessWidget {
                                   item.subject,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                                 const SizedBox(height: 4),
-                                Text(item.teacher, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70)),
+                                Text(
+                                  item.teacher,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(color: Colors.white70),
+                                ),
                                 const SizedBox(height: 4),
-                                Text('${item.className}${item.room != null ? ' • ${item.room}' : ''}', style: const TextStyle(color: Color(0xFFE9A23B), fontSize: 12)),
+                                Text(
+                                  '${item.className}${item.room != null ? ' • ${item.room}' : ''}',
+                                  style: const TextStyle(
+                                    color: Color(0xFFE9A23B),
+                                    fontSize: 12,
+                                  ),
+                                ),
                               ],
                             ),
                           ),

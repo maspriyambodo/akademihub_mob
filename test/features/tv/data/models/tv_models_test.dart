@@ -35,34 +35,34 @@ void main() {
       expect(model.pollInterval, const Duration(seconds: 3));
     });
 
-    test('fromJson throws FormatException on missing or empty required fields', () {
-      expect(
-        () => TvPairingSessionModel.fromJson({
-          'user_code': 'AB7K9Q',
-          'verification_url': 'https://app.akademihub.id/tv-pair',
-          'expires_at': '2026-09-05T14:15:00Z',
-        }),
-        throwsFormatException,
-      );
+    test(
+      'fromJson throws FormatException on missing or empty required fields',
+      () {
+        expect(
+          () => TvPairingSessionModel.fromJson({
+            'user_code': 'AB7K9Q',
+            'verification_url': 'https://app.akademihub.id/tv-pair',
+            'expires_at': '2026-09-05T14:15:00Z',
+          }),
+          throwsFormatException,
+        );
 
-      expect(
-        () => TvPairingSessionModel.fromJson({
-          'session_id': '',
-          'user_code': 'AB7K9Q',
-          'verification_url': 'https://app.akademihub.id/tv-pair',
-          'expires_at': '2026-09-05T14:15:00Z',
-        }),
-        throwsFormatException,
-      );
-    });
+        expect(
+          () => TvPairingSessionModel.fromJson({
+            'session_id': '',
+            'user_code': 'AB7K9Q',
+            'verification_url': 'https://app.akademihub.id/tv-pair',
+            'expires_at': '2026-09-05T14:15:00Z',
+          }),
+          throwsFormatException,
+        );
+      },
+    );
   });
 
   group('TvPairingStatusModel', () {
     test('fromJson parses pending status', () {
-      final json = {
-        'status': 'pending',
-        'expires_at': '2026-09-05T14:15:00Z',
-      };
+      final json = {'status': 'pending', 'expires_at': '2026-09-05T14:15:00Z'};
 
       final model = TvPairingStatusModel.fromJson(json);
       expect(model.state, TvPairingState.pending);
@@ -74,11 +74,7 @@ void main() {
       final json = {
         'status': 'approved',
         'device_token': 'secret-device-token-123',
-        'device': {
-          'id': 42,
-          'name': 'TV Lobby Utama',
-          'mode': 'signage',
-        },
+        'device': {'id': 42, 'name': 'TV Lobby Utama', 'mode': 'signage'},
       };
 
       final model = TvPairingStatusModel.fromJson(json);

@@ -6,20 +6,13 @@ void main() {
     final validJson = {
       'generated_at': '2026-09-05T14:20:00Z',
       'refresh_after_seconds': 300,
-      'device': {
-        'id': 42,
-        'name': 'TV Lobby Utama',
-        'mode': 'signage',
-      },
+      'device': {'id': 42, 'name': 'TV Lobby Utama', 'mode': 'signage'},
       'school': {
         'name': 'SMA Negeri 1 Jakarta',
         'logo_url': 'https://example.com/logo.png',
         'timezone': 'Asia/Jakarta',
       },
-      'settings': {
-        'slide_duration_seconds': 12,
-        'show_attendance': true,
-      },
+      'settings': {'slide_duration_seconds': 12, 'show_attendance': true},
       'schedule': [
         {
           'id': 1,
@@ -29,7 +22,7 @@ void main() {
           'starts_at': '07:30',
           'ends_at': '09:00',
           'room': 'R.301',
-        }
+        },
       ],
       'announcements': [
         {
@@ -40,7 +33,7 @@ void main() {
           'starts_at': '2026-09-01T00:00:00Z',
           'ends_at': '2026-09-10T23:59:59Z',
           'priority': 'normal',
-        }
+        },
       ],
       'calendar': [
         {
@@ -49,14 +42,9 @@ void main() {
           'starts_at': '2026-09-15T00:00:00Z',
           'ends_at': '2026-09-20T23:59:59Z',
           'all_day': true,
-        }
+        },
       ],
-      'attendance': {
-        'present': 820,
-        'late': 15,
-        'absent': 8,
-        'total': 843,
-      },
+      'attendance': {'present': 820, 'late': 15, 'absent': 8, 'total': 843},
     };
 
     test('fromJson parses complete valid JSON correctly', () {
@@ -95,15 +83,46 @@ void main() {
       expect(reconstructed.generatedAt, model.generatedAt);
       expect(reconstructed.device.id, model.device.id);
       expect(reconstructed.school.name, model.school.name);
-      expect(reconstructed.schedule.first.subject, model.schedule.first.subject);
-      expect(reconstructed.announcements.first.title, model.announcements.first.title);
-    });
-
-    test('fromJson throws FormatException when required fields are missing', () {
       expect(
-        () => TvSnapshotModel.fromJson({'generated_at': '2026-09-05T14:20:00Z'}),
-        throwsFormatException,
+        reconstructed.schedule.first.subject,
+        model.schedule.first.subject,
+      );
+      expect(
+        reconstructed.announcements.first.title,
+        model.announcements.first.title,
       );
     });
+
+    test(
+      'fromJson throws FormatException when required fields are missing',
+      () {
+        expect(
+          () => TvSnapshotModel.fromJson({
+            'generated_at': '2026-09-05T14:20:00Z',
+          }),
+          throwsFormatException,
+        );
+      },
+    );
+
+    test(
+      'fromJson handles minimal payload with empty collections and null optionals',
+      () {
+        final minimalJson = {
+          'generated_at': '2026-09-05T14:20:00Z',
+          'refresh_after_seconds': 300,
+          'device': {'id': 1, 'name': 'TV Minimal', 'mode': 'signage'},
+          'school': {'name': 'SMA Minimal', 'timezone': 'Asia/Makassar'},
+          'settings': {'slide_duration_seconds': 15, 'show_attendance': false},
+        };
+
+        final model = TvSnapshotModel.fromJson(minimalJson);
+        expect(model.school.logoUrl, isNull);
+        expect(model.schedule, isEmpty);
+        expect(model.announcements, isEmpty);
+        expect(model.calendar, isEmpty);
+        expect(model.attendance, isNull);
+      },
+    );
   });
 }

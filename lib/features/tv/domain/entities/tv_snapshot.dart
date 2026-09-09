@@ -63,7 +63,15 @@ class TvScheduleItem extends Equatable {
   });
 
   @override
-  List<Object?> get props => [id, subject, teacher, className, startsAt, endsAt, room];
+  List<Object?> get props => [
+    id,
+    subject,
+    teacher,
+    className,
+    startsAt,
+    endsAt,
+    room,
+  ];
 }
 
 class TvAnnouncementItem extends Equatable {
@@ -86,7 +94,15 @@ class TvAnnouncementItem extends Equatable {
   });
 
   @override
-  List<Object?> get props => [id, title, body, imageUrl, startsAt, endsAt, priority];
+  List<Object?> get props => [
+    id,
+    title,
+    body,
+    imageUrl,
+    startsAt,
+    endsAt,
+    priority,
+  ];
 }
 
 class TvCalendarItem extends Equatable {
@@ -150,16 +166,16 @@ class TvSnapshot extends Equatable {
 
   @override
   List<Object?> get props => [
-        generatedAt,
-        refreshAfter,
-        device,
-        school,
-        settings,
-        schedule,
-        announcements,
-        calendar,
-        attendance,
-      ];
+    generatedAt,
+    refreshAfter,
+    device,
+    school,
+    settings,
+    schedule,
+    announcements,
+    calendar,
+    attendance,
+  ];
 }
 
 sealed class TvSnapshotFetch extends Equatable {

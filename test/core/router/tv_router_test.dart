@@ -23,14 +23,12 @@ void main() {
       );
     });
 
-    testWidgets('handset redirects deep link /tv/* to / (splash)', (tester) async {
+    testWidgets('handset redirects deep link /tv/* to / (splash)', (
+      tester,
+    ) async {
       final mobileRouter = createAppRouter(isTv: false);
 
-      await tester.pumpWidget(
-        MaterialApp.router(
-          routerConfig: mobileRouter,
-        ),
-      );
+      await tester.pumpWidget(MaterialApp.router(routerConfig: mobileRouter));
       await tester.pump();
 
       // Deep link to /tv/pairing on mobile handset
@@ -43,14 +41,12 @@ void main() {
       );
     });
 
-    testWidgets('TV mode stays in /tv routes without mobile AuthBloc', (tester) async {
+    testWidgets('TV mode stays in /tv routes without mobile AuthBloc', (
+      tester,
+    ) async {
       final tvRouter = createAppRouter(isTv: true);
 
-      await tester.pumpWidget(
-        MaterialApp.router(
-          routerConfig: tvRouter,
-        ),
-      );
+      await tester.pumpWidget(MaterialApp.router(routerConfig: tvRouter));
       await tester.pumpAndSettle();
 
       expect(
@@ -80,14 +76,12 @@ void main() {
       expect(find.byKey(const Key('tv_signage_page')), findsOneWidget);
     });
 
-    testWidgets('TV mode redirects mobile routes back to /tv/bootstrap', (tester) async {
+    testWidgets('TV mode redirects mobile routes back to /tv/bootstrap', (
+      tester,
+    ) async {
       final tvRouter = createAppRouter(isTv: true);
 
-      await tester.pumpWidget(
-        MaterialApp.router(
-          routerConfig: tvRouter,
-        ),
-      );
+      await tester.pumpWidget(MaterialApp.router(routerConfig: tvRouter));
       await tester.pumpAndSettle();
 
       // Attempt to access mobile dashboard directly

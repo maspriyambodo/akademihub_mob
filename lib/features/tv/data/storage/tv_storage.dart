@@ -22,8 +22,8 @@ class TvStorage {
   const TvStorage({
     required FlutterSecureStorage secureStorage,
     required SharedPreferences prefs,
-  })  : _secureStorage = secureStorage,
-        _prefs = prefs;
+  }) : _secureStorage = secureStorage,
+       _prefs = prefs;
 
   static String generateUuidV4() {
     final random = Random.secure();

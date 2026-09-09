@@ -34,10 +34,7 @@ class TvPairingPending extends TvAuthState {
   final TvPairingSession session;
   final int attempt;
 
-  const TvPairingPending({
-    required this.session,
-    this.attempt = 0,
-  });
+  const TvPairingPending({required this.session, this.attempt = 0});
 
   @override
   List<Object?> get props => [session, attempt];
@@ -46,7 +43,9 @@ class TvPairingPending extends TvAuthState {
 class TvPairingDenied extends TvAuthState {
   final String message;
 
-  const TvPairingDenied([this.message = 'Permintaan pairing ditolak oleh administrator']);
+  const TvPairingDenied([
+    this.message = 'Permintaan pairing ditolak oleh administrator',
+  ]);
 
   @override
   List<Object?> get props => [message];

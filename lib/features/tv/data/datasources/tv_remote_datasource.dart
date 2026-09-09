@@ -18,9 +18,7 @@ abstract class TvRemoteDataSource {
     String? etag,
   });
 
-  Future<void> unpairCurrent({
-    required String deviceToken,
-  });
+  Future<void> unpairCurrent({required String deviceToken});
 }
 
 class TvRemoteDataSourceImpl implements TvRemoteDataSource {
@@ -54,11 +52,7 @@ class TvRemoteDataSourceImpl implements TvRemoteDataSource {
   }) async {
     final response = await _dio.get(
       '/tv/pairing/sessions/$sessionId',
-      options: Options(
-        headers: {
-          'X-TV-Installation-ID': installationId,
-        },
-      ),
+      options: Options(headers: {'X-TV-Installation-ID': installationId}),
     );
     final body = response.data as Map<String, dynamic>;
     final data = body['data'] as Map<String, dynamic>;
@@ -70,9 +64,7 @@ class TvRemoteDataSourceImpl implements TvRemoteDataSource {
     required String deviceToken,
     String? etag,
   }) async {
-    final headers = <String, dynamic>{
-      'Authorization': 'Bearer $deviceToken',
-    };
+    final headers = <String, dynamic>{'Authorization': 'Bearer $deviceToken'};
     if (etag != null && etag.trim().isNotEmpty) {
       headers['If-None-Match'] = etag.trim();
     }
@@ -89,16 +81,10 @@ class TvRemoteDataSourceImpl implements TvRemoteDataSource {
   }
 
   @override
-  Future<void> unpairCurrent({
-    required String deviceToken,
-  }) async {
+  Future<void> unpairCurrent({required String deviceToken}) async {
     await _dio.delete(
       '/tv/devices/current',
-      options: Options(
-        headers: {
-          'Authorization': 'Bearer $deviceToken',
-        },
-      ),
+      options: Options(headers: {'Authorization': 'Bearer $deviceToken'}),
     );
   }
 }
