@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import '../../../../core/config/app_config.dart';
 import '../../../../core/error/failures.dart';
@@ -6,6 +7,7 @@ import '../../domain/entities/tv_pairing_session.dart';
 import '../../domain/entities/tv_snapshot.dart';
 import '../../domain/repositories/tv_repository.dart';
 import '../datasources/tv_remote_datasource.dart';
+import '../models/tv_snapshot_model.dart';
 import '../storage/tv_storage.dart';
 
 class TvRepositoryImpl implements TvRepository {
@@ -84,8 +86,18 @@ class TvRepositoryImpl implements TvRepository {
         return success(const TvSnapshotNotModified());
       }
 
-      // Snapshot parsing will be detailed in Fase D
-      return fail(const ServerFailure('Snapshot parsing not initialized'));
+      final body = response.data as Map<String, dynamic>;
+      final data = body['data'] as Map<String, dynamic>;
+      final snapshot = TvSnapshotModel.fromJson(data);
+
+      final responseEtag = response.headers.value('etag');
+      final jsonStr = jsonEncode(data);
+      await _storage.saveCachedSnapshot(
+        jsonString: jsonStr,
+        etag: responseEtag,
+      );
+
+      return success(TvSnapshotModified(snapshot, etag: responseEtag));
     } on DioException catch (e) {
       if (e.response?.statusCode == 401 || e.response?.statusCode == 403) {
         await _storage.clearSession();
@@ -99,8 +111,17 @@ class TvRepositoryImpl implements TvRepository {
 
   @override
   Future<Result<TvSnapshot?>> readCachedSnapshot() async {
-    // Cached snapshot parsing will be detailed in Fase D
-    return success(null);
+    try {
+      final cachedJson = _storage.getCachedSnapshotJson();
+      if (cachedJson == null || cachedJson.isEmpty) {
+        return success(null);
+      }
+      final decoded = jsonDecode(cachedJson) as Map<String, dynamic>;
+      final snapshot = TvSnapshotModel.fromJson(decoded);
+      return success(snapshot);
+    } catch (e) {
+      return success(null);
+    }
   }
 
   @override

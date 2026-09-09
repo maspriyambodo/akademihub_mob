@@ -14,6 +14,7 @@ import '../../features/tv/data/repositories/tv_repository_impl.dart';
 import '../../features/tv/data/storage/tv_storage.dart';
 import '../../features/tv/domain/repositories/tv_repository.dart';
 import '../../features/tv/presentation/bloc/tv_auth_bloc.dart';
+import '../../features/tv/presentation/bloc/tv_signage_bloc.dart';
 import '../../features/auth/data/datasources/auth_remote_datasource.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
@@ -232,6 +233,7 @@ Future<void> configureDependencies({bool? isTelevision}) async {
     () => TvRepositoryImpl(remoteDataSource: sl(), storage: sl()),
   );
   sl.registerFactory(() => TvAuthBloc(repository: sl()));
+  sl.registerFactory(() => TvSignageBloc(repository: sl()));
 
   // ── Core ──────────────────────────────────────────────────────────────────
   final apiClient = ApiClient(secureStorage);
