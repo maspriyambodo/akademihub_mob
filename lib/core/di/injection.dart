@@ -1,11 +1,19 @@
+import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../api/api_client.dart';
+import '../config/app_config.dart';
 import '../notifications/push_notification_service.dart';
+import '../platform/tv_platform_service.dart';
 import '../storage/token_storage.dart';
 import '../storage/answer_outbox.dart';
 import '../storage/legacy_tenant_migration.dart';
+import '../../features/tv/data/datasources/tv_remote_datasource.dart';
+import '../../features/tv/data/repositories/tv_repository_impl.dart';
+import '../../features/tv/data/storage/tv_storage.dart';
+import '../../features/tv/domain/repositories/tv_repository.dart';
+import '../../features/tv/presentation/bloc/tv_auth_bloc.dart';
 import '../../features/auth/data/datasources/auth_remote_datasource.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
@@ -187,7 +195,16 @@ import '../../features/siswa_insight/presentation/bloc/siswa_insight_bloc.dart';
 
 final sl = GetIt.instance;
 
-Future<void> configureDependencies() async {
+Future<void> configureDependencies({bool? isTelevision}) async {
+  // ── TV platform & detection ───────────────────────────────────────────────
+  sl.registerLazySingleton<TvPlatformService>(() => const TvPlatformService());
+  if (isTelevision != null || !sl.isRegistered<bool>(instanceName: 'isTv')) {
+    if (sl.isRegistered<bool>(instanceName: 'isTv')) {
+      sl.unregister<bool>(instanceName: 'isTv');
+    }
+    sl.registerSingleton<bool>(isTelevision ?? false, instanceName: 'isTv');
+  }
+
   // ── External ─────────────────────────────────────────────────────────────
   const secureStorage = FlutterSecureStorage(
     aOptions: AndroidOptions(encryptedSharedPreferences: true),
@@ -195,6 +212,26 @@ Future<void> configureDependencies() async {
   sl.registerLazySingleton(() => secureStorage);
   final prefs = await SharedPreferences.getInstance();
   await migrateLegacyTenantState(prefs, secureStorage);
+
+  // ── TV Feature ────────────────────────────────────────────────────────────
+  sl.registerLazySingleton(
+    () => TvStorage(secureStorage: sl(), prefs: prefs),
+  );
+  final tvDio = Dio(
+    BaseOptions(
+      baseUrl: AppConfig.apiBaseUrl,
+      connectTimeout: AppConfig.connectTimeout,
+      receiveTimeout: AppConfig.receiveTimeout,
+      headers: {'Accept': 'application/json'},
+    ),
+  );
+  sl.registerLazySingleton<TvRemoteDataSource>(
+    () => TvRemoteDataSourceImpl(tvDio),
+  );
+  sl.registerLazySingleton<TvRepository>(
+    () => TvRepositoryImpl(remoteDataSource: sl(), storage: sl()),
+  );
+  sl.registerFactory(() => TvAuthBloc(repository: sl()));
 
   // ── Core ──────────────────────────────────────────────────────────────────
   final apiClient = ApiClient(secureStorage);
@@ -674,3 +711,15 @@ Future<void> configureDependencies() async {
     () => SiswaInsightBloc(getInsight: sl(), invalidateCache: sl()),
   );
 }
+
+bool get isTvDevice => sl.isRegistered<bool>(instanceName: 'isTv')
+    ? sl<bool>(instanceName: 'isTv')
+    : false;
+
+void setTvDeviceForTesting(bool isTv) {
+  if (sl.isRegistered<bool>(instanceName: 'isTv')) {
+    sl.unregister<bool>(instanceName: 'isTv');
+  }
+  sl.registerSingleton<bool>(isTv, instanceName: 'isTv');
+}
+

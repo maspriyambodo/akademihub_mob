@@ -57,3 +57,15 @@ class AbsensiFailure extends Failure {
   @override
   List<Object?> get props => [message, code, details];
 }
+
+class RateLimitFailure extends Failure {
+  final int retryAfterSeconds;
+  const RateLimitFailure([
+    super.message = 'Terlalu banyak permintaan',
+    this.retryAfterSeconds = 5,
+  ]);
+
+  @override
+  List<Object?> get props => [message, retryAfterSeconds];
+}
+

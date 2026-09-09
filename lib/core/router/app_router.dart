@@ -26,6 +26,9 @@ import '../../features/ews/presentation/pages/ews_page.dart';
 import '../../features/siswa_insight/presentation/pages/siswa_insight_page.dart';
 import '../../features/perpustakaan/presentation/pages/perpustakaan_page.dart';
 import '../../features/organisasi/presentation/pages/organisasi_page.dart';
+import '../../features/tv/presentation/pages/tv_bootstrap_page.dart';
+import '../../features/tv/presentation/pages/tv_pairing_page.dart';
+import '../../features/tv/presentation/pages/tv_signage_page.dart';
 
 enum RouteAccess { public, authenticated, permissionAny }
 
@@ -58,6 +61,9 @@ class AppRoutes {
   static const String ews = '/ews';
   static const String perpustakaan = '/perpustakaan';
   static const String organisasi = '/organisasi';
+  static const String tvBootstrap = '/tv/bootstrap';
+  static const String tvPairing = '/tv/pairing';
+  static const String tvSignage = '/tv/signage';
   static const List<String> registeredPaths = [
     splash,
     login,
@@ -81,6 +87,9 @@ class AppRoutes {
     perpustakaan,
     organisasi,
     siswaInsight,
+    tvBootstrap,
+    tvPairing,
+    tvSignage,
   ];
   static const List<String> ewsAliases = [
     '/early-warning',
@@ -89,7 +98,11 @@ class AppRoutes {
   static const String siswaInsight = '/siswa/:id/insight';
 
   static RoutePolicy? policyFor(String path) => switch (path) {
-    splash || login => const RoutePolicy(RouteAccess.public),
+    splash ||
+    login ||
+    tvBootstrap ||
+    tvPairing ||
+    tvSignage => const RoutePolicy(RouteAccess.public),
     dashboard ||
     notifications ||
     profil => const RoutePolicy(RouteAccess.authenticated),
@@ -162,49 +175,87 @@ class AppRoutes {
   }
 }
 
-final router = GoRouter(
-  initialLocation: AppRoutes.splash,
-  redirect: (context, state) {
-    final authState = context.read<AuthBloc>().state;
-    final path = state.uri.path;
+GoRouter createAppRouter({bool? isTv}) {
+  final tvMode = isTv ?? isTvDevice;
+  return GoRouter(
+    initialLocation: tvMode ? AppRoutes.tvBootstrap : AppRoutes.splash,
+    redirect: (context, state) {
+      final path = state.uri.path;
 
-    // Initial hanya terjadi saat bootstrap. Loading login harus tetap di login.
-    if (authState is AuthInitial) {
-      if (path != AppRoutes.splash) return AppRoutes.splash;
-      return null;
-    }
-
-    if (authState is AuthLoading) return null;
-
-    // Belum login → ke halaman login
-    if (authState is AuthUnauthenticated || authState is AuthError) {
-      if (path != AppRoutes.login) return AppRoutes.login;
-      return null;
-    }
-
-    // Sudah login → ke dashboard (jika masih di splash/login)
-    if (authState is AuthAuthenticated) {
-      if (path == AppRoutes.splash || path == AppRoutes.login) {
-        return AppRoutes.dashboard;
+      // Handle TV mode
+      if (tvMode) {
+        if (!path.startsWith('/tv')) {
+          return AppRoutes.tvBootstrap;
+        }
+        return null;
       }
-      if (!AppRoutes.canAccess(
-        path,
-        authenticated: true,
-        permissions: authState.user.permissions,
-      )) {
-        return AppRoutes.dashboard;
-      }
-    }
 
-    return null;
-  },
-  refreshListenable: _RouterNotifier(),
-  routes: [
-    GoRoute(path: AppRoutes.splash, builder: (_, _) => const _SplashPage()),
-    GoRoute(path: AppRoutes.login, builder: (_, _) => const LoginPage()),
-    for (final alias in AppRoutes.ewsAliases)
-      GoRoute(path: alias, redirect: (_, _) => AppRoutes.ews),
-    ShellRoute(
+      // Handset: deep link /tv/* dialihkan ke /
+      if (path.startsWith('/tv')) {
+        return AppRoutes.splash;
+      }
+
+      AuthBloc? authBloc;
+      try {
+        authBloc = context.read<AuthBloc>();
+      } catch (_) {
+        if (sl.isRegistered<AuthBloc>()) {
+          authBloc = sl<AuthBloc>();
+        }
+      }
+      if (authBloc == null) return null;
+
+      final authState = authBloc.state;
+
+      // Initial hanya terjadi saat bootstrap. Loading login harus tetap di login.
+      if (authState is AuthInitial) {
+        if (path != AppRoutes.splash) return AppRoutes.splash;
+        return null;
+      }
+
+      if (authState is AuthLoading) return null;
+
+      // Belum login → ke halaman login
+      if (authState is AuthUnauthenticated || authState is AuthError) {
+        if (path != AppRoutes.login) return AppRoutes.login;
+        return null;
+      }
+
+      // Sudah login → ke dashboard (jika masih di splash/login)
+      if (authState is AuthAuthenticated) {
+        if (path == AppRoutes.splash || path == AppRoutes.login) {
+          return AppRoutes.dashboard;
+        }
+        if (!AppRoutes.canAccess(
+          path,
+          authenticated: true,
+          permissions: authState.user.permissions,
+        )) {
+          return AppRoutes.dashboard;
+        }
+      }
+
+      return null;
+    },
+    refreshListenable: _RouterNotifier(isTv: tvMode),
+    routes: [
+      GoRoute(path: AppRoutes.splash, builder: (_, _) => const _SplashPage()),
+      GoRoute(path: AppRoutes.login, builder: (_, _) => const LoginPage()),
+      GoRoute(
+        path: AppRoutes.tvBootstrap,
+        builder: (_, _) => const TvBootstrapPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.tvPairing,
+        builder: (_, _) => const TvPairingPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.tvSignage,
+        builder: (_, _) => const TvSignagePage(),
+      ),
+      for (final alias in AppRoutes.ewsAliases)
+        GoRoute(path: alias, redirect: (_, _) => AppRoutes.ews),
+      ShellRoute(
       builder: (context, state, child) => MainShell(child: child),
       routes: [
         GoRoute(
@@ -277,6 +328,8 @@ final router = GoRouter(
     ),
   ],
 );
+}
+
 
 class _SiswaInsightMissingId extends StatelessWidget {
   const _SiswaInsightMissingId();
@@ -319,7 +372,9 @@ class _SplashPageState extends State<_SplashPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       // Cek apakah token masih valid
-      context.read<AuthBloc>().add(AuthCheckRequested());
+      try {
+        context.read<AuthBloc>().add(AuthCheckRequested());
+      } catch (_) {}
     });
   }
 
@@ -345,15 +400,25 @@ class _SplashPageState extends State<_SplashPage> {
 
 /// Notifies GoRouter to re-evaluate redirects when AuthBloc emits.
 class _RouterNotifier extends ChangeNotifier {
-  late final StreamSubscription<dynamic> _authSub;
+  StreamSubscription<dynamic>? _authSub;
 
-  _RouterNotifier() {
-    _authSub = sl<AuthBloc>().stream.listen((_) => notifyListeners());
+  _RouterNotifier({bool isTv = false}) {
+    if (!isTv && sl.isRegistered<AuthBloc>()) {
+      _authSub = sl<AuthBloc>().stream.listen((_) => notifyListeners());
+    }
   }
 
   @override
   void dispose() {
-    _authSub.cancel();
+    _authSub?.cancel();
     super.dispose();
   }
 }
+
+GoRouter? _appRouter;
+GoRouter get router => _appRouter ??= createAppRouter();
+
+void resetAppRouter({bool? isTv}) {
+  _appRouter = createAppRouter(isTv: isTv);
+}
+

@@ -1,7 +1,9 @@
 package id.akademihub.akademihub_mob
 
 import android.app.ActivityManager
+import android.app.UiModeManager
 import android.content.Context
+import android.content.res.Configuration
 import android.os.Build
 import android.view.WindowManager
 import io.flutter.embedding.android.FlutterActivity
@@ -9,11 +11,24 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
-    private val CHANNEL = "com.akademihub.app/kiosk"
+    private val KIOSK_CHANNEL = "com.akademihub.app/kiosk"
+    private val DEVICE_CHANNEL = "id.akademihub/device"
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
+
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, DEVICE_CHANNEL).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "isTelevision" -> {
+                    val uiModeManager = getSystemService(UiModeManager::class.java)
+                    val isTv = uiModeManager?.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
+                    result.success(isTv)
+                }
+                else -> result.notImplemented()
+            }
+        }
+
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, KIOSK_CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
                 "startKioskMode" -> {
                     try {
@@ -52,4 +67,5 @@ class MainActivity : FlutterActivity() {
         }
     }
 }
+
 
