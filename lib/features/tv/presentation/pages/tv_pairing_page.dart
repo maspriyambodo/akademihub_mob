@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/di/injection.dart';
@@ -27,8 +28,51 @@ class TvPairingPage extends StatelessWidget {
   }
 }
 
-class _TvPairingView extends StatelessWidget {
+class _TvPairingView extends StatefulWidget {
   const _TvPairingView();
+
+  @override
+  State<_TvPairingView> createState() => _TvPairingViewState();
+}
+
+class _TvPairingViewState extends State<_TvPairingView> with WidgetsBindingObserver {
+  bool _exitDialogOpen = false;
+
+  Future<void> _confirmExit() async {
+    if (_exitDialogOpen) return;
+    _exitDialogOpen = true;
+    final exit = await showDialog<bool>(context: context, builder: (context) => AlertDialog(
+      title: const Text('Keluar dari pairing TV?'),
+      actions: [
+        TextButton(autofocus: true, onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
+        TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Keluar')),
+      ],
+    ));
+    _exitDialogOpen = false;
+    if (exit == true) await SystemNavigator.pop();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+      context.read<TvAuthBloc>().resumePolling();
+    } else {
+      context.read<TvAuthBloc>().pausePolling();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,10 +83,13 @@ class _TvPairingView extends StatelessWidget {
         }
       },
       builder: (context, state) {
-        return Scaffold(
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, result) { if (!didPop) _confirmExit(); },
+          child: Scaffold(
           key: const Key('tv_pairing_page'),
           backgroundColor: const Color(0xFF102A43),
-          body: Center(
+          body: SafeArea(minimum: const EdgeInsets.all(48), child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 720),
               child: Padding(
@@ -50,6 +97,7 @@ class _TvPairingView extends StatelessWidget {
                 child: _buildBody(context, state),
               ),
             ),
+          )),
           ),
         );
       },
@@ -104,7 +152,7 @@ class _TvPairingView extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Text(
-            'Buka menu Kelola TV pada mobile app admin lalu masukkan kode di atas.\n'
+            'Buka menu Kelola TV pada web admin sekolah lalu masukkan kode di atas.\n'
             'Atau buka: ${session.verificationUrl}',
             textAlign: TextAlign.center,
             style: const TextStyle(

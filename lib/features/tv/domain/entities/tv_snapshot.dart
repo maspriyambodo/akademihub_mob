@@ -19,15 +19,17 @@ class TvSchoolSummary extends Equatable {
   final String name;
   final String? logoUrl;
   final String timezone;
+  final int utcOffsetSeconds;
 
   const TvSchoolSummary({
     required this.name,
     this.logoUrl,
     required this.timezone,
+    this.utcOffsetSeconds = 25200,
   });
 
   @override
-  List<Object?> get props => [name, logoUrl, timezone];
+  List<Object?> get props => [name, logoUrl, timezone, utcOffsetSeconds];
 }
 
 class TvDisplaySettings extends Equatable {

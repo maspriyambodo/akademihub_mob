@@ -39,6 +39,7 @@ class _FakeSignageRepo implements TvRepository {
 void main() {
   late _FakeSignageRepo repository;
   late TvSignageBloc bloc;
+  late DateTime clock;
 
   final sampleSnapshot = TvSnapshotModel.fromJson({
     'generated_at': '2026-09-05T14:20:00Z',
@@ -77,12 +78,33 @@ void main() {
 
   setUp(() {
     repository = _FakeSignageRepo();
-    bloc = TvSignageBloc(repository: repository);
+    clock = DateTime.utc(2026, 9, 5, 14, 20);
+    bloc = TvSignageBloc(repository: repository, now: () => clock);
   });
 
   tearDown(() => bloc.close());
 
   group('TvSignageBloc', () {
+    test('active snapshot disappears at 24 hours, recovers with a full fetch', () async {
+      repository.snapshotResult = success(TvSnapshotModified(sampleSnapshot, etag: '"fresh"'));
+      bloc.add(const TvSignageStarted());
+      await expectLater(bloc.stream, emitsThrough(isA<TvSignageReady>()));
+      repository.snapshotResult = const ResultFailure(NetworkFailure());
+      clock = clock.add(const Duration(hours: 24));
+      bloc.add(const TvSignageCacheExpired());
+      await expectLater(bloc.stream, emits(isA<TvSignageOffline>()));
+      repository.snapshotResult = success(TvSnapshotModified(sampleSnapshot));
+      bloc.add(const TvSignageRefreshRequested());
+      await expectLater(bloc.stream, emits(isA<TvSignageReady>()));
+    });
+
+    test('cache older than 24 hours is never rendered on startup', () async {
+      repository.cachedResult = success(sampleSnapshot);
+      clock = clock.add(const Duration(hours: 25));
+      final check = expectLater(bloc.stream, emitsInOrder([const TvSignageLoading(), isA<TvSignageOffline>()]));
+      bloc.add(const TvSignageStarted());
+      await check;
+    });
     test('initial state is TvSignageInitial', () {
       expect(bloc.state, const TvSignageInitial());
     });

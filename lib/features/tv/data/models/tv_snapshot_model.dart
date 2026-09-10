@@ -25,6 +25,7 @@ class TvSchoolSummaryModel extends TvSchoolSummary {
     required super.name,
     super.logoUrl,
     required super.timezone,
+    super.utcOffsetSeconds,
   });
 
   factory TvSchoolSummaryModel.fromJson(Map<String, dynamic> json) {
@@ -38,6 +39,7 @@ class TvSchoolSummaryModel extends TvSchoolSummary {
       name: name,
       logoUrl: logoUrl,
       timezone: timezone,
+      utcOffsetSeconds: (json['utc_offset_seconds'] as num?)?.toInt() ?? 25200,
     );
   }
 
@@ -45,6 +47,7 @@ class TvSchoolSummaryModel extends TvSchoolSummary {
     'name': name,
     'logo_url': logoUrl,
     'timezone': timezone,
+    'utc_offset_seconds': utcOffsetSeconds,
   };
 }
 
@@ -55,10 +58,10 @@ class TvDisplaySettingsModel extends TvDisplaySettings {
   });
 
   factory TvDisplaySettingsModel.fromJson(Map<String, dynamic> json) {
-    final dur = (json['slide_duration_seconds'] as num?)?.toInt() ?? 12;
+    final dur = (json['slide_duration_seconds'] as num?)?.toInt() ?? 15;
     final att = (json['show_attendance'] as bool?) ?? true;
     return TvDisplaySettingsModel(
-      slideDurationSeconds: dur.clamp(5, 60),
+      slideDurationSeconds: dur.clamp(10, 120),
       showAttendance: att,
     );
   }

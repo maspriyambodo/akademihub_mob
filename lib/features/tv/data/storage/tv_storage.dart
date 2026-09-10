@@ -13,9 +13,10 @@ class TvStorage {
   static const String keyDeviceMode = 'tv_device_mode';
   static const String keyTokenOrigin = 'tv_token_origin';
 
-  static const String keySnapshotJson = 'tv_snapshot_json_v1';
-  static const String keySnapshotCachedAt = 'tv_snapshot_cached_at_v1';
-  static const String keySnapshotEtag = 'tv_snapshot_etag_v1';
+  // Discard pre-privacy-fix snapshots on upgrade.
+  static const String keySnapshotJson = 'tv_snapshot_json_v2';
+  static const String keySnapshotCachedAt = 'tv_snapshot_cached_at_v2';
+  static const String keySnapshotEtag = 'tv_snapshot_etag_v2';
 
   static const Duration maxCacheAge = Duration(hours: 24);
 
@@ -105,8 +106,8 @@ class TvStorage {
     final cachedAt = DateTime.tryParse(cachedAtStr)?.toUtc();
     if (cachedAt == null) return null;
 
-    if (DateTime.now().toUtc().difference(cachedAt) > maxCacheAge) {
-      clearCache();
+    final age = DateTime.now().toUtc().difference(cachedAt);
+    if (age.isNegative || age >= maxCacheAge) {
       return null;
     }
     return _prefs.getString(keySnapshotJson);
