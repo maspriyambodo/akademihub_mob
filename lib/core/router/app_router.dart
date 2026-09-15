@@ -395,7 +395,7 @@ class _SplashPageState extends State<_SplashPage> {
           label: 'AkademiHub sedang dimuat',
           image: true,
           child: Image.asset(
-            'assets/images/splash_screen.png',
+            'assets/images/akademihub-app-logo.png',
             width: 192,
             height: 192,
             fit: BoxFit.contain,

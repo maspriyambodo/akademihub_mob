@@ -274,13 +274,13 @@ class _BrandHeader extends StatelessWidget {
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            color: inverse ? AppColors.primaryLight : AppColors.primaryDark,
+            color: Colors.white,
             borderRadius: BorderRadius.circular(AppRadius.md),
           ),
-          child: Icon(
-            Icons.auto_stories_rounded,
-            color: inverse ? AppColors.primaryDark : AppColors.paperBright,
-            size: 26,
+          child: Image.asset(
+            'assets/images/akademihub-simbol.png',
+            semanticLabel: 'Logo AkademiHub',
+            fit: BoxFit.contain,
           ),
         ),
         const SizedBox(width: AppSpacing.sm),
