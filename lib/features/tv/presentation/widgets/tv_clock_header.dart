@@ -41,12 +41,14 @@ class _TvClockHeaderState extends State<TvClockHeader> {
 
   @override
   Widget build(BuildContext context) {
-    final timeStr = DateFormat('HH:mm:ss').format(_currentTime);
+    // ponytail: offset supplied by server, refreshed with snapshot; no offline DST database.
+    final schoolTime = _currentTime.toUtc().add(Duration(seconds: widget.school.utcOffsetSeconds));
+    final timeStr = DateFormat('HH:mm:ss').format(schoolTime);
     String dateStr;
     try {
-      dateStr = DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(_currentTime);
+      dateStr = DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(schoolTime);
     } catch (_) {
-      dateStr = DateFormat('EEEE, d MMMM yyyy').format(_currentTime);
+      dateStr = DateFormat('EEEE, d MMMM yyyy').format(schoolTime);
     }
 
     return Container(
@@ -107,19 +109,20 @@ class _TvClockHeaderState extends State<TvClockHeader> {
                     timeStr,
                     style: const TextStyle(
                       color: Color(0xFFE9A23B),
-                      fontSize: 26,
+                      fontSize: 56,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1.2,
                     ),
                   ),
                   Text(
                     dateStr,
-                    style: const TextStyle(color: Colors.white70, fontSize: 13),
+                    style: const TextStyle(color: Colors.white70, fontSize: 22),
                   ),
                 ],
               ),
               const SizedBox(width: 20),
               TvFocusable(
+                autofocus: true,
                 onSelect: widget.onOpenSettings,
                 borderRadius: BorderRadius.circular(8),
                 child: Container(

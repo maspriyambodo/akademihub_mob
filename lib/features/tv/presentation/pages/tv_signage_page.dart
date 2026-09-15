@@ -36,8 +36,52 @@ class TvSignagePage extends StatelessWidget {
   }
 }
 
-class _TvSignageView extends StatelessWidget {
+class _TvSignageView extends StatefulWidget {
   const _TvSignageView();
+
+  @override
+  State<_TvSignageView> createState() => _TvSignageViewState();
+}
+
+class _TvSignageViewState extends State<_TvSignageView> with WidgetsBindingObserver {
+  bool _dialogOpen = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final bloc = context.read<TvSignageBloc>();
+    if (state == AppLifecycleState.resumed) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+      bloc.resume();
+    } else {
+      bloc.pause();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  Future<void> _confirmExit() async {
+    if (_dialogOpen) return;
+    _dialogOpen = true;
+    final exit = await showDialog<bool>(context: context, builder: (context) => AlertDialog(
+      title: const Text('Keluar dari layar TV?'),
+      actions: [
+        TextButton(autofocus: true, onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
+        TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Keluar')),
+      ],
+    ));
+    _dialogOpen = false;
+    if (exit == true) await SystemNavigator.pop();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,12 +92,23 @@ class _TvSignageView extends StatelessWidget {
         }
       },
       builder: (context, state) {
-        return Scaffold(
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, result) { if (!didPop) _confirmExit(); },
+          child: Scaffold(
           key: const Key('tv_signage_page'),
           backgroundColor: const Color(0xFF0A1929),
           body: Focus(
             autofocus: true,
             onKeyEvent: (node, event) {
+              if (event is KeyDownEvent) {
+                final bloc = context.read<TvSignageBloc>();
+                bloc.interact();
+                if (event.logicalKey == LogicalKeyboardKey.arrowLeft || event.logicalKey == LogicalKeyboardKey.arrowRight) {
+                  bloc.add(TvSignageNextSlideTicked(direction: event.logicalKey == LogicalKeyboardKey.arrowLeft ? -1 : 1));
+                  return KeyEventResult.handled;
+                }
+              }
               if (event is KeyDownEvent &&
                   (event.logicalKey == LogicalKeyboardKey.contextMenu ||
                       event.logicalKey == LogicalKeyboardKey.f10)) {
@@ -64,7 +119,8 @@ class _TvSignageView extends StatelessWidget {
               }
               return KeyEventResult.ignored;
             },
-            child: SafeArea(child: _buildBody(context, state)),
+            child: SafeArea(minimum: const EdgeInsets.all(48), child: _buildBody(context, state)),
+          ),
           ),
         );
       },
@@ -148,6 +204,7 @@ class _TvSignageView extends StatelessWidget {
                         ? snapshot.attendance
                         : null,
                   ),
+                  Text('Sinkronisasi terakhir: ${state.lastSyncedAt.toUtc().toIso8601String()} (UTC)', style: const TextStyle(color: Colors.white70, fontSize: 22)),
                   const SizedBox(height: 16),
                   Expanded(
                     child: _buildSlide(snapshot, state.currentSlideIndex),
@@ -173,7 +230,7 @@ class _TvSignageView extends StatelessWidget {
       slides.add(TvSlideAnnouncement(announcement: ann));
     }
     if (snapshot.calendar.isNotEmpty) {
-      slides.add(TvSlideCalendar(calendar: snapshot.calendar));
+      slides.add(TvSlideCalendar(calendar: snapshot.calendar, utcOffsetSeconds: snapshot.school.utcOffsetSeconds));
     }
 
     if (slides.isEmpty) {
@@ -195,12 +252,17 @@ class _TvSignageView extends StatelessWidget {
     );
   }
 
-  void _openSettings(BuildContext context, TvDeviceSummary device) {
-    TvSettingsDialog.show(
+  Future<void> _openSettings(BuildContext context, TvDeviceSummary device) async {
+    if (_dialogOpen) return;
+    _dialogOpen = true;
+    context.read<TvSignageBloc>().interact();
+    await TvSettingsDialog.show(
       context,
       device: device,
       onUnpair: () =>
           context.read<TvSignageBloc>().add(const TvSignageUnpairConfirmed()),
     );
+    _dialogOpen = false;
+    if (mounted) context.read<TvSignageBloc>().interact();
   }
 }

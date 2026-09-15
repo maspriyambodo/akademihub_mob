@@ -4,8 +4,9 @@ import '../../domain/entities/tv_snapshot.dart';
 
 class TvSlideCalendar extends StatelessWidget {
   final List<TvCalendarItem> calendar;
+  final int utcOffsetSeconds;
 
-  const TvSlideCalendar({super.key, required this.calendar});
+  const TvSlideCalendar({super.key, required this.calendar, this.utcOffsetSeconds = 25200});
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +45,7 @@ class TvSlideCalendar extends StatelessWidget {
                     final item = calendar[index];
                     final dateRange = DateFormat(
                       'dd MMM yyyy',
-                    ).format(item.startsAt.toLocal());
+                    ).format(item.startsAt.toUtc().add(Duration(seconds: utcOffsetSeconds)));
 
                     return Container(
                       padding: const EdgeInsets.symmetric(

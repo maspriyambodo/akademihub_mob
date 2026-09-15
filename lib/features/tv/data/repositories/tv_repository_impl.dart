@@ -76,13 +76,19 @@ class TvRepositoryImpl implements TvRepository {
         return fail(const AuthFailure('Device token tidak ditemukan'));
       }
 
-      final cachedEtag = etag ?? _storage.getCachedEtag();
+      final cachedEtag = etag;
       final response = await _remoteDataSource.getSnapshot(
         deviceToken: token,
         etag: cachedEtag,
       );
 
       if (response.statusCode == 304) {
+        final cached = _storage.getCachedSnapshotJson();
+        if (cached != null) {
+          final data = jsonDecode(cached) as Map<String, dynamic>;
+          data['generated_at'] = DateTime.now().toUtc().toIso8601String();
+          await _storage.saveCachedSnapshot(jsonString: jsonEncode(data), etag: cachedEtag);
+        }
         return success(const TvSnapshotNotModified());
       }
 
@@ -112,6 +118,7 @@ class TvRepositoryImpl implements TvRepository {
   @override
   Future<Result<TvSnapshot?>> readCachedSnapshot() async {
     try {
+      if (!await _storage.hasDeviceToken()) return success(null);
       final cachedJson = _storage.getCachedSnapshotJson();
       if (cachedJson == null || cachedJson.isEmpty) {
         return success(null);

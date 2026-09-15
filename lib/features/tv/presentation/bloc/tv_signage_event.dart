@@ -16,7 +16,14 @@ class TvSignageRefreshRequested extends TvSignageEvent {
 }
 
 class TvSignageNextSlideTicked extends TvSignageEvent {
-  const TvSignageNextSlideTicked();
+  final int direction;
+  const TvSignageNextSlideTicked({this.direction = 1});
+  @override
+  List<Object?> get props => [direction];
+}
+
+class TvSignageCacheExpired extends TvSignageEvent {
+  const TvSignageCacheExpired();
 }
 
 class TvSignageUnpairConfirmed extends TvSignageEvent {
