@@ -29,6 +29,8 @@ import '../../features/organisasi/presentation/pages/organisasi_page.dart';
 import '../../features/tv/presentation/pages/tv_bootstrap_page.dart';
 import '../../features/tv/presentation/pages/tv_pairing_page.dart';
 import '../../features/tv/presentation/pages/tv_signage_page.dart';
+import '../../features/wallet/data/wallet_repository.dart';
+import '../../features/wallet/presentation/wallet_page.dart';
 
 enum RouteAccess { public, authenticated, permissionAny }
 
@@ -50,6 +52,7 @@ class AppRoutes {
   static const String rapor = '/rapor';
   static const String notifications = '/notifications';
   static const String keuangan = '/keuangan';
+  static const String wallet = '/wallet';
   static const String profil = '/profil';
   static const String materi = '/materi';
   static const String forum = '/forum';
@@ -75,6 +78,7 @@ class AppRoutes {
     rapor,
     notifications,
     keuangan,
+    wallet,
     profil,
     materi,
     forum,
@@ -110,6 +114,7 @@ class AppRoutes {
     keuangan => const RoutePolicy(RouteAccess.permissionAny, [
       'pembayaran-spp.view',
     ]),
+    wallet => const RoutePolicy(RouteAccess.permissionAny, walletPermissions),
     forum => const RoutePolicy(RouteAccess.permissionAny, ['forum.view']),
     ekstrakurikuler => const RoutePolicy(RouteAccess.permissionAny, [
       'ekstrakurikuler.view',
@@ -165,7 +170,9 @@ class AppRoutes {
     String path, {
     required bool authenticated,
     Iterable<String> permissions = const [],
+    String? role,
   }) {
+    if (path == wallet) return authenticated && walletAccess(role, permissions);
     final policy = policyFor(path);
     if (policy == null) return false;
     if (policy.access == RouteAccess.public) return true;
@@ -224,12 +231,18 @@ GoRouter createAppRouter({bool? isTv}) {
       // Sudah login → ke dashboard (jika masih di splash/login)
       if (authState is AuthAuthenticated) {
         if (path == AppRoutes.splash || path == AppRoutes.login) {
-          return AppRoutes.dashboard;
+          return authState.user.isMerchant
+              ? AppRoutes.wallet
+              : AppRoutes.dashboard;
+        }
+        if (path == AppRoutes.dashboard && authState.user.isMerchant) {
+          return AppRoutes.wallet;
         }
         if (!AppRoutes.canAccess(
           path,
           authenticated: true,
           permissions: authState.user.permissions,
+          role: authState.user.role,
         )) {
           return AppRoutes.dashboard;
         }
@@ -258,6 +271,10 @@ GoRouter createAppRouter({bool? isTv}) {
       ShellRoute(
         builder: (context, state, child) => MainShell(child: child),
         routes: [
+          GoRoute(
+            path: AppRoutes.wallet,
+            builder: (_, _) => const WalletPage(),
+          ),
           GoRoute(
             path: AppRoutes.dashboard,
             builder: (_, _) => const DashboardPage(),

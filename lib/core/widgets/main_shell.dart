@@ -41,6 +41,12 @@ class _MainShellState extends State<MainShell> {
       route: AppRoutes.tugas,
     ),
     _TabItem(
+      icon: Icons.account_balance_wallet_outlined,
+      selectedIcon: Icons.account_balance_wallet,
+      label: 'Saldo',
+      route: AppRoutes.wallet,
+    ),
+    _TabItem(
       icon: Icons.person_outline_rounded,
       selectedIcon: Icons.person_rounded,
       label: 'Profil',
@@ -59,10 +65,14 @@ class _MainShellState extends State<MainShell> {
       builder: (context, state) {
         if (state is! AuthAuthenticated) return const SizedBox.shrink();
         final tabs = _tabs.where((tab) {
+          if (state.user.isMerchant && tab.route == AppRoutes.dashboard) {
+            return false;
+          }
           return AppRoutes.canAccess(
             tab.route,
             authenticated: true,
             permissions: state.user.permissions,
+            role: state.user.role,
           );
         }).toList();
         final location = GoRouterState.of(context).uri.path;

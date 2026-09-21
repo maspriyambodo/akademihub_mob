@@ -56,6 +56,13 @@ class UserModel {
         return 'siswa';
       case 'GURU':
         return 'guru';
+      case 'PEDAGANG':
+        return 'pedagang';
+      case 'STAFF':
+      case 'STAFF_KEUANGAN':
+      case 'STAFF_PERPUSTAKAAN':
+      case 'ADMIN_PPDB':
+        return 'staff';
       case 'WALI':
       case 'WALI_SISWA':
         return 'wali';

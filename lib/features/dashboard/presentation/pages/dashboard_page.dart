@@ -31,14 +31,16 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget build(BuildContext context) {
     final authState = context.watch<AuthBloc>().state;
     final user = authState is AuthAuthenticated ? authState.user : null;
-    final role = user?.role ?? 'admin';
+    final role = user?.role ?? 'unknown';
     final roleColors = AppColors.role(role);
 
     final roleLabel = switch (role) {
       'siswa' => 'RUANG SISWA',
       'guru' => 'RUANG GURU',
       'wali' => 'RUANG WALI',
-      _ => 'RUANG ADMIN',
+      'admin' => 'RUANG ADMIN',
+      'staff' => 'RUANG STAF',
+      _ => 'BERANDA',
     };
 
     final topInset = MediaQuery.paddingOf(context).top;
@@ -204,9 +206,12 @@ class _DashboardPageState extends State<DashboardPage> {
                                 data: data,
                                 permissions: perms,
                               ),
-                              _ => AdminDashboardWidget(
+                              'admin' || 'staff' => AdminDashboardWidget(
                                 data: data,
                                 permissions: perms,
+                              ),
+                              _ => const Text(
+                                'Belum ada dashboard untuk peran ini.',
                               ),
                             },
                           ),
