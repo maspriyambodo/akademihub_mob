@@ -51,6 +51,7 @@ AuthBloc _createAuthBloc(UserEntity user) {
 Widget _buildTestApp({
   required AuthBloc authBloc,
   required String initialLocation,
+  Widget dashboard = const Text('Dashboard Content'),
 }) {
   final router = GoRouter(
     initialLocation: initialLocation,
@@ -60,7 +61,7 @@ Widget _buildTestApp({
         routes: [
           GoRoute(
             path: AppRoutes.dashboard,
-            builder: (context, state) => const Text('Dashboard Content'),
+            builder: (context, state) => dashboard,
           ),
           GoRoute(
             path: AppRoutes.absensi,
@@ -109,6 +110,87 @@ void main() {
     role: 'siswa',
     permissions: [],
   );
+
+  for (final bottomInset in [0.0, 34.0]) {
+    testWidgets('bottom actions clear navbar with inset $bottomInset', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(320, 568);
+      tester.view.devicePixelRatio = 1;
+      tester.view.padding = FakeViewPadding(bottom: bottomInset);
+      tester.view.viewPadding = FakeViewPadding(bottom: bottomInset);
+      addTearDown(tester.view.reset);
+
+      final bloc = _createAuthBloc(adminUser);
+      addTearDown(bloc.close);
+      bloc.emit(AuthAuthenticated(adminUser));
+      var taps = 0;
+
+      await tester.pumpWidget(
+        _buildTestApp(
+          authBloc: bloc,
+          initialLocation: AppRoutes.dashboard,
+          dashboard: Scaffold(
+            body: Column(
+              children: [
+                Expanded(
+                  child: ListView(
+                    padding: EdgeInsets.zero,
+                    children: [
+                      const SizedBox(height: 900),
+                      TextButton(
+                        onPressed: () => taps++,
+                        child: const Text('Aksi terakhir'),
+                      ),
+                    ],
+                  ),
+                ),
+                SafeArea(
+                  top: false,
+                  child: FilledButton(
+                    onPressed: () => taps++,
+                    child: const Text('Simpan'),
+                  ),
+                ),
+              ],
+            ),
+            floatingActionButton: FloatingActionButton(
+              onPressed: () => taps++,
+              child: const Icon(Icons.add),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.drag(find.byType(ListView), const Offset(0, -1200));
+      await tester.pumpAndSettle();
+
+      final navbar = tester.getRect(
+        find
+            .ancestor(
+              of: find.byType(NavigationBar),
+              matching: find.byType(Container),
+            )
+            .first,
+      );
+      final page = tester.getRect(find.byType(Scaffold).last);
+      expect(page.bottom, closeTo(navbar.top, 0.01));
+      expect(
+        568 - navbar.bottom,
+        closeTo(bottomInset == 0 ? 12 : bottomInset, 0.01),
+      );
+      for (final action in [
+        find.widgetWithText(TextButton, 'Aksi terakhir'),
+        find.widgetWithText(FilledButton, 'Simpan'),
+        find.byType(FloatingActionButton),
+      ]) {
+        expect(tester.getRect(action).bottom, lessThanOrEqualTo(navbar.top));
+        await tester.tap(action);
+      }
+      expect(taps, 3);
+      expect(tester.takeException(), isNull);
+    });
+  }
 
   testWidgets('renders tabs based on permissions', (tester) async {
     final bloc = _createAuthBloc(adminUser);

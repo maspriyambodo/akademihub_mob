@@ -139,7 +139,6 @@ class _MainShellState extends State<MainShell> {
 
             return Scaffold(
               backgroundColor: AppColors.paper,
-              extendBody: true,
               body: widget.child,
               bottomNavigationBar: SafeArea(
                 top: false,
