@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'core/di/injection.dart';
 import 'core/platform/tv_platform_service.dart';
 import 'core/router/app_router.dart';
@@ -11,6 +12,7 @@ import 'core/notifications/push_notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('id_ID', null);
 
   const tvPlatform = TvPlatformService();
   final isTv = await tvPlatform.isTelevision();

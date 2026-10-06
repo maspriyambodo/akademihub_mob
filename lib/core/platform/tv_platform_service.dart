@@ -17,10 +17,9 @@ class TvPlatformService {
   }
 
   Future<void> applyTvDisplayMode() async {
-    await SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
+    // Android TV hardware is natively landscape. Calling setPreferredOrientations
+    // before the first frame triggers redundant window insets resize and
+    // SurfaceSyncGroup timeouts on Android TV emulators.
     await restoreImmersiveMode();
   }
 

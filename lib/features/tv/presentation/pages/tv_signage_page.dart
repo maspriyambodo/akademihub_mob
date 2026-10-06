@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/router/app_router.dart';
 import '../../domain/entities/tv_snapshot.dart';
@@ -204,7 +205,11 @@ class _TvSignageViewState extends State<_TvSignageView> with WidgetsBindingObser
                         ? snapshot.attendance
                         : null,
                   ),
-                  Text('Sinkronisasi terakhir: ${state.lastSyncedAt.toUtc().toIso8601String()} (UTC)', style: const TextStyle(color: Colors.white70, fontSize: 22)),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Sinkronisasi: ${_formatSyncTime(state.lastSyncedAt, snapshot.school.utcOffsetSeconds)}',
+                    style: const TextStyle(color: Colors.white70, fontSize: 16),
+                  ),
                   const SizedBox(height: 16),
                   Expanded(
                     child: _buildSlide(snapshot, state.currentSlideIndex),
@@ -219,6 +224,25 @@ class _TvSignageViewState extends State<_TvSignageView> with WidgetsBindingObser
     }
 
     return const SizedBox.shrink();
+  }
+
+  static String _formatSyncTime(DateTime utcTime, int utcOffsetSeconds) {
+    final local = utcTime.toUtc().add(Duration(seconds: utcOffsetSeconds));
+    final diff = DateTime.now().toUtc().difference(utcTime.toUtc());
+    final tz = utcOffsetSeconds == 25200
+        ? 'WIB'
+        : utcOffsetSeconds == 28800
+            ? 'WITA'
+            : utcOffsetSeconds == 32400
+                ? 'WIT'
+                : 'UTC';
+    final timeStr = DateFormat('HH:mm').format(local);
+    final relative = diff.inSeconds < 45
+        ? 'baru saja'
+        : diff.inMinutes < 60
+            ? '${diff.inMinutes} menit lalu'
+            : '${diff.inHours} jam lalu';
+    return '$timeStr $tz ($relative)';
   }
 
   Widget _buildSlide(TvSnapshot snapshot, int slideIndex) {
