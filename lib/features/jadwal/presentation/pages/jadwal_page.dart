@@ -11,6 +11,7 @@ import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/jadwal_bloc.dart';
 import '../../domain/entities/jadwal_pelajaran_entity.dart';
 import '../../../presensi/presentation/pages/quick_attendance_page.dart';
+import '../../../wali/guardian_child_selector.dart';
 
 class JadwalPage extends StatelessWidget {
   const JadwalPage({super.key});
@@ -32,14 +33,38 @@ class JadwalView extends StatefulWidget {
 }
 
 class _JadwalViewState extends State<JadwalView> {
-  void _loadForUser(AuthAuthenticated state) {
+  List<GuardianChild> _children = const [];
+  GuardianChild? _selectedChild;
+
+  Future<void> _loadForUser(AuthAuthenticated state) async {
     final user = state.user;
     final role = user.role ?? 'unknown';
     final profile = user.profile;
     final profileId = (profile?['id'] as num?)?.toInt();
 
+    if (role == 'wali' && profileId != null) {
+      try {
+        final children =
+            await sl<GuardianChildService>().getChildren(profileId);
+        if (!mounted) return;
+        if (children.isNotEmpty) {
+          setState(() {
+            _children = children;
+            _selectedChild = children.first;
+          });
+          context.read<JadwalBloc>().add(
+            JadwalLoadRequested(
+              role: 'wali',
+              kelasId: children.first.kelasId,
+            ),
+          );
+          return;
+        }
+      } catch (_) {}
+    }
+
     int? kelasId;
-    if (role == 'siswa' || role == 'wali') {
+    if (role == 'siswa') {
       final kelas = profile?['kelas'];
       if (kelas is Map) {
         kelasId = (kelas['id'] as num?)?.toInt();
@@ -53,6 +78,16 @@ class _JadwalViewState extends State<JadwalView> {
         role: role,
         kelasId: kelasId,
         guruId: role == 'guru' ? profileId : null,
+      ),
+    );
+  }
+
+  void _onChildChanged(GuardianChild child) {
+    setState(() => _selectedChild = child);
+    context.read<JadwalBloc>().add(
+      JadwalLoadRequested(
+        role: 'wali',
+        kelasId: child.kelasId,
       ),
     );
   }
@@ -84,57 +119,71 @@ class _JadwalViewState extends State<JadwalView> {
               return const Center(child: CircularProgressIndicator());
             }
 
-            return BlocBuilder<JadwalBloc, JadwalState>(
-              builder: (context, state) {
-                if (state is JadwalInitial || state is JadwalLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (state is JadwalError) {
-                  return _ErrorView(
-                    message: state.message,
-                    onRetry: () => context.read<JadwalBloc>().add(
-                      const JadwalRefreshRequested(),
-                    ),
-                  );
-                }
-                if (state is JadwalLoaded) {
-                  return Column(
-                    children: [
-                      _HariSelector(
-                        hariList: state.availableHari,
-                        selected: state.selectedHari,
-                        hariIni: hariCodeFromWeekday(state.now.weekday),
-                        onSelected: (hari) => context.read<JadwalBloc>().add(
-                          JadwalHariChanged(hari),
-                        ),
-                      ),
-                      Expanded(
-                        child: BatasLebarKonten(
-                          child: RefreshIndicator(
-                            color: AppColors.primary,
-                            onRefresh: () async {
-                              context.read<JadwalBloc>().add(
-                                const JadwalRefreshRequested(),
-                              );
-                            },
-                            child: state.items.isEmpty
-                                ? _EmptyScrollView(
-                                    message:
-                                        'Tidak ada jadwal pelajaran pada hari '
-                                        '${hariLabel(state.selectedHari)}',
-                                  )
-                                : _JadwalList(
-                                    state: state,
-                                    isGuru: authState.user.isGuru,
-                                  ),
+            return Column(
+              children: [
+                if (authState.user.role == 'wali' &&
+                    _children.isNotEmpty &&
+                    _selectedChild != null)
+                  GuardianChildSelector(
+                    children: _children,
+                    selectedId: _selectedChild!.id,
+                    onChanged: _onChildChanged,
+                  ),
+                Expanded(
+                  child: BlocBuilder<JadwalBloc, JadwalState>(
+                    builder: (context, state) {
+                      if (state is JadwalInitial || state is JadwalLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (state is JadwalError) {
+                        return _ErrorView(
+                          message: state.message,
+                          onRetry: () => context.read<JadwalBloc>().add(
+                            const JadwalRefreshRequested(),
                           ),
-                        ),
-                      ),
-                    ],
-                  );
-                }
-                return const SizedBox.shrink();
-              },
+                        );
+                      }
+                      if (state is JadwalLoaded) {
+                        return Column(
+                          children: [
+                            _HariSelector(
+                              hariList: state.availableHari,
+                              selected: state.selectedHari,
+                              hariIni: hariCodeFromWeekday(state.now.weekday),
+                              onSelected: (hari) => context.read<JadwalBloc>().add(
+                                JadwalHariChanged(hari),
+                              ),
+                            ),
+                            Expanded(
+                              child: BatasLebarKonten(
+                                child: RefreshIndicator(
+                                  color: AppColors.primary,
+                                  onRefresh: () async {
+                                    context.read<JadwalBloc>().add(
+                                      const JadwalRefreshRequested(),
+                                    );
+                                  },
+                                  child: state.items.isEmpty
+                                      ? _EmptyScrollView(
+                                          message:
+                                              'Tidak ada jadwal pelajaran pada hari '
+                                              '${hariLabel(state.selectedHari)}',
+                                        )
+                                      : _JadwalList(
+                                          state: state,
+                                          isGuru: authState.user.isGuru,
+                                        ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  ),
+                ),
+              ],
             );
           },
         ),

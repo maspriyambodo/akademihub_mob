@@ -14,6 +14,7 @@ import '../../domain/entities/absensi_siswa_entity.dart';
 import '../../domain/entities/absensi_guru_entity.dart';
 import '../../domain/entities/absensi_summary_entity.dart';
 import '../../data/services/attendance_location_service.dart';
+import '../../../wali/guardian_child_selector.dart';
 
 class AbsensiPage extends StatelessWidget {
   const AbsensiPage({super.key});
@@ -37,6 +38,8 @@ class _AbsensiView extends StatefulWidget {
 class _AbsensiViewState extends State<_AbsensiView> {
   late int _bulan;
   late int _tahun;
+  List<GuardianChild> _children = const [];
+  GuardianChild? _selectedChild;
 
   @override
   void initState() {
@@ -45,15 +48,40 @@ class _AbsensiViewState extends State<_AbsensiView> {
     _bulan = now.month;
     _tahun = now.year;
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       final authState = context.read<AuthBloc>().state;
       if (authState is AuthAuthenticated) {
         final user = authState.user;
+        final role = user.role ?? 'unknown';
         final profileId = user.profileId;
+
+        if (role == 'wali' && profileId != null) {
+          try {
+            final children =
+                await sl<GuardianChildService>().getChildren(profileId);
+            if (!mounted) return;
+            if (children.isNotEmpty) {
+              setState(() {
+                _children = children;
+                _selectedChild = children.first;
+              });
+              context.read<AbsensiBloc>().add(
+                AbsensiLoadRequested(
+                  role: 'wali',
+                  profileId: children.first.id,
+                  bulan: _bulan,
+                  tahun: _tahun,
+                ),
+              );
+              return;
+            }
+          } catch (_) {}
+        }
+
         context.read<AbsensiBloc>().add(
           AbsensiLoadRequested(
-            role: user.role ?? 'unknown',
+            role: role,
             profileId: profileId,
             bulan: _bulan,
             tahun: _tahun,
@@ -61,6 +89,18 @@ class _AbsensiViewState extends State<_AbsensiView> {
         );
       }
     });
+  }
+
+  void _onChildChanged(GuardianChild child) {
+    setState(() => _selectedChild = child);
+    context.read<AbsensiBloc>().add(
+      AbsensiLoadRequested(
+        role: 'wali',
+        profileId: child.id,
+        bulan: _bulan,
+        tahun: _tahun,
+      ),
+    );
   }
 
   void _prevMonth() {
@@ -99,15 +139,26 @@ class _AbsensiViewState extends State<_AbsensiView> {
   Widget build(BuildContext context) {
     final user = (context.watch<AuthBloc>().state as AuthAuthenticated?)?.user;
     final isSiswa = user?.role == 'siswa';
+    final isWali = user?.role == 'wali';
 
     return Scaffold(
       backgroundColor: AppColors.paper,
       appBar: AppBar(
-        title: Text(isSiswa ? 'Riwayat Absensi Saya' : 'Absensi'),
+        title: Text(
+          isSiswa
+              ? 'Riwayat Absensi Saya'
+              : (isWali ? 'Riwayat Absensi Anak' : 'Absensi'),
+        ),
         centerTitle: true,
       ),
       body: Column(
         children: [
+          if (isWali && _children.isNotEmpty && _selectedChild != null)
+            GuardianChildSelector(
+              children: _children,
+              selectedId: _selectedChild!.id,
+              onChanged: _onChildChanged,
+            ),
           _MonthSelector(
             bulan: _bulan,
             tahun: _tahun,

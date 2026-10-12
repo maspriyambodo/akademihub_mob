@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/app_section_header.dart';
 import '../../../../core/widgets/app_status_badge.dart';
@@ -157,6 +159,50 @@ class _ChildCard extends StatelessWidget {
                   icon: tunggakan == 0
                       ? Icons.check_circle_outline
                       : Icons.payments_outlined,
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: () => context.push(AppRoutes.absensi),
+                  icon: const Icon(Icons.how_to_reg_outlined, size: 16),
+                  label: const Text('Presensi'),
+                  style: OutlinedButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                OutlinedButton.icon(
+                  onPressed: () => context.push(AppRoutes.jadwal),
+                  icon: const Icon(Icons.schedule_outlined, size: 16),
+                  label: const Text('Jadwal'),
+                  style: OutlinedButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                FilledButton.tonalIcon(
+                  onPressed: () => context.push(AppRoutes.keuangan),
+                  icon: const Icon(Icons.payments_outlined, size: 16),
+                  label: const Text('SPP'),
+                  style: FilledButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                  ),
                 ),
               ],
             ),

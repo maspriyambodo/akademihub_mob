@@ -213,7 +213,7 @@ class AbsensiBloc extends Bloc<AbsensiEvent, AbsensiState> {
       } else {
         emit(AbsensiError(result.requireFailure.message));
       }
-    } else if (_role == 'siswa' && _profileId != null) {
+    } else if ((_role == 'siswa' || _role == 'wali') && _profileId != null) {
       final result = await getSiswaList(_profileId!);
       if (result.isSuccess) {
         _allSiswaItems = result.requireData;
@@ -231,8 +231,7 @@ class AbsensiBloc extends Bloc<AbsensiEvent, AbsensiState> {
     } else if (_role == 'wali') {
       emit(
         const AbsensiError(
-          'Data anak tidak tersedia pada profil wali. Akses kehadiran dihentikan '
-          'untuk mencegah data siswa lain tampil.',
+          'Data anak tidak dipilih atau tidak tersedia pada profil wali.',
         ),
       );
     } else {

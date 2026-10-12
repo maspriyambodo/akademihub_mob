@@ -4,7 +4,10 @@ import 'package:dio/dio.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+import '../router/app_router.dart';
 
 class PushNotificationService {
   final Dio _dio;
@@ -13,6 +16,7 @@ class PushNotificationService {
 
   StreamSubscription<String>? _tokenSubscription;
   StreamSubscription<RemoteMessage>? _messageSubscription;
+  StreamSubscription<RemoteMessage>? _openedSubscription;
   bool _available = false;
 
   PushNotificationService(
@@ -32,13 +36,64 @@ class PushNotificationService {
           android: AndroidInitializationSettings('@mipmap/ic_launcher'),
           iOS: DarwinInitializationSettings(),
         ),
+        onDidReceiveNotificationResponse: (response) {
+          final payload = response.payload;
+          if (payload != null && payload.isNotEmpty) {
+            _handleRoute(payload);
+          }
+        },
       );
       await _messaging!.requestPermission();
       _messageSubscription = FirebaseMessaging.onMessage.listen(_showMessage);
       _tokenSubscription = _messaging!.onTokenRefresh.listen(_registerToken);
+
+      _openedSubscription =
+          FirebaseMessaging.onMessageOpenedApp.listen((message) {
+            final route = _resolveRoute(message.data);
+            _handleRoute(route);
+          });
+
+      final initialMessage = await _messaging!.getInitialMessage();
+      if (initialMessage != null) {
+        final route = _resolveRoute(initialMessage.data);
+        if (route != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _handleRoute(route);
+          });
+        }
+      }
+
       _available = true;
     } on Object catch (error) {
       if (kDebugMode) debugPrint('Push notification unavailable: $error');
+    }
+  }
+
+  String? _resolveRoute(Map<String, dynamic> data) {
+    final explicitRoute = data['route']?.toString();
+    if (explicitRoute != null && explicitRoute.isNotEmpty) {
+      return explicitRoute;
+    }
+    final type = data['type']?.toString();
+    return switch (type) {
+      'absensi' || 'absensi_kritis' => AppRoutes.absensi,
+      'spp' || 'spp_tunggakan' || 'keuangan' => AppRoutes.keuangan,
+      'ews_alert' || 'ews' => AppRoutes.ews,
+      'tugas' || 'tugas_baru' => AppRoutes.tugas,
+      'nilai' || 'nilai_anomali' => AppRoutes.nilai,
+      'jadwal' => AppRoutes.jadwal,
+      'ujian' => AppRoutes.ujian,
+      'wallet' || 'saldo' => AppRoutes.wallet,
+      _ => null,
+    };
+  }
+
+  void _handleRoute(String? route) {
+    if (route == null || route.isEmpty) return;
+    try {
+      router.push(route);
+    } catch (e) {
+      if (kDebugMode) debugPrint('FCM navigation error: $e');
     }
   }
 
@@ -68,6 +123,7 @@ class PushNotificationService {
   Future<void> _showMessage(RemoteMessage message) async {
     final notification = message.notification;
     if (notification == null) return;
+    final route = _resolveRoute(message.data);
     await _localNotifications.show(
       message.messageId.hashCode,
       notification.title,
@@ -81,11 +137,13 @@ class PushNotificationService {
         ),
         iOS: DarwinNotificationDetails(),
       ),
+      payload: route,
     );
   }
 
   Future<void> dispose() async {
     await _tokenSubscription?.cancel();
     await _messageSubscription?.cancel();
+    await _openedSubscription?.cancel();
   }
 }
