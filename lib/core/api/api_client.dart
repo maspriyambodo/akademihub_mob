@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../config/app_config.dart';
+import 'http_cache_interceptor.dart';
 
 class ApiClient {
   static Duration serverTimeOffset = Duration.zero;
@@ -11,6 +12,9 @@ class ApiClient {
 
   late final Dio dio;
   final FlutterSecureStorage _storage;
+  final HttpCacheInterceptor cacheInterceptor = HttpCacheInterceptor();
+
+  void clearCache() => cacheInterceptor.clear();
 
   ApiClient(this._storage) {
     dio = Dio(
@@ -24,7 +28,8 @@ class ApiClient {
 
     dio.interceptors.addAll([
       _ServerDateInterceptor(),
-      _AuthInterceptor(_storage, dio),
+      _AuthInterceptor(_storage, dio, onClearCache: clearCache),
+      cacheInterceptor,
       if (kDebugMode)
         LogInterceptor(
           requestBody: false,
@@ -56,9 +61,10 @@ class _ServerDateInterceptor extends Interceptor {
 class _AuthInterceptor extends Interceptor {
   final FlutterSecureStorage _storage;
   final Dio _dio;
+  final VoidCallback? onClearCache;
   Future<String?>? _refreshTokenFuture;
 
-  _AuthInterceptor(this._storage, this._dio);
+  _AuthInterceptor(this._storage, this._dio, {this.onClearCache});
 
   static const _safeRetryMethods = {'GET', 'HEAD', 'OPTIONS'};
 
@@ -202,6 +208,7 @@ class _AuthInterceptor extends Interceptor {
   }
 
   Future<void> _clearTokens() async {
+    onClearCache?.call();
     await Future.wait([
       _storage.delete(key: AppConfig.tokenKey),
       _storage.delete(key: AppConfig.refreshTokenKey),

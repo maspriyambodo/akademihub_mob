@@ -149,6 +149,7 @@ import '../../features/bk/presentation/bloc/bk_detail_bloc.dart';
 import '../../features/bk/presentation/bloc/bk_form_bloc.dart';
 import '../../features/ujian/data/datasources/ujian_remote_datasource.dart';
 import '../../features/ujian/data/repositories/ujian_repository_impl.dart';
+import '../../features/ujian/data/services/cbt_media_prefetch_service.dart';
 import '../../features/ujian/domain/repositories/ujian_repository.dart';
 import '../../features/ujian/domain/usecases/export_ranking_usecase.dart';
 import '../../features/ujian/domain/usecases/generate_ranking_usecase.dart';
@@ -623,6 +624,7 @@ Future<void> configureDependencies({bool? isTelevision}) async {
   );
 
   // ── Ujian + Ranking feature ───────────────────────────────────────────────
+  sl.registerLazySingleton(() => CbtMediaPrefetchService());
   sl.registerLazySingleton<UjianRemoteDataSource>(
     () => UjianRemoteDataSourceImpl(sl<ApiClient>().dio),
   );

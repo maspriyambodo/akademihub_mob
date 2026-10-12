@@ -36,6 +36,18 @@ class AppConfig {
     return '$scheme://$host${uri.hasPort ? ':${uri.port}' : ''}';
   }
 
+  static String? resolveMediaUrl(String? path) {
+    if (path == null) return null;
+    final trimmed = path.trim();
+    if (trimmed.isEmpty) return null;
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      return trimmed;
+    }
+    final origin = extractOrigin(apiBaseUrl) ?? '';
+    final normalizedPath = trimmed.startsWith('/') ? trimmed : '/$trimmed';
+    return '$origin$normalizedPath';
+  }
+
   // ── HTTP timeouts ──────────────────────────────────────────────────────────
   static const Duration connectTimeout = Duration(seconds: 30);
   static const Duration receiveTimeout = Duration(seconds: 60);

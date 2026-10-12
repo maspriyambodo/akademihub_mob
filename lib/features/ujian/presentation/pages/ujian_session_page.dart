@@ -1,13 +1,16 @@
 import 'dart:async';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../core/api/api_client.dart';
+import '../../../../core/config/app_config.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/batas_lebar_konten.dart';
+import '../../data/services/cbt_media_prefetch_service.dart';
 import '../../data/services/exam_alarm_service.dart';
 import '../../domain/entities/ujian_question_entity.dart';
 import '../../domain/entities/ujian_session_entity.dart';
@@ -17,12 +20,14 @@ class UjianSessionPage extends StatefulWidget {
   final UjianSessionEntity session;
   final UjianRepository? repository;
   final DateTime Function()? nowProvider;
+  final CbtMediaPrefetchService? prefetchService;
 
   const UjianSessionPage({
     super.key,
     required this.session,
     this.repository,
     this.nowProvider,
+    this.prefetchService,
   });
 
   @override
@@ -34,6 +39,11 @@ class _UjianSessionPageState extends State<UjianSessionPage>
   static const _kioskChannel = MethodChannel('com.akademihub.app/kiosk');
   late UjianSessionEntity _session = widget.session;
   late final UjianRepository _repository = widget.repository ?? sl();
+  late final CbtMediaPrefetchService _prefetchService =
+      widget.prefetchService ??
+      (sl.isRegistered<CbtMediaPrefetchService>()
+          ? sl()
+          : CbtMediaPrefetchService());
   final _saving = <int>{};
   List<UjianQuestionEntity> _questions = const [];
   Timer? _timer;
@@ -255,6 +265,9 @@ class _UjianSessionPageState extends State<UjianSessionPage>
         _loadError = result.requireFailure.message;
       }
     });
+    if (result.isSuccess && _questions.isNotEmpty) {
+      unawaited(_prefetchService.prefetchImages(_questions));
+    }
   }
 
   Future<void> _mulai() async {
@@ -610,6 +623,7 @@ class _QuestionCardState extends State<_QuestionCard>
   Widget build(BuildContext context) {
     super.build(context);
     final question = widget.question;
+    final resolvedMedia = AppConfig.resolveMediaUrl(question.mediaPath);
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -621,6 +635,10 @@ class _QuestionCardState extends State<_QuestionCard>
               '${widget.number}. ${question.question}',
               style: Theme.of(context).textTheme.titleMedium,
             ),
+            if (resolvedMedia != null) ...[
+              const SizedBox(height: 8),
+              _QuestionMedia(imageUrl: resolvedMedia),
+            ],
             const SizedBox(height: 8),
             if (question.isMultipleChoice)
               Column(
@@ -688,3 +706,147 @@ class _QuestionCardState extends State<_QuestionCard>
   @override
   bool get wantKeepAlive => true;
 }
+
+class _QuestionMedia extends StatelessWidget {
+  final String imageUrl;
+
+  const _QuestionMedia({required this.imageUrl});
+
+  void _showZoomDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        insetPadding: const EdgeInsets.all(12),
+        backgroundColor: Colors.black,
+        child: Stack(
+          children: [
+            Center(
+              child: InteractiveViewer(
+                panEnabled: true,
+                boundaryMargin: const EdgeInsets.all(20),
+                minScale: 0.5,
+                maxScale: 4.0,
+                child: CachedNetworkImage(
+                  imageUrl: imageUrl,
+                  fit: BoxFit.contain,
+                  placeholder: (context, url) => const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  ),
+                  errorWidget: (context, url, error) => const Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.broken_image,
+                          color: Colors.white70,
+                          size: 48,
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Gagal memuat gambar',
+                          style: TextStyle(color: Colors.white70),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 8,
+              right: 8,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white),
+                onPressed: () => Navigator.of(ctx).pop(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: InkWell(
+        onTap: () => _showZoomDialog(context),
+        borderRadius: BorderRadius.circular(8),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            constraints: const BoxConstraints(maxHeight: 240),
+            width: double.infinity,
+            color: Colors.grey.withAlpha(20),
+            child: Stack(
+              alignment: Alignment.bottomRight,
+              children: [
+                CachedNetworkImage(
+                  imageUrl: imageUrl,
+                  width: double.infinity,
+                  fit: BoxFit.contain,
+                  placeholder: (context, url) => const SizedBox(
+                    height: 120,
+                    child: Center(
+                      child: SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => const SizedBox(
+                    height: 90,
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.broken_image_outlined,
+                            color: Colors.grey,
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Gambar tidak dapat dimuat offline',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                Container(
+                  margin: const EdgeInsets.all(6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withAlpha(140),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.zoom_in, color: Colors.white, size: 14),
+                      SizedBox(width: 4),
+                      Text(
+                        'Perbesar',
+                        style: TextStyle(color: Colors.white, fontSize: 11),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
