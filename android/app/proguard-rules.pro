@@ -15,3 +15,7 @@
 
 # Native Kiosk Mode Activity
 -keep class id.akademihub.akademihub_mob.MainActivity { *; }
+
+# Play Core (deferred components / split install not used)
+-dontwarn com.google.android.play.core.**
+
