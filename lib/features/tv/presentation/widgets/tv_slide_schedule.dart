@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../domain/entities/tv_snapshot.dart';
+import '../theme/tv_theme.dart';
 
 class TvSlideSchedule extends StatelessWidget {
   final List<TvScheduleItem> schedule;
@@ -11,17 +12,34 @@ class TvSlideSchedule extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Row(
+        Row(
           children: [
-            Icon(Icons.calendar_today, color: Color(0xFFE9A23B), size: 24),
-            SizedBox(width: 10),
-            Text(
+            const Icon(Icons.calendar_today, color: TvColors.gold, size: 22),
+            const SizedBox(width: 10),
+            const Text(
               'JADWAL PELAJARAN HARI INI',
               style: TextStyle(
-                color: Color(0xFFBFE8DF),
+                color: TvColors.text,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 1.5,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: TvColors.primary.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: const Text(
+                'KBM AKTIF',
+                style: TextStyle(
+                  color: TvColors.primaryLight,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1,
+                ),
               ),
             ),
           ],
@@ -32,7 +50,7 @@ class TvSlideSchedule extends StatelessWidget {
               ? const Center(
                   child: Text(
                     'Tidak ada jadwal pelajaran hari ini.',
-                    style: TextStyle(color: Colors.white60, fontSize: 18),
+                    style: TextStyle(color: TvColors.textMuted, fontSize: 18),
                   ),
                 )
               : GridView.builder(
@@ -48,23 +66,30 @@ class TvSlideSchedule extends StatelessWidget {
                     return Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF102A43),
-                        borderRadius: BorderRadius.circular(12),
+                        color: TvColors.surfaceElevated,
+                        borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: const Color(0xFF243B53),
-                          width: 1.5,
+                          color: TvColors.border,
+                          width: 1.2,
                         ),
                       ),
                       child: Row(
                         children: [
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
+                              horizontal: 14,
+                              vertical: 10,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF087F75),
-                              borderRadius: BorderRadius.circular(8),
+                              color: TvColors.primary,
+                              borderRadius: BorderRadius.circular(10),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: TvColors.primary.withValues(alpha: 0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                             ),
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -73,6 +98,7 @@ class TvSlideSchedule extends StatelessWidget {
                                   item.startsAt,
                                   style: const TextStyle(
                                     color: Colors.white,
+                                    fontSize: 14,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -80,20 +106,21 @@ class TvSlideSchedule extends StatelessWidget {
                                   '-',
                                   style: TextStyle(
                                     color: Colors.white70,
-                                    fontSize: 12,
+                                    fontSize: 11,
                                   ),
                                 ),
                                 Text(
                                   item.endsAt,
                                   style: const TextStyle(
                                     color: Colors.white,
+                                    fontSize: 14,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          const SizedBox(width: 14),
+                          const SizedBox(width: 16),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,24 +131,50 @@ class TvSlideSchedule extends StatelessWidget {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
-                                    color: Colors.white,
+                                    color: TvColors.text,
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
-                                Text(
-                                  item.teacher,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(color: Colors.white70),
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.person_outline,
+                                      size: 14,
+                                      color: TvColors.textMuted,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Expanded(
+                                      child: Text(
+                                        item.teacher,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          color: TvColors.textMuted,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '${item.className}${item.room != null ? ' • ${item.room}' : ''}',
-                                  style: const TextStyle(
-                                    color: Color(0xFFE9A23B),
-                                    fontSize: 12,
+                                const SizedBox(height: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: TvColors.gold.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    '${item.className}${item.room != null ? ' • ${item.room}' : ''}',
+                                    style: const TextStyle(
+                                      color: TvColors.gold,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../domain/entities/tv_snapshot.dart';
+import '../theme/tv_theme.dart';
 
 class TvStatusBadge extends StatelessWidget {
   final TvDeviceSummary device;
@@ -15,6 +16,10 @@ class TvStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pct = attendance != null && attendance!.total > 0
+        ? ((attendance!.present / attendance!.total) * 100).round()
+        : null;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -22,33 +27,32 @@ class TvStatusBadge extends StatelessWidget {
         Row(
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: const Color(0xFF243B53),
-                borderRadius: BorderRadius.circular(6),
+                color: TvColors.surfaceElevated,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: TvColors.border),
               ),
               child: Text(
                 device.mode.toUpperCase(),
                 style: const TextStyle(
-                  color: Color(0xFFBFE8DF),
+                  color: TvColors.primaryLight,
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
-                  letterSpacing: 1,
+                  letterSpacing: 1.2,
                 ),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 10),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: isOffline
-                    ? const Color(0xFFB43C46).withAlpha(40)
-                    : const Color(0xFF087F75).withAlpha(40),
-                borderRadius: BorderRadius.circular(6),
+                color: isOffline ? TvColors.roseBg : TvColors.emeraldBg,
+                borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color: isOffline
-                      ? const Color(0xFFB43C46)
-                      : const Color(0xFF087F75),
+                      ? TvColors.rose.withValues(alpha: 0.6)
+                      : TvColors.emerald.withValues(alpha: 0.6),
                   width: 1,
                 ),
               ),
@@ -56,24 +60,31 @@ class TvStatusBadge extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    width: 7,
-                    height: 7,
+                    width: 8,
+                    height: 8,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: isOffline
-                          ? const Color(0xFFB43C46)
-                          : const Color(0xFF087F75),
+                      color: isOffline ? TvColors.rose : TvColors.emerald,
+                      boxShadow: [
+                        BoxShadow(
+                          color: (isOffline ? TvColors.rose : TvColors.emerald)
+                              .withValues(alpha: 0.6),
+                          blurRadius: 6,
+                          spreadRadius: 1,
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 8),
                   Text(
                     isOffline ? 'OFFLINE (CACHE)' : 'TERHUBUNG',
                     style: TextStyle(
                       color: isOffline
-                          ? const Color(0xFFFFA39E)
-                          : const Color(0xFF87E8DE),
+                          ? const Color(0xFFF87171)
+                          : const Color(0xFF34D399),
                       fontSize: 11,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.5,
                     ),
                   ),
                 ],
@@ -85,37 +96,58 @@ class TvStatusBadge extends StatelessWidget {
         // Attendance stats (if available)
         if (attendance != null)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFF102A43),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFF243B53)),
+              color: TvColors.surfaceElevated,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: TvColors.border),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Icon(
                   Icons.people_alt_outlined,
-                  color: Color(0xFFE9A23B),
-                  size: 16,
+                  color: TvColors.gold,
+                  size: 18,
                 ),
                 const SizedBox(width: 8),
                 Text(
                   'Hadir: ${attendance!.present}/${attendance!.total}',
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
+                if (pct != null) ...[
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: TvColors.primary.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      '$pct%',
+                      style: const TextStyle(
+                        color: TvColors.primaryLight,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
                 if (attendance!.late > 0) ...[
                   const SizedBox(width: 8),
                   Text(
                     '• Terlambat: ${attendance!.late}',
                     style: const TextStyle(
-                      color: Color(0xFFE9A23B),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
+                      color: TvColors.gold,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],

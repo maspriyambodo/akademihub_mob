@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/router/app_router.dart';
 import '../../domain/repositories/tv_repository.dart';
+import '../theme/tv_theme.dart';
 
 class TvBootstrapPage extends StatefulWidget {
   const TvBootstrapPage({super.key});
@@ -37,15 +38,23 @@ class _TvBootstrapPageState extends State<TvBootstrapPage> {
   Widget build(BuildContext context) {
     return const Scaffold(
       key: Key('tv_bootstrap_page'),
-      backgroundColor: Colors.black,
+      backgroundColor: TvColors.backgroundDark,
       body: Center(
-        child: Text(
-          'AkademiHub TV',
-          style: TextStyle(
-            color: Color(0xFF087F75),
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-          ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.tv, color: TvColors.primaryLight, size: 48),
+            SizedBox(height: 16),
+            Text(
+              'AkademiHub TV',
+              style: TextStyle(
+                color: TvColors.primaryLight,
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.2,
+              ),
+            ),
+          ],
         ),
       ),
     );

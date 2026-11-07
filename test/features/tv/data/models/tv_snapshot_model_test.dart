@@ -63,7 +63,7 @@ void main() {
       expect(model.attendance?.present, 820);
     });
 
-    test('fromJson clamps slide duration between 5 and 60 seconds', () {
+    test('fromJson clamps slide duration between 10 and 120 seconds', () {
       final customJson = Map<String, dynamic>.from(validJson);
       customJson['settings'] = {
         'slide_duration_seconds': 2,
@@ -71,7 +71,7 @@ void main() {
       };
 
       final model = TvSnapshotModel.fromJson(customJson);
-      expect(model.settings.slideDurationSeconds, 5);
+      expect(model.settings.slideDurationSeconds, 10);
       expect(model.settings.showAttendance, isFalse);
     });
 

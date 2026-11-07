@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../domain/entities/tv_snapshot.dart';
+import '../theme/tv_theme.dart';
 import 'tv_focusable.dart';
 
 class TvSettingsDialog extends StatelessWidget {
@@ -26,10 +27,10 @@ class TvSettingsDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: const Color(0xFF102A43),
+      backgroundColor: TvColors.surfaceElevated,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: Color(0xFF243B53), width: 2),
+        side: const BorderSide(color: TvColors.border, width: 1.5),
       ),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 520),
@@ -46,19 +47,19 @@ class TvSettingsDialog extends StatelessWidget {
                     child: Text(
                       'Pengaturan Perangkat TV',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: TvColors.text,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white70),
+                    icon: const Icon(Icons.close, color: TvColors.textMuted),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
               ),
-              const Divider(color: Color(0xFF243B53), height: 28),
+              const Divider(color: TvColors.border, height: 28),
               _buildInfoRow('Nama Layar', device.name),
               const SizedBox(height: 12),
               _buildInfoRow('ID Perangkat', '#${device.id}'),
@@ -76,8 +77,15 @@ class TvSettingsDialog extends StatelessWidget {
                       vertical: 12,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFB43C46),
+                      color: TvColors.rose,
                       borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: TvColors.rose.withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
@@ -110,12 +118,12 @@ class TvSettingsDialog extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(color: Colors.white70, fontSize: 15),
+          style: const TextStyle(color: TvColors.textMuted, fontSize: 15),
         ),
         Text(
           value,
           style: const TextStyle(
-            color: Colors.white,
+            color: TvColors.text,
             fontSize: 15,
             fontWeight: FontWeight.bold,
           ),
@@ -128,24 +136,28 @@ class TvSettingsDialog extends StatelessWidget {
     showDialog(
       context: context,
       builder: (confirmContext) => AlertDialog(
-        backgroundColor: const Color(0xFF102A43),
+        backgroundColor: TvColors.surfaceElevated,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: TvColors.border),
+        ),
         title: const Text(
           'Konfirmasi Putus Tautan',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: TvColors.text, fontWeight: FontWeight.bold),
         ),
         content: const Text(
           'Apakah Anda yakin ingin memutuskan layar ini dari sekolah?\n'
           'Anda harus melakukan pairing ulang untuk menghubungkannya kembali.',
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(color: TvColors.textMuted),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(confirmContext).pop(),
-            child: const Text('Batal', style: TextStyle(color: Colors.white70)),
+            child: const Text('Batal', style: TextStyle(color: TvColors.textMuted)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFB43C46),
+              backgroundColor: TvColors.rose,
             ),
             onPressed: () {
               Navigator.of(confirmContext).pop();

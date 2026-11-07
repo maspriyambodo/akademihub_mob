@@ -7,6 +7,7 @@ import '../../../../core/router/app_router.dart';
 import '../bloc/tv_auth_bloc.dart';
 import '../bloc/tv_auth_event.dart';
 import '../bloc/tv_auth_state.dart';
+import '../theme/tv_theme.dart';
 import '../widgets/tv_focusable.dart';
 
 class TvPairingPage extends StatelessWidget {
@@ -17,7 +18,7 @@ class TvPairingPage extends StatelessWidget {
     if (!sl.isRegistered<TvAuthBloc>()) {
       return const Scaffold(
         key: Key('tv_pairing_page'),
-        backgroundColor: Color(0xFF102A43),
+        backgroundColor: TvColors.backgroundDark,
         body: SizedBox.shrink(),
       );
     }
@@ -88,7 +89,7 @@ class _TvPairingViewState extends State<_TvPairingView> with WidgetsBindingObser
           onPopInvokedWithResult: (didPop, result) { if (!didPop) _confirmExit(); },
           child: Scaffold(
           key: const Key('tv_pairing_page'),
-          backgroundColor: const Color(0xFF102A43),
+          backgroundColor: TvColors.backgroundDark,
           body: SafeArea(minimum: const EdgeInsets.all(48), child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 720),
@@ -109,11 +110,11 @@ class _TvPairingViewState extends State<_TvPairingView> with WidgetsBindingObser
       return const Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          CircularProgressIndicator(color: Color(0xFFE9A23B)),
+          CircularProgressIndicator(color: TvColors.primaryLight),
           SizedBox(height: 24),
           Text(
             'Menyiapkan sesi pairing...',
-            style: TextStyle(color: Colors.white70, fontSize: 18),
+            style: TextStyle(color: TvColors.textMuted, fontSize: 18),
           ),
         ],
       );
@@ -121,66 +122,121 @@ class _TvPairingViewState extends State<_TvPairingView> with WidgetsBindingObser
 
     if (state is TvPairingPending) {
       final session = state.session;
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Text(
-            'HUBUNGKAN LAYAR ANDROID TV',
-            style: TextStyle(
-              color: Color(0xFFBFE8DF),
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 2,
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 24),
+        decoration: BoxDecoration(
+          color: TvColors.surfaceElevated,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: TvColors.border, width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: TvColors.primary.withValues(alpha: 0.15),
+              blurRadius: 32,
+              spreadRadius: 2,
             ),
-          ),
-          const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-            decoration: BoxDecoration(
-              color: const Color(0xFF087F75),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Text(
-              session.userCode,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 54,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 12,
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            'Buka menu Kelola TV pada web admin sekolah lalu masukkan kode di atas.\n'
-            'Atau buka: ${session.verificationUrl}',
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              height: 1.5,
-            ),
-          ),
-          const SizedBox(height: 24),
-          const Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          ],
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Color(0xFFE9A23B),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: TvColors.primary.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.tv,
+                      color: TvColors.primaryLight,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  const Text(
+                    'HUBUNGKAN LAYAR ANDROID TV',
+                    style: TextStyle(
+                      color: TvColors.primaryLight,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      TvColors.surface,
+                      TvColors.primary.withValues(alpha: 0.25),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: TvColors.primaryLight,
+                    width: 2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: TvColors.primary.withValues(alpha: 0.35),
+                      blurRadius: 20,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+                child: Text(
+                  session.userCode,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 50,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 12,
+                  ),
                 ),
               ),
-              SizedBox(width: 12),
+              const SizedBox(height: 20),
               Text(
-                'Menunggu persetujuan admin...',
-                style: TextStyle(color: Colors.white70, fontSize: 14),
+                'Buka menu Kelola TV pada web admin sekolah lalu masukkan kode di atas.\n'
+                'Atau buka: ${session.verificationUrl}',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: TvColors.text,
+                  fontSize: 15,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: TvColors.gold,
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Text(
+                    'Menunggu persetujuan admin...',
+                    style: TextStyle(
+                      color: TvColors.textMuted,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
+        ),
       );
     }
 
@@ -197,47 +253,55 @@ class _TvPairingViewState extends State<_TvPairingView> with WidgetsBindingObser
         _ => ('', ''),
       };
 
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.info_outline, color: Color(0xFFE9A23B), size: 56),
-          const SizedBox(height: 16),
-          Text(
-            title,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.white70, fontSize: 16),
-          ),
-          const SizedBox(height: 24),
-          TvFocusable(
-            autofocus: true,
-            onSelect: () =>
-                context.read<TvAuthBloc>().add(const TvPairingRetryRequested()),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              decoration: BoxDecoration(
-                color: const Color(0xFF087F75),
-                borderRadius: BorderRadius.circular(10),
+      return Container(
+        padding: const EdgeInsets.all(36),
+        decoration: BoxDecoration(
+          color: TvColors.surfaceElevated,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: TvColors.border),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.info_outline, color: TvColors.gold, size: 56),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              style: const TextStyle(
+                color: TvColors.text,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
               ),
-              child: const Text(
-                'Coba Lagi',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: TvColors.textMuted, fontSize: 16),
+            ),
+            const SizedBox(height: 24),
+            TvFocusable(
+              autofocus: true,
+              onSelect: () =>
+                  context.read<TvAuthBloc>().add(const TvPairingRetryRequested()),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+                decoration: BoxDecoration(
+                  color: TvColors.primary,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Text(
+                  'Coba Lagi',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       );
     }
 

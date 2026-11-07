@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../domain/entities/tv_snapshot.dart';
+import '../theme/tv_theme.dart';
 
 class TvSlideCalendar extends StatelessWidget {
   final List<TvCalendarItem> calendar;
@@ -13,17 +14,34 @@ class TvSlideCalendar extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Row(
+        Row(
           children: [
-            Icon(Icons.event_note, color: Color(0xFFE9A23B), size: 24),
-            SizedBox(width: 10),
-            Text(
+            const Icon(Icons.event_note, color: TvColors.gold, size: 22),
+            const SizedBox(width: 10),
+            const Text(
               'AGENDA & KALENDER AKADEMIK',
               style: TextStyle(
-                color: Color(0xFFBFE8DF),
+                color: TvColors.text,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 1.5,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: TvColors.gold.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: const Text(
+                'AGENDA RESMI',
+                style: TextStyle(
+                  color: TvColors.gold,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1,
+                ),
               ),
             ),
           ],
@@ -34,7 +52,7 @@ class TvSlideCalendar extends StatelessWidget {
               ? const Center(
                   child: Text(
                     'Tidak ada agenda akademik terdekat.',
-                    style: TextStyle(color: Colors.white60, fontSize: 18),
+                    style: TextStyle(color: TvColors.textMuted, fontSize: 18),
                   ),
                 )
               : ListView.separated(
@@ -49,35 +67,47 @@ class TvSlideCalendar extends StatelessWidget {
 
                     return Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 14,
+                        horizontal: 22,
+                        vertical: 16,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF102A43),
-                        borderRadius: BorderRadius.circular(12),
+                        color: TvColors.surfaceElevated,
+                        borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: const Color(0xFF243B53),
-                          width: 1.5,
+                          color: TvColors.border,
+                          width: 1.2,
                         ),
                       ),
                       child: Row(
                         children: [
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 8,
+                              horizontal: 16,
+                              vertical: 10,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF243B53),
-                              borderRadius: BorderRadius.circular(8),
+                              color: TvColors.surface,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: TvColors.border),
                             ),
-                            child: Text(
-                              dateRange,
-                              style: const TextStyle(
-                                color: Color(0xFFE9A23B),
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                              ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.calendar_month_outlined,
+                                  color: TvColors.gold,
+                                  size: 16,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  dateRange,
+                                  style: const TextStyle(
+                                    color: TvColors.gold,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                           const SizedBox(width: 20),
@@ -85,27 +115,31 @@ class TvSlideCalendar extends StatelessWidget {
                             child: Text(
                               item.title,
                               style: const TextStyle(
-                                color: Colors.white,
+                                color: TvColors.text,
                                 fontSize: 18,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
                           if (item.allDay)
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
+                                horizontal: 10,
+                                vertical: 5,
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF087F75).withAlpha(60),
-                                borderRadius: BorderRadius.circular(4),
+                                color: TvColors.primary.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: TvColors.primary.withValues(alpha: 0.4),
+                                ),
                               ),
                               child: const Text(
                                 'Sepanjang Hari',
                                 style: TextStyle(
-                                  color: Color(0xFFBFE8DF),
+                                  color: TvColors.primaryLight,
                                   fontSize: 11,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),

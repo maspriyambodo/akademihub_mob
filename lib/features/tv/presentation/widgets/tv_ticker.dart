@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../domain/entities/tv_snapshot.dart';
+import '../theme/tv_theme.dart';
 
 class TvTicker extends StatefulWidget {
   final List<TvAnnouncementItem> announcements;
@@ -54,13 +55,18 @@ class _TvTickerState extends State<TvTicker> {
         .join('    •    ');
 
     return Container(
-      height: 42,
-      color: const Color(0xFF0F172A),
+      height: 46,
+      decoration: const BoxDecoration(
+        color: TvColors.backgroundDark,
+        border: Border(
+          top: BorderSide(color: TvColors.border, width: 1.2),
+        ),
+      ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            color: const Color(0xFF087F75),
+            padding: const EdgeInsets.symmetric(horizontal: 18),
+            color: TvColors.primary,
             alignment: Alignment.center,
             child: const Row(
               mainAxisSize: MainAxisSize.min,
@@ -73,7 +79,7 @@ class _TvTickerState extends State<TvTicker> {
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
-                    letterSpacing: 1.1,
+                    letterSpacing: 1.2,
                   ),
                 ),
               ],
@@ -91,9 +97,10 @@ class _TvTickerState extends State<TvTicker> {
                     child: Text(
                       tickerText,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: TvColors.text,
                         fontSize: 15,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.3,
                       ),
                     ),
                   ),

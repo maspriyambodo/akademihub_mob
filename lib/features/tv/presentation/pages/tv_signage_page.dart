@@ -9,6 +9,7 @@ import '../../domain/entities/tv_snapshot.dart';
 import '../bloc/tv_signage_bloc.dart';
 import '../bloc/tv_signage_event.dart';
 import '../bloc/tv_signage_state.dart';
+import '../theme/tv_theme.dart';
 import '../widgets/tv_clock_header.dart';
 import '../widgets/tv_focusable.dart';
 import '../widgets/tv_settings_dialog.dart';
@@ -98,7 +99,7 @@ class _TvSignageViewState extends State<_TvSignageView> with WidgetsBindingObser
           onPopInvokedWithResult: (didPop, result) { if (!didPop) _confirmExit(); },
           child: Scaffold(
           key: const Key('tv_signage_page'),
-          backgroundColor: const Color(0xFF0A1929),
+          backgroundColor: TvColors.backgroundDark,
           body: Focus(
             autofocus: true,
             onKeyEvent: (node, event) {
@@ -131,56 +132,64 @@ class _TvSignageViewState extends State<_TvSignageView> with WidgetsBindingObser
   Widget _buildBody(BuildContext context, TvSignageState state) {
     if (state is TvSignageLoading || state is TvSignageInitial) {
       return const Center(
-        child: CircularProgressIndicator(color: Color(0xFF087F75)),
+        child: CircularProgressIndicator(color: TvColors.primaryLight),
       );
     }
 
     if (state is TvSignageOffline) {
       return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.cloud_off, color: Color(0xFFE9A23B), size: 64),
-            const SizedBox(height: 16),
-            const Text(
-              'Mode Offline',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              state.message,
-              style: const TextStyle(color: Colors.white70, fontSize: 16),
-            ),
-            const SizedBox(height: 24),
-            TvFocusable(
-              autofocus: true,
-              onSelect: () => context.read<TvSignageBloc>().add(
-                const TvSignageRefreshRequested(),
-              ),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
+        child: Container(
+          padding: const EdgeInsets.all(36),
+          decoration: BoxDecoration(
+            color: TvColors.surfaceElevated,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: TvColors.border),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.cloud_off, color: TvColors.gold, size: 64),
+              const SizedBox(height: 16),
+              const Text(
+                'Mode Offline',
+                style: TextStyle(
+                  color: TvColors.text,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
                 ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF087F75),
-                  borderRadius: BorderRadius.circular(10),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                state.message,
+                style: const TextStyle(color: TvColors.textMuted, fontSize: 16),
+              ),
+              const SizedBox(height: 24),
+              TvFocusable(
+                autofocus: true,
+                onSelect: () => context.read<TvSignageBloc>().add(
+                  const TvSignageRefreshRequested(),
                 ),
-                child: const Text(
-                  'Muat Ulang',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 28,
+                    vertical: 14,
+                  ),
+                  decoration: BoxDecoration(
+                    color: TvColors.primary,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Text(
+                    'Muat Ulang',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       );
     }
@@ -287,6 +296,6 @@ class _TvSignageViewState extends State<_TvSignageView> with WidgetsBindingObser
           context.read<TvSignageBloc>().add(const TvSignageUnpairConfirmed()),
     );
     _dialogOpen = false;
-    if (mounted) context.read<TvSignageBloc>().interact();
+    if (context.mounted) context.read<TvSignageBloc>().interact();
   }
 }

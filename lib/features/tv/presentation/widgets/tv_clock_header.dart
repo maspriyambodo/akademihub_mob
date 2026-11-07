@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../domain/entities/tv_snapshot.dart';
+import '../theme/tv_theme.dart';
 import 'tv_focusable.dart';
 
 class TvClockHeader extends StatefulWidget {
@@ -52,11 +53,11 @@ class _TvClockHeaderState extends State<TvClockHeader> {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
       decoration: BoxDecoration(
-        color: const Color(0xFF102A43).withAlpha(230),
+        color: TvColors.surface.withValues(alpha: 0.92),
         border: const Border(
-          bottom: BorderSide(color: Color(0xFF243B53), width: 1.5),
+          bottom: BorderSide(color: TvColors.border, width: 1.5),
         ),
       ),
       child: Row(
@@ -66,34 +67,80 @@ class _TvClockHeaderState extends State<TvClockHeader> {
           Expanded(
             child: Row(
               children: [
-                if (widget.school.logoUrl != null &&
-                    widget.school.logoUrl!.isNotEmpty)
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      widget.school.logoUrl!,
-                      width: 44,
-                      height: 44,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => const Icon(
-                        Icons.school,
-                        color: Color(0xFFE9A23B),
-                        size: 36,
-                      ),
-                    ),
-                  )
-                else
-                  const Icon(Icons.school, color: Color(0xFFE9A23B), size: 36),
-                const SizedBox(width: 14),
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: TvColors.surfaceElevated,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: TvColors.border),
+                  ),
+                  child: widget.school.logoUrl != null &&
+                          widget.school.logoUrl!.isNotEmpty
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: Image.network(
+                            widget.school.logoUrl!,
+                            width: 44,
+                            height: 44,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                const Icon(
+                              Icons.school,
+                              color: TvColors.gold,
+                              size: 34,
+                            ),
+                          ),
+                        )
+                      : const Icon(
+                          Icons.school,
+                          color: TvColors.gold,
+                          size: 34,
+                        ),
+                ),
+                const SizedBox(width: 16),
                 Flexible(
-                  child: Text(
-                    widget.school.name,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        widget.school.name,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: TvColors.text,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: TvColors.emerald,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          const Flexible(
+                            child: Text(
+                              'AKADEMIHUB SMART CAMPUS DISPLAY',
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: TvColors.primaryLight,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -108,33 +155,38 @@ class _TvClockHeaderState extends State<TvClockHeader> {
                   Text(
                     timeStr,
                     style: const TextStyle(
-                      color: Color(0xFFE9A23B),
-                      fontSize: 56,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.2,
+                      color: TvColors.gold,
+                      fontSize: 54,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 2.0,
                     ),
                   ),
                   Text(
                     dateStr,
-                    style: const TextStyle(color: Colors.white70, fontSize: 22),
+                    style: const TextStyle(
+                      color: TvColors.textMuted,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(width: 20),
+              const SizedBox(width: 24),
               TvFocusable(
                 autofocus: true,
                 onSelect: widget.onOpenSettings,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(10),
                 child: Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF243B53),
-                    borderRadius: BorderRadius.circular(8),
+                    color: TvColors.surfaceElevated,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: TvColors.border),
                   ),
                   child: const Icon(
                     Icons.settings,
                     color: Colors.white,
-                    size: 22,
+                    size: 24,
                   ),
                 ),
               ),

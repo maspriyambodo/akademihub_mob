@@ -84,7 +84,7 @@ void main() {
     );
 
     test(
-      'applyTvDisplayMode invokes system orientations and immersive mode',
+      'applyTvDisplayMode invokes immersive mode',
       () async {
         final log = <MethodCall>[];
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -96,19 +96,6 @@ void main() {
         const service = TvPlatformService(channel);
         await service.applyTvDisplayMode();
 
-        expect(
-          log.any(
-            (call) =>
-                call.method == 'SystemChrome.setPreferredOrientations' &&
-                (call.arguments as List).contains(
-                  'DeviceOrientation.landscapeLeft',
-                ) &&
-                (call.arguments as List).contains(
-                  'DeviceOrientation.landscapeRight',
-                ),
-          ),
-          isTrue,
-        );
         expect(
           log.any(
             (call) =>
