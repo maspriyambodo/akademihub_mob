@@ -52,6 +52,21 @@ app.*.map.json
 /android/app/build/
 
 
+# Xcode / iOS
+**/ios/**/*.mode1v3
+**/ios/**/*.mode2v3
+**/ios/**/*.moved-aside
+**/ios/**/*.pbxuser
+**/ios/**/*.perspectivev3
+**/ios/**/xcuserdata/
+**/ios/**/DerivedData/
+**/ios/.symlinks/
+**/ios/Pods/
+**/ios/**/project.xcworkspace/
+**/ios/**/xcshareddata/swiftpm/
+**/ios/**/xcshareddata/WorkspaceSettings.xcsettings
+**/swiftpm/
+
 # Environment files
 .env
 .env.*

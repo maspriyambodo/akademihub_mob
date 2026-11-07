@@ -6,6 +6,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../auth/domain/entities/user_entity.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../domain/entities/sekolah_entity.dart';
 import '../bloc/profil_bloc.dart';
 import '../widgets/data_diri_card.dart';
 import '../widgets/perangkat_card.dart';
@@ -48,6 +49,14 @@ class _ProfilViewState extends State<_ProfilView> {
     if (authState is! AuthAuthenticated) return;
 
     final user = authState.user;
+    final fallbackSekolah = user.tenant != null
+        ? SekolahEntity(
+            namaSekolah: user.tenant!.name,
+            uuid: user.tenant!.uuid,
+            logoUrl: user.tenant!.logoPath,
+          )
+        : null;
+
     context.read<ProfilBloc>().add(
       ProfilLoadRequested(
         userId: user.id,
@@ -57,6 +66,7 @@ class _ProfilViewState extends State<_ProfilView> {
         // `GET /admin/user-devices/user/{userId}` dijaga
         // PermissionMiddleware:users.view — siswa & wali tidak punya.
         bisaLihatPerangkat: user.hasPermission('users.view'),
+        fallbackSekolah: fallbackSekolah,
       ),
     );
   }

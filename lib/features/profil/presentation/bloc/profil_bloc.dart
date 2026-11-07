@@ -23,6 +23,7 @@ class ProfilBloc extends Bloc<ProfilEvent, ProfilState> {
   int? _userId;
   bool _bisaLihatSekolah = false;
   bool _bisaLihatPerangkat = false;
+  SekolahEntity? _fallbackSekolah;
 
   ProfilBloc({
     required this.getSekolahAktif,
@@ -40,6 +41,7 @@ class ProfilBloc extends Bloc<ProfilEvent, ProfilState> {
     _userId = event.userId;
     _bisaLihatSekolah = event.bisaLihatSekolah;
     _bisaLihatPerangkat = event.bisaLihatPerangkat;
+    _fallbackSekolah = event.fallbackSekolah;
     emit(ProfilLoading());
     await _muat(emit);
   }
@@ -66,6 +68,13 @@ class ProfilBloc extends Bloc<ProfilEvent, ProfilState> {
         } else {
           sekolahError = result.requireFailure.message;
         }
+      }
+
+      // ponytail: Fallback to active tenant session metadata when user lacks sekolah.view permission or endpoint returns error.
+      if (sekolah == null && _fallbackSekolah != null) {
+        sekolah = _fallbackSekolah;
+        sekolahDariCache = true;
+        sekolahError = null;
       }
 
       // 2. Perangkat login (hanya untuk user dengan permission users.view).

@@ -16,14 +16,23 @@ class ProfilLoadRequested extends ProfilEvent {
   /// Punya permission `users.view` → boleh melihat daftar perangkat login.
   final bool bisaLihatPerangkat;
 
+  /// Fallback metadata sekolah dari sesi tenant aktif jika user tidak memiliki izin sekolah.view.
+  final SekolahEntity? fallbackSekolah;
+
   const ProfilLoadRequested({
     required this.userId,
     this.bisaLihatSekolah = false,
     this.bisaLihatPerangkat = false,
+    this.fallbackSekolah,
   });
 
   @override
-  List<Object?> get props => [userId, bisaLihatSekolah, bisaLihatPerangkat];
+  List<Object?> get props => [
+    userId,
+    bisaLihatSekolah,
+    bisaLihatPerangkat,
+    fallbackSekolah,
+  ];
 }
 
 class ProfilRefreshRequested extends ProfilEvent {
