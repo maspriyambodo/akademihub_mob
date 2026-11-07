@@ -57,17 +57,15 @@ class _DashboardPageState extends State<DashboardPage> {
             left: 0,
             right: 0,
             child: Container(
-              height: 200 + topInset,
-              decoration: BoxDecoration(
+              height: 220 + topInset,
+              decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    AppColors.primaryDark,
-                    Color.alphaBlend(
-                      roleColors.accent.withValues(alpha: 0.6),
-                      AppColors.primaryDark,
-                    ),
+                    Color(0xFF071426),
+                    Color(0xFF0C2340),
+                    Color(0xFF093B57),
                   ],
                 ),
               ),
@@ -81,32 +79,30 @@ class _DashboardPageState extends State<DashboardPage> {
                     child: Padding(
                       padding: EdgeInsets.fromLTRB(
                         pagePadding.left,
-                        AppSpacing.sm,
+                        AppSpacing.xs,
                         pagePadding.right,
-                        AppSpacing.md,
+                        AppSpacing.sm,
                       ),
-                      child: Row(
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                // ponytail: Role badge pill with glow indicator; add pulse animation when SSE presence connects.
-                                Container(
+                          // Top bar: School Identity Pill & Action Buttons
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Container(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 10,
-                                    vertical: 3,
+                                    vertical: 4,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.14),
+                                    color: Colors.white.withValues(alpha: 0.12),
                                     borderRadius: BorderRadius.circular(
                                       AppRadius.pill,
                                     ),
                                     border: Border.all(
                                       color: Colors.white.withValues(
-                                        alpha: 0.22,
+                                        alpha: 0.20,
                                       ),
                                       width: 1,
                                     ),
@@ -114,83 +110,176 @@ class _DashboardPageState extends State<DashboardPage> {
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
+                                      const Icon(
+                                        Icons.school_outlined,
+                                        size: 14,
+                                        color: Colors.white,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Flexible(
+                                        child: Text(
+                                          (user?.tenant?.name ?? 'AkademiHub')
+                                              .toUpperCase(),
+                                          style: const TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w700,
+                                            letterSpacing: 0.5,
+                                            color: Colors.white,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
                                       Container(
-                                        width: 6,
-                                        height: 6,
-                                        decoration: BoxDecoration(
-                                          color: roleColors.accent,
+                                        width: 3,
+                                        height: 3,
+                                        decoration: const BoxDecoration(
+                                          color: Colors.white60,
                                           shape: BoxShape.circle,
                                         ),
                                       ),
                                       const SizedBox(width: 6),
-                                      Text(
-                                        roleLabel,
+                                      const Text(
+                                        'SMT GENAP',
                                         style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w800,
-                                          letterSpacing: 1.2,
-                                          color: roleColors.container,
+                                          fontSize: 9.5,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white70,
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  user != null
-                                      ? 'Halo, ${user.name}'
-                                      : 'AkademiHub',
-                                  style: const TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.white,
-                                    letterSpacing: -0.3,
+                              ),
+                              const SizedBox(width: AppSpacing.xs),
+                              // Notification Icon
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(
+                                    AppRadius.md,
                                   ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.18),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: IconButton(
+                                  visualDensity: VisualDensity.compact,
+                                  icon: const Icon(
+                                    Icons.notifications_outlined,
+                                    color: Colors.white,
+                                    size: 19,
+                                  ),
+                                  tooltip: 'Notifikasi',
+                                  onPressed: () =>
+                                      context.push(AppRoutes.notifications),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              // Profile Icon
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(
+                                    AppRadius.md,
+                                  ),
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.18),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: IconButton(
+                                  visualDensity: VisualDensity.compact,
+                                  icon: const Icon(
+                                    Icons.account_circle_outlined,
+                                    color: Colors.white,
+                                    size: 19,
+                                  ),
+                                  tooltip: 'Profil',
+                                  onPressed: () => context.go(AppRoutes.profil),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          // Role Badge Pill
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: roleColors.accent.withValues(alpha: 0.22),
+                              borderRadius: BorderRadius.circular(
+                                AppRadius.pill,
+                              ),
+                              border: Border.all(
+                                color: roleColors.accent.withValues(
+                                  alpha: 0.45,
+                                ),
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: BoxDecoration(
+                                    color: roleColors.accent,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  roleLabel,
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 1.1,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ],
                             ),
                           ),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.14),
-                              borderRadius: BorderRadius.circular(AppRadius.md),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.2),
-                                width: 1,
-                              ),
+                          const SizedBox(height: 6),
+                          // Greeting
+                          Text(
+                            user != null
+                                ? 'Halo, ${user.name}'
+                                : 'AkademiHub',
+                            style: const TextStyle(
+                              fontSize: 23,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              letterSpacing: -0.4,
                             ),
-                            child: IconButton(
-                              icon: const Icon(
-                                Icons.notifications_outlined,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                              tooltip: 'Notifikasi',
-                              onPressed: () =>
-                                  context.push(AppRoutes.notifications),
-                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(width: AppSpacing.xs),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.14),
-                              borderRadius: BorderRadius.circular(AppRadius.md),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.2),
-                                width: 1,
+                          const SizedBox(height: 2),
+                          // Academic Subtitle Meta
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.verified_user_outlined,
+                                size: 13,
+                                color: AppColors.primaryLight,
                               ),
-                            ),
-                            child: IconButton(
-                              icon: const Icon(
-                                Icons.account_circle_outlined,
-                                color: Colors.white,
-                                size: 20,
+                              const SizedBox(width: 4),
+                              Text(
+                                'Siswa Aktif • TA 2026/2027',
+                                style: TextStyle(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white.withValues(alpha: 0.8),
+                                ),
                               ),
-                              tooltip: 'Profil',
-                              onPressed: () => context.go(AppRoutes.profil),
-                            ),
+                            ],
                           ),
                         ],
                       ),
@@ -203,17 +292,17 @@ class _DashboardPageState extends State<DashboardPage> {
 
           // Scrollable Content with Overlap
           Positioned.fill(
-            top: 130 + topInset,
+            top: 172 + topInset,
             child: Container(
               decoration: const BoxDecoration(
                 color: AppColors.paper,
                 borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(AppRadius.xl),
+                  top: Radius.circular(AppRadius.lg),
                 ),
               ),
               child: ClipRRect(
                 borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(AppRadius.xl),
+                  top: Radius.circular(AppRadius.lg),
                 ),
                 child: BatasLebarKonten(
                   child: BlocBuilder<DashboardBloc, DashboardState>(

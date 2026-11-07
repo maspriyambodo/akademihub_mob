@@ -27,34 +27,24 @@ _QuickAction _action({
   required IconData icon,
   required String route,
 }) {
-  // Meaningful category color palette by route
+  // Vibrant, intentional SaaS color taxonomy by feature route
   final (tint, color) = switch (route) {
-    AppRoutes.materi ||
-    AppRoutes.jadwal ||
-    AppRoutes.ujian ||
-    AppRoutes.perpustakaan => (
-      AppColors.role('siswa').container,
-      AppColors.role('siswa').onContainer,
-    ),
-    AppRoutes.absensi => (
-      AppColors.semantic(AppStatusTone.success).container,
-      AppColors.semantic(AppStatusTone.success).onContainer,
-    ),
-    AppRoutes.forum ||
-    AppRoutes.notifications ||
-    AppRoutes.organisasi => (AppColors.primaryLight, AppColors.primaryDark),
-    AppRoutes.keuangan ||
-    AppRoutes.tugas ||
-    AppRoutes.rapor ||
-    AppRoutes.tmb ||
-    AppRoutes.kalender => (
-      AppColors.semantic(AppStatusTone.warning).container,
-      AppColors.semantic(AppStatusTone.warning).onContainer,
-    ),
-    AppRoutes.bk || AppRoutes.ews => (
-      AppColors.semantic(AppStatusTone.error).container,
-      AppColors.semantic(AppStatusTone.error).onContainer,
-    ),
+    AppRoutes.perpustakaan => (const Color(0xFFEEF2FF), const Color(0xFF4F46E5)),
+    AppRoutes.absensi => (const Color(0xFFD1FAE5), const Color(0xFF059669)),
+    AppRoutes.nilai => (const Color(0xFFFEF3C7), const Color(0xFFD97706)),
+    AppRoutes.jadwal => (const Color(0xFFE0F2FE), const Color(0xFF0284C7)),
+    AppRoutes.tugas => (const Color(0xFFF3E8FF), const Color(0xFF7C3AED)),
+    AppRoutes.rapor => (const Color(0xFFFFE4E6), const Color(0xFFE11D48)),
+    AppRoutes.keuangan => (const Color(0xFFCCFBF1), const Color(0xFF0D9488)),
+    AppRoutes.materi => (const Color(0xFFCFFAFE), const Color(0xFF0891B2)),
+    AppRoutes.ujian => (const Color(0xFFEDE9FE), const Color(0xFF6D28D9)),
+    AppRoutes.tmb => (const Color(0xFFFCE7F3), const Color(0xFFBE185D)),
+    AppRoutes.notifications => (const Color(0xFFDBEAFE), const Color(0xFF2563EB)),
+    AppRoutes.forum => (const Color(0xFFFFEDD5), const Color(0xFFEA580C)),
+    AppRoutes.ekstrakurikuler => (const Color(0xFFECFCCB), const Color(0xFF65A30D)),
+    AppRoutes.kalender => (const Color(0xFFF1F5F9), const Color(0xFF475569)),
+    AppRoutes.bk => (const Color(0xFFFFE4E6), const Color(0xFFE11D48)),
+    AppRoutes.ews => (const Color(0xFFFEE2E2), const Color(0xFFDC2626)),
     _ => (AppColors.paperMuted, AppColors.inkSoft),
   };
 
@@ -372,10 +362,10 @@ class _DashboardQuickActionsState extends State<DashboardQuickActions> {
         ),
         const SizedBox(height: AppSpacing.sm),
         AppSurfaceCard(
-          padding: const EdgeInsets.all(AppSpacing.md),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.md),
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final crossAxisCount = constraints.maxWidth < 360
+              final crossAxisCount = constraints.maxWidth < 320
                   ? 3
                   : constraints.maxWidth < 600
                   ? 4
@@ -386,9 +376,9 @@ class _DashboardQuickActionsState extends State<DashboardQuickActions> {
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: crossAxisCount,
-                  mainAxisSpacing: AppSpacing.sm,
+                  mainAxisSpacing: AppSpacing.md,
                   crossAxisSpacing: AppSpacing.xs,
-                  mainAxisExtent: 84,
+                  mainAxisExtent: 90,
                 ),
                 itemCount: visibleActions.length,
                 itemBuilder: (context, index) {
@@ -400,33 +390,35 @@ class _DashboardQuickActionsState extends State<DashboardQuickActions> {
                     splashColor: item.iconColor.withValues(alpha: 0.15),
                     highlightColor: Colors.transparent,
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      padding: const EdgeInsets.symmetric(vertical: 2),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // ponytail: Bento gradient tile; add micro-spring scale animation when design tokens expand.
                           Container(
-                            width: 44,
-                            height: 44,
+                            width: 48,
+                            height: 48,
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                                 colors: [
                                   item.tintColor,
-                                  item.tintColor.withValues(alpha: 0.75),
+                                  Color.alphaBlend(
+                                    item.iconColor.withValues(alpha: 0.12),
+                                    item.tintColor,
+                                  ),
                                 ],
                               ),
-                              borderRadius: BorderRadius.circular(AppRadius.md),
+                              borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: item.iconColor.withValues(alpha: 0.18),
-                                width: 1,
+                                color: item.iconColor.withValues(alpha: 0.22),
+                                width: 1.2,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: item.iconColor.withValues(alpha: 0.08),
+                                  color: item.iconColor.withValues(alpha: 0.10),
                                   offset: const Offset(0, 3),
-                                  blurRadius: 6,
+                                  blurRadius: 8,
                                 ),
                               ],
                             ),
@@ -436,14 +428,15 @@ class _DashboardQuickActionsState extends State<DashboardQuickActions> {
                               size: 22,
                             ),
                           ),
-                          const SizedBox(height: AppSpacing.xxs),
+                          const SizedBox(height: 6),
                           Text(
                             item.label,
                             style: const TextStyle(
-                              fontSize: 11,
+                              fontSize: 11.5,
                               fontWeight: FontWeight.w600,
                               color: AppColors.ink,
-                              height: 1.2,
+                              letterSpacing: -0.2,
+                              height: 1.15,
                             ),
                             textAlign: TextAlign.center,
                             maxLines: 2,

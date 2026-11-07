@@ -46,55 +46,55 @@ abstract final class AppRadius {
 }
 
 class AppColors {
-  static const Color ink = Color(0xFF102A43);
+  static const Color ink = Color(0xFF0F172A);
   static const Color textPrimary = ink;
-  static const Color inkSoft = Color(0xFF334E68);
+  static const Color inkSoft = Color(0xFF334155);
   static const Color textSecondary = inkSoft;
-  static const Color inkMuted = Color(0xFF526D82);
+  static const Color inkMuted = Color(0xFF64748B);
   static const Color textHint = inkMuted;
-  static const Color paper = Color(0xFFF7F5EF);
+  static const Color paper = Color(0xFFF8FAFC);
   static const Color surface = paper;
-  static const Color paperBright = Color(0xFFFFFDF8);
+  static const Color paperBright = Color(0xFFFFFFFF);
   static const Color cardBg = paperBright;
-  static const Color paperMuted = Color(0xFFEDF3F2);
+  static const Color paperMuted = Color(0xFFF1F5F9);
   static const Color surfaceMuted = paperMuted;
-  static const Color line = Color(0xFFD8E2E1);
+  static const Color line = Color(0xFFE2E8F0);
   static const Color divider = line;
-  static const Color primary = Color(0xFF087F75);
-  static const Color primaryDark = Color(0xFF123B46);
-  static const Color primaryLight = Color(0xFFBFE8DF);
-  static const Color secondary = Color(0xFFE9A23B);
-  static const Color accent = Color(0xFF3F67B1);
+  static const Color primary = Color(0xFF0284C7);
+  static const Color primaryDark = Color(0xFF0B192C);
+  static const Color primaryLight = Color(0xFFE0F2FE);
+  static const Color secondary = Color(0xFFF59E0B);
+  static const Color accent = Color(0xFF6366F1);
 
-  static const Color siswaAccent = Color(0xFF168AAD);
-  static const Color siswaContainer = Color(0xFFDDF3F8);
-  static const Color siswaOnContainer = Color(0xFF0B5065);
+  static const Color siswaAccent = Color(0xFF0284C7);
+  static const Color siswaContainer = Color(0xFFE0F2FE);
+  static const Color siswaOnContainer = Color(0xFF075985);
   static const Color siswaColor = siswaAccent;
-  static const Color guruAccent = Color(0xFF4F63A8);
-  static const Color guruContainer = Color(0xFFE7EAF7);
-  static const Color guruOnContainer = Color(0xFF293665);
+  static const Color guruAccent = Color(0xFF6366F1);
+  static const Color guruContainer = Color(0xFFEEF2FF);
+  static const Color guruOnContainer = Color(0xFF3730A3);
   static const Color guruColor = guruAccent;
-  static const Color waliAccent = Color(0xFFC47A16);
-  static const Color waliContainer = Color(0xFFF9EBCF);
-  static const Color waliOnContainer = Color(0xFF70430B);
+  static const Color waliAccent = Color(0xFFD97706);
+  static const Color waliContainer = Color(0xFFFEF3C7);
+  static const Color waliOnContainer = Color(0xFF92400E);
   static const Color waliColor = waliAccent;
-  static const Color adminAccent = Color(0xFFB94B5F);
-  static const Color adminContainer = Color(0xFFF8E2E7);
-  static const Color adminOnContainer = Color(0xFF702638);
+  static const Color adminAccent = Color(0xFFE11D48);
+  static const Color adminContainer = Color(0xFFFFE4E6);
+  static const Color adminOnContainer = Color(0xFF9F1239);
   static const Color adminColor = adminAccent;
 
-  static const Color success = Color(0xFF2F7D4A);
-  static const Color successContainer = Color(0xFFDFF3E5);
-  static const Color successOnContainer = Color(0xFF174A2B);
-  static const Color warning = Color(0xFFA85F08);
-  static const Color warningContainer = Color(0xFFFCEACB);
-  static const Color warningOnContainer = Color(0xFF653604);
-  static const Color error = Color(0xFFB43C46);
-  static const Color errorContainer = Color(0xFFF8DFE1);
-  static const Color errorOnContainer = Color(0xFF6E2027);
-  static const Color info = Color(0xFF276C99);
-  static const Color infoContainer = Color(0xFFDDEEF7);
-  static const Color infoOnContainer = Color(0xFF15445F);
+  static const Color success = Color(0xFF10B981);
+  static const Color successContainer = Color(0xFFD1FAE5);
+  static const Color successOnContainer = Color(0xFF065F46);
+  static const Color warning = Color(0xFFF59E0B);
+  static const Color warningContainer = Color(0xFFFEF3C7);
+  static const Color warningOnContainer = Color(0xFF92400E);
+  static const Color error = Color(0xFFEF4444);
+  static const Color errorContainer = Color(0xFFFEE2E2);
+  static const Color errorOnContainer = Color(0xFF991B1B);
+  static const Color info = Color(0xFF3B82F6);
+  static const Color infoContainer = Color(0xFFDBEAFE);
+  static const Color infoOnContainer = Color(0xFF1E40AF);
 
   static AppRoleColorGroup role(String? roleName) =>
       switch (roleName?.toLowerCase().trim()) {
@@ -432,29 +432,33 @@ class AppTheme {
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
-        height: 72,
+        height: 64,
         elevation: 0,
-        backgroundColor: AppColors.paperBright,
+        backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
-        indicatorColor: AppColors.primaryDark,
-        indicatorShape: const StadiumBorder(),
+        indicatorColor: AppColors.primary.withValues(alpha: 0.12),
+        indicatorShape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.sm),
+        ),
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         iconTheme: WidgetStateProperty.resolveWith(
           (states) => IconThemeData(
             color: states.contains(WidgetState.selected)
-                ? Colors.white
+                ? AppColors.primary
                 : AppColors.inkMuted,
-            size: 22,
+            size: 20,
           ),
         ),
         labelTextStyle: WidgetStateProperty.resolveWith(
           (states) => TextStyle(
             color: states.contains(WidgetState.selected)
-                ? AppColors.ink
+                ? AppColors.primary
                 : AppColors.inkMuted,
-            fontSize: 11,
+            fontSize: 10,
             fontWeight: states.contains(WidgetState.selected)
                 ? FontWeight.w700
                 : FontWeight.w500,
+            letterSpacing: 0.2,
           ),
         ),
       ),
