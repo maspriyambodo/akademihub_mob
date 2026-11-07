@@ -150,12 +150,24 @@ class SiswaDashboardWidget extends StatelessWidget {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // ponytail: Academic task icon container; add subject-specific badge coloring when course taxonomy lands.
                         Container(
-                          width: 40,
-                          height: 40,
+                          width: 42,
+                          height: 42,
                           decoration: BoxDecoration(
-                            color: AppColors.secondary.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(AppRadius.sm),
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                AppColors.secondary.withValues(alpha: 0.22),
+                                AppColors.secondary.withValues(alpha: 0.1),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(AppRadius.md),
+                            border: Border.all(
+                              color: AppColors.secondary.withValues(alpha: 0.35),
+                              width: 1,
+                            ),
                           ),
                           child: const Icon(
                             Icons.assignment_outlined,
@@ -173,7 +185,7 @@ class SiswaDashboardWidget extends StatelessWidget {
                                 style: Theme.of(context).textTheme.titleSmall
                                     ?.copyWith(
                                       color: AppColors.ink,
-                                      fontWeight: FontWeight.w600,
+                                      fontWeight: FontWeight.w700,
                                     ),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
@@ -181,10 +193,31 @@ class SiswaDashboardWidget extends StatelessWidget {
                               if (task['deadline'] != null ||
                                   task['batas_waktu'] != null) ...[
                                 const SizedBox(height: AppSpacing.xxs),
-                                Text(
-                                  'Tenggat: ${task['deadline'] ?? task['batas_waktu']}',
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(color: AppColors.inkMuted),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.paperMuted,
+                                    borderRadius: BorderRadius.circular(
+                                      AppRadius.sm,
+                                    ),
+                                    border: Border.all(
+                                      color: AppColors.line.withValues(
+                                        alpha: 0.5,
+                                      ),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'Tenggat: ${task['deadline'] ?? task['batas_waktu']}',
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: AppColors.inkSoft,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                  ),
                                 ),
                               ],
                             ],
@@ -226,9 +259,13 @@ class SiswaDashboardWidget extends StatelessWidget {
                           height: 36,
                           decoration: BoxDecoration(
                             color: AppColors.primaryLight.withValues(
-                              alpha: 0.5,
+                              alpha: 0.6,
                             ),
                             borderRadius: BorderRadius.circular(AppRadius.sm),
+                            border: Border.all(
+                              color: AppColors.primary.withValues(alpha: 0.25),
+                              width: 1,
+                            ),
                           ),
                           child: const Icon(
                             Icons.grade_outlined,
@@ -247,7 +284,7 @@ class SiswaDashboardWidget extends StatelessWidget {
                                     'Mata Pelajaran',
                                 style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(
-                                      fontWeight: FontWeight.w600,
+                                      fontWeight: FontWeight.w700,
                                       color: AppColors.ink,
                                     ),
                                 maxLines: 1,
@@ -265,19 +302,33 @@ class SiswaDashboardWidget extends StatelessWidget {
                             ],
                           ),
                         ),
-                        Text(
-                          '${grade['nilai'] ?? '-'}',
-                          style:
-                              (Theme.of(
-                                        context,
-                                      ).extension<AppDataTypography>()?.value ??
-                                      Theme.of(context).textTheme.titleMedium ??
-                                      const TextStyle())
-                                  .copyWith(
-                                    color: AppColors.primaryDark,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryLight.withValues(alpha: 0.45),
+                            borderRadius: BorderRadius.circular(AppRadius.pill),
+                            border: Border.all(
+                              color: AppColors.primary.withValues(alpha: 0.25),
+                              width: 1,
+                            ),
+                          ),
+                          child: Text(
+                            '${grade['nilai'] ?? '-'}',
+                            style:
+                                (Theme.of(
+                                          context,
+                                        ).extension<AppDataTypography>()?.value ??
+                                        Theme.of(context).textTheme.titleMedium ??
+                                        const TextStyle())
+                                    .copyWith(
+                                      color: AppColors.primaryDark,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                          ),
                         ),
                       ],
                     ),

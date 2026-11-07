@@ -30,12 +30,17 @@ class DashboardStatCard extends StatelessWidget {
         children: [
           Row(
             children: [
+              // ponytail: Glass-tinted icon container; add animated pulse when live metric status updates land.
               Container(
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.15),
+                  color: color.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(AppRadius.sm),
+                  border: Border.all(
+                    color: color.withValues(alpha: 0.25),
+                    width: 1,
+                  ),
                 ),
                 child: Icon(icon, color: color, size: 18),
               ),

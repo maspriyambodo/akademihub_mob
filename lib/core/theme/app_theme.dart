@@ -156,12 +156,64 @@ class AppColors {
 
 abstract final class AppElevation {
   static const List<BoxShadow> level0 = [];
+  // ponytail: Multi-layered soft ambient shadows; switch to platform shadow shaders when Impeller performance profiles allow.
   static const List<BoxShadow> level1 = [
-    BoxShadow(color: Color(0x0F102A43), offset: Offset(0, 4), blurRadius: 14),
+    BoxShadow(
+      color: Color(0x0A102A43),
+      offset: Offset(0, 2),
+      blurRadius: 8,
+      spreadRadius: -1,
+    ),
+    BoxShadow(
+      color: Color(0x0E102A43),
+      offset: Offset(0, 6),
+      blurRadius: 18,
+      spreadRadius: -2,
+    ),
   ];
   static const List<BoxShadow> level2 = [
-    BoxShadow(color: Color(0x1A102A43), offset: Offset(0, 10), blurRadius: 28),
+    BoxShadow(
+      color: Color(0x0D102A43),
+      offset: Offset(0, 4),
+      blurRadius: 12,
+      spreadRadius: -2,
+    ),
+    BoxShadow(
+      color: Color(0x18102A43),
+      offset: Offset(0, 16),
+      blurRadius: 32,
+      spreadRadius: -4,
+    ),
   ];
+}
+
+abstract final class AppGradients {
+  static const LinearGradient primary = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [AppColors.primaryDark, AppColors.primary],
+  );
+
+  static LinearGradient roleHero(Color roleAccent) => LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      AppColors.primaryDark,
+      Color.alphaBlend(roleAccent.withValues(alpha: 0.7), AppColors.primaryDark),
+    ],
+  );
+
+  static const LinearGradient cardGlow = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Colors.white, AppColors.paperBright],
+  );
+
+  static LinearGradient badgeGlow(Color base) => LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [base.withValues(alpha: 0.18), base.withValues(alpha: 0.08)],
+  );
 }
 
 class AppTheme {

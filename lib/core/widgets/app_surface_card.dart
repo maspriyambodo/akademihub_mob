@@ -28,12 +28,21 @@ class AppSurfaceCard extends StatelessWidget {
 
     Widget content = Padding(padding: padding, child: child);
 
+    // ponytail: Subtle border radius on vertical accent bar; full shape border when custom card border styling requested.
     if (accentColor != null) {
       content = IntrinsicHeight(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(width: 4, color: accentColor),
+            Container(
+              width: 4,
+              decoration: BoxDecoration(
+                color: accentColor,
+                borderRadius: const BorderRadius.horizontal(
+                  left: Radius.circular(2),
+                ),
+              ),
+            ),
             Expanded(child: content),
           ],
         ),
@@ -43,7 +52,13 @@ class AppSurfaceCard extends StatelessWidget {
     Widget cardBody = Material(
       color: Colors.transparent,
       child: onTap != null
-          ? InkWell(onTap: onTap, borderRadius: borderRadius, child: content)
+          ? InkWell(
+              onTap: onTap,
+              borderRadius: borderRadius,
+              splashColor: AppColors.primaryLight.withValues(alpha: 0.25),
+              highlightColor: Colors.transparent,
+              child: content,
+            )
           : content,
     );
 
@@ -51,7 +66,10 @@ class AppSurfaceCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.paperBright,
         borderRadius: borderRadius,
-        border: Border.all(color: AppColors.line.withValues(alpha: 0.55)),
+        border: Border.all(
+          color: AppColors.line.withValues(alpha: 0.6),
+          width: 1.0,
+        ),
         boxShadow: AppElevation.level1,
       ),
       clipBehavior: Clip.antiAlias,

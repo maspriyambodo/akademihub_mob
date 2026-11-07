@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shimmer/shimmer.dart';
 
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -92,16 +93,49 @@ class _DashboardPageState extends State<DashboardPage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text(
-                                  roleLabel,
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 1.2,
-                                    color: roleColors.container,
+                                // ponytail: Role badge pill with glow indicator; add pulse animation when SSE presence connects.
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 3,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.14),
+                                    borderRadius: BorderRadius.circular(
+                                      AppRadius.pill,
+                                    ),
+                                    border: Border.all(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.22,
+                                      ),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        width: 6,
+                                        height: 6,
+                                        decoration: BoxDecoration(
+                                          color: roleColors.accent,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        roleLabel,
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w800,
+                                          letterSpacing: 1.2,
+                                          color: roleColors.container,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                const SizedBox(height: 2),
+                                const SizedBox(height: 6),
                                 Text(
                                   user != null
                                       ? 'Halo, ${user.name}'
@@ -110,6 +144,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                     fontSize: 22,
                                     fontWeight: FontWeight.w700,
                                     color: Colors.white,
+                                    letterSpacing: -0.3,
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -117,22 +152,45 @@ class _DashboardPageState extends State<DashboardPage> {
                               ],
                             ),
                           ),
-                          IconButton(
-                            icon: const Icon(
-                              Icons.notifications_outlined,
-                              color: Colors.white,
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.14),
+                              borderRadius: BorderRadius.circular(AppRadius.md),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.2),
+                                width: 1,
+                              ),
                             ),
-                            tooltip: 'Notifikasi',
-                            onPressed: () =>
-                                context.push(AppRoutes.notifications),
+                            child: IconButton(
+                              icon: const Icon(
+                                Icons.notifications_outlined,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                              tooltip: 'Notifikasi',
+                              onPressed: () =>
+                                  context.push(AppRoutes.notifications),
+                            ),
                           ),
-                          IconButton(
-                            icon: const Icon(
-                              Icons.account_circle_outlined,
-                              color: Colors.white,
+                          const SizedBox(width: AppSpacing.xs),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.14),
+                              borderRadius: BorderRadius.circular(AppRadius.md),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.2),
+                                width: 1,
+                              ),
                             ),
-                            tooltip: 'Profil',
-                            onPressed: () => context.go(AppRoutes.profil),
+                            child: IconButton(
+                              icon: const Icon(
+                                Icons.account_circle_outlined,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                              tooltip: 'Profil',
+                              onPressed: () => context.go(AppRoutes.profil),
+                            ),
                           ),
                         ],
                       ),
@@ -243,29 +301,51 @@ class _HeroPatternPainter extends StatelessWidget {
 class _HeroPattern extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.05)
-      ..strokeWidth = 1.0;
+    // Ambient glow orb 1 (top right)
+    final orb1 = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          Colors.white.withValues(alpha: 0.12),
+          Colors.white.withValues(alpha: 0.0),
+        ],
+      ).createShader(
+        Rect.fromCircle(
+          center: Offset(size.width * 0.88, size.height * 0.22),
+          radius: 96,
+        ),
+      );
+    canvas.drawCircle(Offset(size.width * 0.88, size.height * 0.22), 96, orb1);
 
-    canvas.drawLine(
-      Offset(0, size.height * 0.4),
-      Offset(size.width, size.height * 0.4),
-      paint,
-    );
-    canvas.drawLine(
-      Offset(0, size.height * 0.7),
-      Offset(size.width, size.height * 0.7),
-      paint,
-    );
+    // Ambient glow orb 2 (bottom left accent)
+    final orb2 = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          Colors.white.withValues(alpha: 0.07),
+          Colors.white.withValues(alpha: 0.0),
+        ],
+      ).createShader(
+        Rect.fromCircle(
+          center: Offset(size.width * 0.12, size.height * 0.85),
+          radius: 80,
+        ),
+      );
+    canvas.drawCircle(Offset(size.width * 0.12, size.height * 0.85), 80, orb2);
 
-    final circlePaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.04)
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(
-      Offset(size.width * 0.9, size.height * 0.25),
-      64,
-      circlePaint,
-    );
+    // Dynamic wave contour
+    final wavePaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.06)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+
+    final path = Path()
+      ..moveTo(0, size.height * 0.52)
+      ..quadraticBezierTo(
+        size.width * 0.45,
+        size.height * 0.32,
+        size.width,
+        size.height * 0.62,
+      );
+    canvas.drawPath(path, wavePaint);
   }
 
   @override
@@ -278,41 +358,46 @@ class _DashboardSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pad = Responsive.pagePadding(context);
-    return ListView(
-      padding: EdgeInsets.fromLTRB(pad.left, AppSpacing.lg, pad.right, 96),
-      children: [
-        Row(
-          children: List.generate(
-            2,
-            (_) => Expanded(
-              child: Container(
-                height: 90,
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.paperBright,
-                  borderRadius: BorderRadius.circular(AppRadius.lg),
+    // ponytail: Shimmer skeleton placeholder; add staggered delay animation when widget load benchmarking justifies it.
+    return Shimmer.fromColors(
+      baseColor: AppColors.paperMuted,
+      highlightColor: AppColors.paperBright,
+      child: ListView(
+        padding: EdgeInsets.fromLTRB(pad.left, AppSpacing.lg, pad.right, 96),
+        children: [
+          Row(
+            children: List.generate(
+              2,
+              (_) => Expanded(
+                child: Container(
+                  height: 90,
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.paperBright,
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        Container(
-          height: 140,
-          decoration: BoxDecoration(
-            color: AppColors.paperBright,
-            borderRadius: BorderRadius.circular(AppRadius.lg),
+          const SizedBox(height: AppSpacing.md),
+          Container(
+            height: 140,
+            decoration: BoxDecoration(
+              color: AppColors.paperBright,
+              borderRadius: BorderRadius.circular(AppRadius.lg),
+            ),
           ),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        Container(
-          height: 180,
-          decoration: BoxDecoration(
-            color: AppColors.paperBright,
-            borderRadius: BorderRadius.circular(AppRadius.lg),
+          const SizedBox(height: AppSpacing.md),
+          Container(
+            height: 180,
+            decoration: BoxDecoration(
+              color: AppColors.paperBright,
+              borderRadius: BorderRadius.circular(AppRadius.lg),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

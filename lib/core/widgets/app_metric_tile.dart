@@ -34,6 +34,7 @@ class AppMetricTile extends StatelessWidget {
               color: AppColors.ink,
               fontSize: 22,
               fontWeight: FontWeight.w700,
+              letterSpacing: -0.5,
             );
 
     final semanticText = StringBuffer('$label, $value');
@@ -53,12 +54,17 @@ class AppMetricTile extends StatelessWidget {
           children: [
             Row(
               children: [
+                // ponytail: Tone container with micro-border; add radial gradient when micro-interaction polish needed.
                 Container(
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
                     color: colors.container,
                     borderRadius: BorderRadius.circular(AppRadius.sm),
+                    border: Border.all(
+                      color: colors.accent.withValues(alpha: 0.25),
+                      width: 1,
+                    ),
                   ),
                   child: Icon(icon, size: 18, color: colors.onContainer),
                 ),

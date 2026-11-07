@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -154,23 +156,27 @@ class _MainShellState extends State<MainShell> {
                     boxShadow: AppElevation.level2,
                   ),
                   clipBehavior: Clip.antiAlias,
-                  child: NavigationBar(
-                    height: 70,
-                    elevation: 0,
-                    backgroundColor: Colors.transparent,
-                    surfaceTintColor: Colors.transparent,
-                    selectedIndex: selectedIndex,
-                    onDestinationSelected: goTo,
-                    destinations: tabs
-                        .map(
-                          (t) => NavigationDestination(
-                            icon: Icon(t.icon),
-                            selectedIcon: Icon(t.selectedIcon),
-                            label: t.label,
-                            tooltip: t.label,
-                          ),
-                        )
-                        .toList(),
+                  // ponytail: Frosted floating dock; add animated tab slide indicators when custom bottom bar preferred.
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                    child: NavigationBar(
+                      height: 70,
+                      elevation: 0,
+                      backgroundColor: Colors.transparent,
+                      surfaceTintColor: Colors.transparent,
+                      selectedIndex: selectedIndex,
+                      onDestinationSelected: goTo,
+                      destinations: tabs
+                          .map(
+                            (t) => NavigationDestination(
+                              icon: Icon(t.icon),
+                              selectedIcon: Icon(t.selectedIcon),
+                              label: t.label,
+                              tooltip: t.label,
+                            ),
+                          )
+                          .toList(),
+                    ),
                   ),
                 ),
               ),

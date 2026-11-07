@@ -397,17 +397,38 @@ class _DashboardQuickActionsState extends State<DashboardQuickActions> {
                   return InkWell(
                     onTap: () => context.push(item.route),
                     borderRadius: BorderRadius.circular(AppRadius.md),
+                    splashColor: item.iconColor.withValues(alpha: 0.15),
+                    highlightColor: Colors.transparent,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
+                          // ponytail: Bento gradient tile; add micro-spring scale animation when design tokens expand.
                           Container(
                             width: 44,
                             height: 44,
                             decoration: BoxDecoration(
-                              color: item.tintColor,
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  item.tintColor,
+                                  item.tintColor.withValues(alpha: 0.75),
+                                ],
+                              ),
                               borderRadius: BorderRadius.circular(AppRadius.md),
+                              border: Border.all(
+                                color: item.iconColor.withValues(alpha: 0.18),
+                                width: 1,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: item.iconColor.withValues(alpha: 0.08),
+                                  offset: const Offset(0, 3),
+                                  blurRadius: 6,
+                                ),
+                              ],
                             ),
                             child: Icon(
                               item.icon,
@@ -418,10 +439,10 @@ class _DashboardQuickActionsState extends State<DashboardQuickActions> {
                           const SizedBox(height: AppSpacing.xxs),
                           Text(
                             item.label,
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.inkSoft,
+                              color: AppColors.ink,
                               height: 1.2,
                             ),
                             textAlign: TextAlign.center,
