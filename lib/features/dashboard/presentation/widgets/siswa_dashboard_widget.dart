@@ -224,9 +224,17 @@ class SiswaDashboardWidget extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                grade['mapel'] ??
-                                    grade['judul'] ??
-                                    'Mata Pelajaran',
+                                () {
+                                  final mapel = grade['nama_mapel'] ?? grade['mapel'];
+                                  if (mapel != null && mapel.toString().trim().isNotEmpty) {
+                                    return mapel.toString();
+                                  }
+                                  final ujian = grade['nama_ujian'] ?? grade['judul'];
+                                  if (ujian != null && ujian.toString().trim().isNotEmpty) {
+                                    return ujian.toString();
+                                  }
+                                  return 'Mata Pelajaran';
+                                }(),
                                 style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(
                                       fontWeight: FontWeight.w700,
@@ -235,9 +243,18 @@ class SiswaDashboardWidget extends StatelessWidget {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              if (grade['tipe'] != null)
+                              if ((() {
+                                final tipe = grade['tipe'] ?? grade['nama_ujian'];
+                                final mapel = grade['nama_mapel'] ?? grade['mapel'];
+                                if (tipe != null &&
+                                    tipe.toString().trim().isNotEmpty &&
+                                    (mapel != null && mapel.toString().trim().isNotEmpty)) {
+                                  return tipe.toString();
+                                }
+                                return null;
+                              })() != null)
                                 Text(
-                                  '${grade['tipe']}',
+                                  (grade['tipe'] ?? grade['nama_ujian']).toString(),
                                   style: Theme.of(context).textTheme.bodySmall
                                       ?.copyWith(
                                         color: AppColors.inkMuted,
